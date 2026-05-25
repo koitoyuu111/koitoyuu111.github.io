@@ -287,15 +287,21 @@ const bannerOffset =
 				opacity: var(--bg-opacity) !important;
 			}
 
-				/* scroll mode: use absolute position so background scrolls with page */
+				/* scroll mode: apply background to body directly */
 				body[data-bg-attachment="scroll"]::before {
-					position: absolute !important;
-					background-position: top !important;
+					display: none !important;
 				}
 				body[data-bg-attachment="scroll"] {
-					position: relative !important;
+					background-image: var(--bg-url) !important;
+					background-position: top !important;
+					background-size: cover !important;
+					background-repeat: no-repeat !important;
+					background-attachment: scroll !important;
 				}
-			
+				body[data-bg-attachment="scroll"].bg-loaded {
+					background-image: var(--bg-url) !important;
+				}
+				}
 			/* iOS Safari 特殊处理：强制 fixed 定位 */
 			@supports (-webkit-touch-callout: none) {
 				body::before {
