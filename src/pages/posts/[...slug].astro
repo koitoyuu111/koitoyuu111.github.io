@@ -58,10 +58,26 @@ const jsonLd = {
                 </div>
                 <div class="flex flex-row items-center">
                     <div class="transition h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 text-black/50 dark:text-white/50 flex items-center justify-center mr-2">
-                        <Icon name="material-symbols:schedule-outline-rounded"></Icon>
+                        <Icon name="material-symbols:visibility-outline"></Icon>
                     </div>
-                    <div class="text-sm">{remarkPluginFrontmatter.minutes} 分钟</div>
+                    <div class="text-sm"><span id="post-pageviews">--</span> 次阅读</div>
                 </div>
+                <!-- 不蒜子页面计数 -->
+                <span id="busuanzi_container_page_pv" style="display:none"><span id="busuanzi_value_page_pv"></span></span>
+                <script is:inline>
+                    (function() {
+                        let attempts = 0;
+                        const check = setInterval(() => {
+                            const pv = document.getElementById("busuanzi_value_page_pv");
+                            if (pv && pv.textContent && pv.textContent !== "0") {
+                                const el = document.getElementById("post-pageviews");
+                                if (el) el.textContent = pv.textContent;
+                                clearInterval(check);
+                            }
+                            if (++attempts > 50) clearInterval(check);
+                        }, 200);
+                    })();
+                </script>
             </div>
 
             <!-- title -->

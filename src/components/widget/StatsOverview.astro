@@ -13,7 +13,6 @@ const formatMinutes = (m: number) => m >= 60 ? (m / 60).toFixed(1) + 'h' : m + '
   {[
     { label: '文章', value: totalPosts + ' 篇' },
     { label: '总字数', value: formatWords(totalWords) },
-    { label: '阅读时长', value: formatMinutes(totalMinutes) },
     { label: '均字数', value: formatWords(avgWords) },
   ].map(item => (
     <div class="text-center py-2 rounded-lg bg-[var(--btn-regular-bg)]">
