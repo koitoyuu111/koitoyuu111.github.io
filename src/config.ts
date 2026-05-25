@@ -39,7 +39,7 @@ export const siteConfig: SiteConfig = {
 		position: "center",
 		size: "cover",
 		repeat: "no-repeat",
-		attachment: "fixed",
+		attachment: "scroll",
 		opacity: 0.35,
 	},
 	toc: {
