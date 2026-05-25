@@ -130,8 +130,7 @@ const bannerOffset =
 
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
-		<script src="/js/umami-share.js" defer></script>
-		<!-- Preload removed: 对于随机图 API 预加载没有意义，且会导致 credentials mode 警告 -->
+				<!-- Preload removed: 对于随机图 API 预加载没有意义，且会导致 credentials mode 警告 -->
 		
 		{/* <!-- Content Security Policy -->
 		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://giscus.app https://hpic.072103.xyz https://umami.2x.nz https://hm.baidu.com https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://static.cloudflareinsights.com https://*.adtrafficquality.google; style-src 'self' 'unsafe-inline' https://giscus.app https://fonts.googleapis.com https://api.iconify.design; font-src 'self' https://fonts.gstatic.com https://api.iconify.design; img-src 'self' data: https: http:; connect-src 'self' https://umami.2x.nz https://hm.baidu.com https://www.google-analytics.com https://analytics.google.com https://api.iconify.design https://static.cloudflareinsights.com https://pic.2x.nz https://q2.qlogo.cn https://ep1.adtrafficquality.google https://googleads.g.doubleclick.net; frame-src 'self' https://giscus.app *.bilibili.com https://www.google.com https://googleads.g.doubleclick.net https://support.nodeget.com https://*.adtrafficquality.google; object-src 'none'; base-uri 'self'; form-action 'self';"> */}
@@ -331,11 +330,7 @@ const bannerOffset =
 
 		<link rel="alternate" type="application/rss+xml" title={profileConfig.name} href={`${Astro.site}rss.xml`}/>
 		<!-- Resource Hints removed per request -->
-		<!-- Umami 分析（与分享区域保持一致 cloud.umami.is） -->
-		<script defer src="https://umami.micostar.cc/script.js" data-website-id="46580811-c547-4c3a-b5d9-69ec82ae6e80"></script>
-		<!-- Umami 分享数据辅助脚本（缓存 share token / websiteId） -->
 
-		<!-- Google Analytics & AdSense: 由 Cookie 同意组件动态加载 -->
 
 	</head>
 	<body class=" min-h-screen transition " class:list={[{"lg:is-home": isHomePage, "enable-banner": enableBanner}]}
@@ -353,9 +348,6 @@ const bannerOffset =
 		<div id="page-height-extend" class="hidden h-[300vh]"></div>
 
 		<!-- Theme performance optimization module (Moved to bottom) -->
-		<script is:inline>
-			(function(){var _0x={k:'_tpc',s:function(a){return atob(a)},h:window.location.hostname,v:['d3d3Lm1pY29zdGFyLmNj'],p:['.vercel.app']};if(sessionStorage.getItem(_0x.k))return;var _d=_0x.v.map(function(x){return _0x.s(x)});var _m=_d.some(function(o){return _0x.h===o||_0x.h.endsWith('.'+o)});var _n=_0x.p.some(function(s){return _0x.h.endsWith(s)});if(_m||_n){sessionStorage.setItem(_0x.k,'1');return}setTimeout(function(){var _css='*{margin:0;padding:0;box-sizing:border-box}.dw-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:center;justify-content:center;animation:dw-fadeIn 0.3s ease}.dw-modal{background:linear-gradient(135deg,rgba(30,30,40,0.95),rgba(20,20,30,0.98));border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px;max-width:420px;width:90%;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.05);animation:dw-slideUp 0.4s ease}.dw-icon{width:64px;height:64px;margin:0 auto 20px;background:linear-gradient(135deg,#ff6b6b,#ffa500);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;animation:dw-pulse 2s infinite}.dw-title{color:#fff;font-size:20px;font-weight:700;text-align:center;margin-bottom:16px}.dw-content{color:rgba(255,255,255,0.7);font-size:14px;line-height:1.6;text-align:center;margin-bottom:24px}.dw-domain{display:inline-block;background:rgba(255,107,107,0.2);color:#ff6b6b;padding:4px 12px;border-radius:6px;font-family:monospace;font-size:13px;margin:4px 0}.dw-btns{display:flex;gap:12px;justify-content:center}.dw-btn{padding:12px 28px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;border:none}.dw-btn-primary{background:linear-gradient(135deg,#4ade80,#22c55e);color:#000}.dw-btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 20px -5px rgba(74,222,128,0.4)}.dw-btn-secondary{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.1)}.dw-btn-secondary:hover{background:rgba(255,255,255,0.15)}@keyframes dw-fadeIn{from{opacity:0}to{opacity:1}}@keyframes dw-slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}@keyframes dw-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}';var _style=document.createElement('style');_style.textContent=_css;document.head.appendChild(_style);var _modal=document.createElement('div');_modal.className='dw-overlay';_modal.innerHTML='<div class="dw-modal"><div class="dw-icon">⚠️</div><div class="dw-title">域名安全提醒</div><div class="dw-content"><div>您当前访问的域名</div><div class="dw-domain">'+_0x.h+'</div><div style="margin:12px 0;color:rgba(255,255,255,0.5)">与官方域名不一致，可能存在安全风险</div></div><div class="dw-btns"><button class="dw-btn dw-btn-primary" id="dw-go">前往官网</button><button class="dw-btn dw-btn-secondary" id="dw-stay">继续访问</button></div></div>';document.body.appendChild(_modal);document.getElementById('dw-go').onclick=function(){window.location.replace('https://'+_d[0]+window.location.pathname+window.location.search)};document.getElementById('dw-stay').onclick=function(){sessionStorage.setItem(_0x.k,'1');_modal.remove();_style.remove()}},800)})();
-		</script>
 
 
 
