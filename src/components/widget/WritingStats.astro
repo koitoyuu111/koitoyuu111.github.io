@@ -26,9 +26,7 @@ const className = Astro.props.class
   <WidgetLayout name="年度发文" id="stats-yearly" class="bg-[var(--card-bg)]">
     <StatsYearlyChart postsByYear={postsByYear} />
   </WidgetLayout>
-  {popularPosts.length > 0 && <WidgetLayout name="热门文章" id="stats-popular" class="bg-[var(--card-bg)]">
-    <StatsPopularPosts popularPosts={popularPosts} />
-  </WidgetLayout>}
+  
   <WidgetLayout name="最长文章" id="stats-posts" class="bg-[var(--card-bg)]">
     <StatsTopPosts longestPosts={longestPosts} />
   </WidgetLayout>
