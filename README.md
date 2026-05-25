@@ -10,7 +10,7 @@
 
 [🖥️ 在线预览](https://koitoyuu.github.io) · [📦 原始模板](https://github.com/saicaca/fuwari)
 
-以及此版本的魔改基础来自 [流转星(Betsy)/fuwari](https://github.com/Besty0728/fuwar)
+以及此版本的魔改基础来自 [流转星(Betsy)/fuwari](https://github.com/Besty0728/fuwar)，原作者 [Betsy](https://github.com/Besty0728)
 
 </div>
 
