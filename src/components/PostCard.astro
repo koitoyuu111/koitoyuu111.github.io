@@ -3,7 +3,6 @@ import path from "node:path";
 import type { CollectionEntry } from "astro:content";
 import { Icon } from "astro-icon/components";
 
-import { umamiConfig } from "../config";
 import { getDir } from "../utils/url-utils";
 import PostMetadata from "./PostMeta.astro";
 import ImageWrapper from "./misc/ImageWrapper.astro";
@@ -80,12 +79,6 @@ const { remarkPluginFrontmatter } = await entry.render();
                 <Icon name="material-symbols:notes-rounded" class="text-base text-[var(--primary)] opacity-90"></Icon>
                 <span>{remarkPluginFrontmatter.words} 字</span>
             </div>
-            <div class="flex items-center gap-3">
-                <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--btn-regular-bg)]/50 backdrop-blur-sm border border-[var(--line-divider)]">
-                    <Icon name="material-symbols:visibility-outline-rounded" class="text-base text-[var(--primary)] opacity-90"></Icon>
-                    <span id={`page-views-${entry.slug}`} class="font-medium">--</span>
-                </span>
-            </div>
         </div>
 
     </div>
@@ -122,7 +115,7 @@ const { remarkPluginFrontmatter } = await entry.render();
 </div>
 <div class="transition border-t-[1px] border-dashed mx-6 border-black/10 dark:border-white/[0.15] last:border-t-0 md:hidden"></div>
 
-<script define:vars={{ entry, umamiConfig }}>
+<script define:vars={{ entry }}>
     // 3D 悬浮视差效果
     function initTiltEffect() {
         const card = document.getElementById(`post-card-${entry.slug}`);
@@ -158,107 +151,6 @@ const { remarkPluginFrontmatter } = await entry.render();
 
         tiltElement.addEventListener('mousemove', handleMouseMove);
         tiltElement.addEventListener('mouseleave', handleMouseLeave);
-    }
-
-    // 获取文章浏览量统计
-    function updateStatsUI(slug, pageViews, visits) {
-        const viewsElement = document.getElementById(`page-views-${slug}`);
-        const visitsElement = document.getElementById(`page-visits-${slug}`);
-        if (viewsElement) {
-            viewsElement.textContent = pageViews.toString();
-        }
-        if (visitsElement) {
-            visitsElement.textContent = visits.toString();
-        }
-    }
-
-    // 获取文章浏览量统计
-    async function fetchPostCardViews(slug) {
-        if (!umamiConfig.enable) {
-            return;
-        }
-
-        // 1. 初始化并检查缓存
-        window.umamiCache = window.umamiCache || {};
-        if (window.umamiCache[slug]) {
-            const { pageViews, visitors } = window.umamiCache[slug];
-            updateStatsUI(slug, pageViews, visitors);
-            return;
-        }
-        
-        try {
-            // 调用全局工具获取 Umami 分享数据
-            const { websiteId, token } = await getUmamiShareData(umamiConfig.baseUrl, umamiConfig.shareId);
-            
-            // 第二步：获取统计数据（使用 path 参数过滤特定页面）
-            const currentTimestamp = Date.now();
-            const pagePath = encodeURIComponent(`eq./posts/${slug}/`);
-            const statsUrl = `${umamiConfig.baseUrl}/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}&path=${pagePath}`;
-            
-            const statsResponse = await fetch(statsUrl, {
-                headers: {
-                    'x-umami-share-token': token,
-                    'x-umami-share-context': 'true'
-                }
-            });
-            
-            if (statsResponse.status === 401) {
-                clearUmamiShareCache();
-                return await fetchPostCardViews(slug);
-            }
-            
-            if (!statsResponse.ok) {
-                throw new Error('获取统计数据失败');
-            }
-            
-            const statsData = await statsResponse.json();
-            const pageViews = statsData.pageviews || 0;
-            const visitors = statsData.visitors || 0; // 修复: 使用 visitors 而非 visits
-            
-            // 2. 写入缓存
-            window.umamiCache[slug] = { pageViews, visitors };
-            
-            // 3. 更新 UI
-            updateStatsUI(slug, pageViews, visitors);
-
-        } catch (error) {
-            console.error('Error fetching page views for', slug, ':', error);
-            updateStatsUI(slug, '-', '-');
-        }
-    }
-
-    // 页面加载完成后获取统计数据
-    function initPostCardStats() {
-        // 使用 IntersectionObserver 实现懒加载
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const slug = entry.target.dataset.slug;
-                    if (slug) {
-                        fetchPostCardViews(slug);
-                    }
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, {
-            rootMargin: '50px 0px', // 提前 50px 开始加载
-            threshold: 0.1
-        });
-
-        // 观察当前组件的根元素
-        const card = document.getElementById(`post-card-${entry.slug}`);
-        if (card) {
-            observer.observe(card);
-        }
-        
-        // 初始化 3D 效果
-        initTiltEffect();
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPostCardStats);
-    } else {
-        initPostCardStats();
     }
 </script>
 
