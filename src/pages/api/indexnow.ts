@@ -58,7 +58,7 @@ export const POST: APIRoute = async ({ request }) => {
 		const posts = await getCollection("posts");
 
 		// 构建要提交的 URL 列表
-		const baseUrl = "https://koitoyuu.github.io";
+		const baseUrl = "https://koitoyuu111.github.io";
 		const currentUrls = [
 			baseUrl, // 首页
 			`${baseUrl}/archive`, // 归档页
@@ -112,7 +112,7 @@ export const POST: APIRoute = async ({ request }) => {
 
 		// IndexNow 官方配置
 		const key = "4ff84931e3084c36bcc43c09ec05df75";
-		const host = "koitoyuu.github.io";
+		const host = "koitoyuu111.github.io";
 		const keyLocation = `${baseUrl}/${key}.txt`;
 
 		// 按照官方格式提交到 api.indexnow.org
