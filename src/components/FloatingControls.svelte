@@ -2,11 +2,10 @@
   import { onMount } from "svelte";
 
   // 排序模式
-  type SortMode = "published" | "updated" | "views";
+  type SortMode = "published" | "updated";
   const sortModes: { key: SortMode; label: string; icon: string }[] = [
     { key: "published", label: "文章创作时间", icon: "calendar" },
     { key: "updated", label: "文章更新时间", icon: "edit" },
-    { key: "views", label: "浏览量排序", icon: "fire" },
   ];
 
   let currentSortIndex = 0;
