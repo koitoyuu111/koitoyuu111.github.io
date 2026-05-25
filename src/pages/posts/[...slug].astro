@@ -1,0 +1,514 @@
+---
+import path from "node:path";
+import License from "@components/misc/License.astro";
+import Markdown from "@components/misc/Markdown.astro";
+
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+import { getSortedPosts } from "@utils/content-utils";
+import { getDir, getPostUrlBySlug } from "@utils/url-utils";
+import { Icon } from "astro-icon/components";
+import { licenseConfig } from "src/config";
+import PostMetadata from "../../components/PostMeta.astro";
+import ImageWrapper from "../../components/misc/ImageWrapper.astro";
+import { profileConfig, siteConfig } from "../../config";
+import { formatDateToYYYYMMDD } from "../../utils/date-utils";
+
+export async function getStaticPaths() {
+	const blogEntries = await getSortedPosts();
+	return blogEntries.map((entry) => ({
+		params: { slug: entry.slug },
+		props: { entry },
+	}));
+}
+
+const { entry } = Astro.props;
+const { Content, headings, remarkPluginFrontmatter } = await entry.render();
+
+const jsonLd = {
+	"@context": "https://schema.org",
+	"@type": "BlogPosting",
+	headline: entry.data.title,
+	description: entry.data.description || entry.data.title,
+	keywords: entry.data.tags,
+	author: {
+		"@type": "Person",
+		name: profileConfig.name,
+		url: Astro.site,
+	},
+	datePublished: formatDateToYYYYMMDD(entry.data.published),
+	inLanguage: entry.data.lang
+		? entry.data.lang.replace("_", "-")
+		: siteConfig.lang.replace("_", "-"),
+	...(entry.data.image && { image: new URL(entry.data.image, Astro.site).href }),
+};
+---
+<MainGridLayout banner={entry.data.image} title={entry.data.title} description={entry.data.description} lang={entry.data.lang} setOGTypeArticle={true} headings={headings}>
+    <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
+    <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative mb-4">
+        <div id="post-container" class:list={["card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full ",
+            {}
+        ]}>
+            <!-- word count and reading time -->
+            <div class="flex flex-row text-black/30 dark:text-white/30 gap-5 mb-3 transition onload-animation">
+                <div class="flex flex-row items-center">
+                    <div class="transition h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 text-black/50 dark:text-white/50 flex items-center justify-center mr-2">
+                        <Icon name="material-symbols:notes-rounded"></Icon>
+                    </div>
+                    <div class="text-sm">{remarkPluginFrontmatter.words} 字</div>
+                </div>
+                <div class="flex flex-row items-center">
+                    <div class="transition h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 text-black/50 dark:text-white/50 flex items-center justify-center mr-2">
+                        <Icon name="material-symbols:schedule-outline-rounded"></Icon>
+                    </div>
+                    <div class="text-sm">{remarkPluginFrontmatter.minutes} 分钟</div>
+                </div>
+            </div>
+
+            <!-- title -->
+            <div class="relative onload-animation">                <h1
+                    data-pagefind-body data-pagefind-weight="10" data-pagefind-meta="title"
+                    class="transition w-full flex items-center font-bold mb-3
+                    text-3xl md:text-[2.25rem]/[2.75rem]
+                    text-black/90 dark:text-white/90
+                    md:before:w-1 before:h-5 before:rounded-md before:bg-[var(--primary)]
+                    before:absolute before:top-[0.75rem] before:left-[-1.125rem]
+                ">
+                    {entry.data.pinned && (
+                        <span class="inline-flex items-center mr-3 px-2.5 py-1 text-sm font-medium bg-[oklch(95%_0.2_var(--hue))] dark:bg-[oklch(25%_0.2_var(--hue))] text-[oklch(55%_0.2_var(--hue))] dark:text-[oklch(85%_0.2_var(--hue))] rounded">
+                            <Icon name="material-symbols:push-pin" class="mr-1.5 text-base" /> 置顶
+                        </span>
+                    )}
+                    <span>{entry.data.title}</span>
+                </h1>
+            </div>
+
+            <!-- description/excerpt -->
+            {(entry.data.description || remarkPluginFrontmatter.excerpt) && (
+                <div class="onload-animation mb-4">
+                    <div class="text-black/75 dark:text-white/75 text-sm leading-relaxed">
+                        {entry.data.description || remarkPluginFrontmatter.excerpt}
+                    </div>
+                </div>
+            )}
+
+            <!-- metadata -->
+            <div class="onload-animation">
+                <PostMetadata
+                        class="mb-5"
+                        published={entry.data.published}
+                        updated={entry.data.updated}
+                        tags={entry.data.tags}
+                        slug={entry.slug}
+                ></PostMetadata>
+                {!entry.data.image && <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mb-5"></div>}
+            </div>
+
+            <!-- always show cover as long as it has one -->
+
+            {entry.data.image &&
+                <ImageWrapper id="post-cover" src={entry.data.image} alt={entry.data.title} basePath={path.join("content/posts/", getDir(entry.id))} class="mb-8 rounded-xl banner-container onload-animation" isLCP={true}/>
+            }
+
+
+            <Markdown class="mb-6 markdown-content onload-animation">
+                <Content />
+            </Markdown>
+
+
+
+            {licenseConfig.enable && <License title={entry.data.title} slug={entry.slug} pubDate={entry.data.published} class="mb-6 rounded-xl license-container onload-animation"></License>}
+            
+            <!-- 文章帮助反馈区域 -->
+            <div class="mb-4 p-3 rounded-lg bg-[var(--license-block-bg)] border border-[var(--line-divider)] onload-animation">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="h-4 w-4 rounded bg-[var(--primary)] flex items-center justify-center">
+                            <Icon name="material-symbols:help-outline" class="text-[0.75rem] text-white dark:text-black/70"></Icon>
+                        </div>
+                        <p class="text-black/80 dark:text-white/80 text-sm">这篇文章是否对你有帮助？</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="https://space.bilibili.com/420378171" target="_blank" rel="noopener noreferrer" class="group flex items-center gap-1 px-3 py-1.5 rounded bg-[var(--btn-regular-bg)] hover:bg-[var(--btn-regular-bg-hover)] active:bg-[var(--btn-regular-bg-active)] text-[var(--btn-content)] text-xs font-medium transition-all active:scale-95">
+                            <Icon name="material-symbols:contact-mail-outline" class="text-[0.875rem] group-hover:scale-110 transition-transform"></Icon>
+                            联系
+                        </a>
+                        <a href="/donate/" class="group flex items-center gap-1 px-3 py-1.5 rounded bg-[var(--primary)] hover:bg-[oklch(0.65_0.16_var(--hue))] active:bg-[oklch(0.60_0.18_var(--hue))] text-white dark:text-black/80 text-xs font-medium transition-all active:scale-95">
+                            <Icon name="material-symbols:favorite-outline" class="text-[0.875rem] group-hover:scale-110 transition-transform"></Icon>
+                            赞助
+                        </a>
+                        <button id="share-button" class="group flex items-center gap-1 px-3 py-1.5 rounded bg-[var(--btn-regular-bg)] hover:bg-[var(--btn-regular-bg-hover)] active:bg-[var(--btn-regular-bg-active)] text-[var(--btn-content)] text-xs font-medium transition-all active:scale-95 cursor-pointer">
+                            <Icon name="material-symbols:share-outline" class="text-[0.875rem] group-hover:scale-110 transition-transform"></Icon>
+                            <span id="share-text">分享</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Giscus 评论区 -->
+            <script src="https://giscus.app/client.js"
+                    data-repo="Besty0728/Giscus"
+                    data-repo-id="R_kgDOPn4TMg"
+                    data-category="Announcements"
+                    data-category-id="DIC_kwDOPn4TMs4Cu17E"
+                    data-mapping="pathname"
+                    data-strict="1"
+                    data-reactions-enabled="1"
+                    data-emit-metadata="0"
+                    data-input-position="top"
+                    data-theme="dark_protanopia"
+                    data-lang="zh-CN"
+                    data-loading="lazy"
+                    crossorigin="anonymous"
+                    async>
+            </script>
+            
+            <!-- 分享按钮功能 -->
+            <script is:inline>
+                function setupShareButton() {
+                    const shareButton = document.getElementById('share-button');
+                    if (!shareButton) return;
+
+                    // Swup 会替换页面内容；避免重复绑定
+                    if (shareButton.dataset.shareBound === '1') return;
+                    shareButton.dataset.shareBound = '1';
+
+                    const shareText = shareButton.querySelector('#share-text');
+                    if (!shareText) return;
+
+                    shareButton.addEventListener('click', function() {
+                        const url = window.location.href;
+
+                        function showSuccess() {
+                            const originalText = shareText.textContent;
+                            shareText.textContent = '已复制!';
+                            shareButton.style.backgroundColor = 'var(--primary)';
+                            shareButton.style.color = 'white';
+
+                            setTimeout(function() {
+                                shareText.textContent = originalText || '分享';
+                                shareButton.style.backgroundColor = '';
+                                shareButton.style.color = '';
+                            }, 2000);
+                        }
+
+                        function showFailure() {
+                            shareText.textContent = '复制失败';
+                            setTimeout(function() {
+                                shareText.textContent = '分享';
+                            }, 2000);
+                        }
+
+                        // Safari 兼容 fallback
+                        function fallbackCopy(text) {
+                            const textArea = document.createElement('textarea');
+                            textArea.value = text;
+
+                            textArea.style.position = 'fixed';
+                            textArea.style.top = '0';
+                            textArea.style.left = '0';
+                            textArea.style.width = '2em';
+                            textArea.style.height = '2em';
+                            textArea.style.padding = '0';
+                            textArea.style.border = 'none';
+                            textArea.style.outline = 'none';
+                            textArea.style.boxShadow = 'none';
+                            textArea.style.background = 'transparent';
+                            textArea.setAttribute('readonly', '');
+                            textArea.style.opacity = '0';
+
+                            document.body.appendChild(textArea);
+
+                            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                            if (isIOS) {
+                                const range = document.createRange();
+                                range.selectNodeContents(textArea);
+                                const selection = window.getSelection();
+                                selection.removeAllRanges();
+                                selection.addRange(range);
+                                textArea.setSelectionRange(0, 999999);
+                            } else {
+                                textArea.select();
+                            }
+
+                            let success = false;
+                            try {
+                                success = document.execCommand('copy');
+                            } catch (err) {
+                                console.error('[Share] execCommand failed:', err);
+                            }
+
+                            document.body.removeChild(textArea);
+                            return success;
+                        }
+
+                        if (navigator.clipboard && window.isSecureContext) {
+                            navigator.clipboard.writeText(url).then(function() {
+                                showSuccess();
+                            }).catch(function(err) {
+                                console.warn('[Share] Clipboard API failed, trying fallback:', err);
+                                if (fallbackCopy(url)) {
+                                    showSuccess();
+                                } else {
+                                    showFailure();
+                                }
+                            });
+                        } else {
+                            if (fallbackCopy(url)) {
+                                showSuccess();
+                            } else {
+                                showFailure();
+                            }
+                        }
+                    });
+                }
+
+                // 首次加载
+                setupShareButton();
+
+                // Swup 页面跳转后内容会被替换，需要重新绑定
+                document.addEventListener('swup:contentReplaced', setupShareButton);
+            </script>
+
+            <!-- Mermaid.js 集成 (异步加载优化版) -->
+            <script is:inline>
+                // 异步加载 Mermaid，避免阻塞页面渲染
+                (function() {
+                    // 防止重复加载
+                    if (document.querySelector('script[src*="mermaid"]')) return;
+                    var script = document.createElement('script');
+                    script.src = 'https://fastly.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+                    script.async = true;
+                    document.head.appendChild(script);
+                })();
+            </script>
+            <script is:inline define:vars={{ prerenderAll: entry.data.prerenderAll || false }}>
+                // 使用 IIFE 避免 Swup 重新执行时变量重复声明
+                (function() {
+                    'use strict';
+                    
+                    // ===== prerenderAll 模式：预渲染所有内容 =====
+                    if (prerenderAll) {
+                        // 1. 禁用图片懒加载
+                        document.querySelectorAll('img[loading="lazy"]').forEach(function(img) {
+                            img.removeAttribute('loading');
+                            img.setAttribute('loading', 'eager');
+                        });
+                        
+                        // 2. 临时展开所有 details，强制浏览器渲染代码块、公式等
+                        var closedDetails = [];
+                        document.querySelectorAll('details:not([open])').forEach(function(d) {
+                            closedDetails.push(d);
+                            d.open = true;
+                        });
+                        
+                        // 3. 等待浏览器完成布局计算后恢复折叠状态
+                        if (closedDetails.length > 0) {
+                            // 使用 requestAnimationFrame 确保渲染完成
+                            requestAnimationFrame(function() {
+                                requestAnimationFrame(function() {
+                                    closedDetails.forEach(function(d) {
+                                        d.open = false;
+                                    });
+                                });
+                            });
+                        }
+                    }
+                    
+                    // ===== 资源管理 =====
+                    window._postPageResources = window._postPageResources || {
+                        observer: null,
+                        timeoutId: null,
+                        cleanupRegistered: false
+                    };
+                    
+                    var resources = window._postPageResources;
+                    
+                    // 清理函数
+                    function cleanupResources() {
+                        if (resources.observer) {
+                            resources.observer.disconnect();
+                            resources.observer = null;
+                        }
+                        if (resources.timeoutId) {
+                            clearTimeout(resources.timeoutId);
+                            resources.timeoutId = null;
+                        }
+                    }
+                    
+                    // 注册清理事件（只注册一次）
+                    if (!resources.cleanupRegistered) {
+                        document.addEventListener('swup:willReplaceContent', cleanupResources);
+                        resources.cleanupRegistered = true;
+                    }
+                    
+                    // ===== Mermaid 初始化 =====
+                    function initMermaid() {
+                        if (typeof mermaid === 'undefined') {
+                            setTimeout(initMermaid, 100);
+                            return;
+                        }
+
+                        // 仅当 prerenderAll=true 时，临时展开所有 details 预渲染
+                        var closedDetails = [];
+                        if (prerenderAll) {
+                            document.querySelectorAll('details:not([open])').forEach(function(d) {
+                                closedDetails.push(d);
+                                d.open = true;
+                            });
+                        }
+
+                        var mermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"]');
+                        if (mermaidBlocks.length === 0) {
+                            // 恢复折叠状态
+                            closedDetails.forEach(function(d) { d.open = false; });
+                            return;
+                        }
+
+                        var isDarkMode = document.documentElement.classList.contains('dark');
+                        mermaid.initialize({
+                            startOnLoad: false,
+                            theme: isDarkMode ? 'dark' : 'default',
+                            securityLevel: 'loose',
+                            fontFamily: 'inherit',
+                        });
+
+                        // 串行渲染
+                        (async function() {
+                            for (var index = 0; index < mermaidBlocks.length; index++) {
+                                var preNode = mermaidBlocks[index];
+                                var code = '';
+                                var codeLines = preNode.querySelectorAll('.ec-line .code');
+                                if (codeLines.length > 0) {
+                                    code = Array.from(codeLines)
+                                        .map(function(line) { return line.textContent || ''; })
+                                        .join('\n')
+                                        .trim();
+                                } else {
+                                    code = (preNode.textContent || preNode.innerText).trim();
+                                }
+                                
+                                if (!code) continue;
+
+                                var toReplace = preNode;
+                                var figureParent = preNode.closest('figure.frame');
+                                if (figureParent) toReplace = figureParent;
+                                var ecParent = preNode.closest('.expressive-code');
+                                if (ecParent) toReplace = ecParent;
+
+                                var id = 'mermaid-' + index + '-' + Date.now();
+                                var container = document.createElement('div');
+                                container.id = id;
+                                container.className = 'mermaid';
+                                container.setAttribute('data-processed', 'false');
+                                container.style.cssText = 'display:flex;justify-content:center;margin:2rem 0;opacity:0;transition:opacity 0.3s ease';
+                                container.setAttribute('data-mermaid-src', code);
+                                
+                                toReplace.parentNode.replaceChild(container, toReplace);
+
+                                try {
+                                    var result = await mermaid.render(id + '-svg', code);
+                                    container.innerHTML = result.svg;
+                                    container.style.opacity = '1';
+                                } catch (error) {
+                                    console.error('[Mermaid] Render failed:', error);
+                                    container.innerHTML = '<div style="color:red;padding:1rem;border:1px solid red;border-radius:0.5rem">Mermaid 渲染失败: ' + error.message + '</div>';
+                                    container.style.opacity = '1';
+                                }
+                            }
+                            
+                            // 所有 Mermaid 渲染完成后，恢复 details 的折叠状态
+                            closedDetails.forEach(function(d) { d.open = false; });
+                        })();
+                    }
+
+                    // 处理 details 标签中 Mermaid 的延迟渲染（仅当 prerenderAll=false 时生效）
+                    function handleDetailsMermaid() {
+                        if (prerenderAll) return; // 预渲染模式下不需要
+                        
+                        document.querySelectorAll('details').forEach(function(details) {
+                            if (details.dataset.mermaidBound) return;
+                            details.dataset.mermaidBound = '1';
+                            details.addEventListener('toggle', function() {
+                                if (details.open) {
+                                    var unrendered = details.querySelectorAll('pre[data-language="mermaid"]');
+                                    if (unrendered.length > 0) {
+                                        initMermaid();
+                                    }
+                                }
+                            });
+                        });
+                    }
+
+                    // 主题切换监听
+                    function setupThemeObserver() {
+                        // 先清理旧的
+                        cleanupResources();
+                        
+                        var observer = new MutationObserver(function(mutations) {
+                            mutations.forEach(function(mutation) {
+                                if (mutation.attributeName === 'class' && mutation.target === document.documentElement) {
+                                    // 确保 mermaid 已加载
+                                    if (typeof mermaid === 'undefined') return;
+                                    
+                                    var isDark = document.documentElement.classList.contains('dark');
+                                    mermaid.initialize({ theme: isDark ? 'dark' : 'default' });
+                                    
+                                    document.querySelectorAll('.mermaid[data-mermaid-src]').forEach(async function(container) {
+                                        var code = container.getAttribute('data-mermaid-src');
+                                        if (code) {
+                                            try {
+                                                var result = await mermaid.render(container.id + '-rerender-' + Date.now(), code);
+                                                container.innerHTML = result.svg;
+                                            } catch (e) {
+                                                console.error('[Mermaid] Re-render failed:', e);
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                        observer.observe(document.documentElement, { attributes: true });
+                        resources.observer = observer;
+                    }
+
+                    // 初始化
+                    initMermaid();
+                    handleDetailsMermaid();
+                    setupThemeObserver();
+
+                    // Swup 兼容（只注册一次）
+                    if (!window._mermaidSwupRegistered) {
+                        document.addEventListener('swup:contentReplaced', function() {
+                            initMermaid();
+                            handleDetailsMermaid();
+                            setupThemeObserver();
+                        });
+                        window._mermaidSwupRegistered = true;
+                    }
+                })();
+            </script>
+    <br>
+
+    <div class="flex flex-col md:flex-row justify-between mb-4 gap-4 overflow-hidden w-full">
+        <a href={entry.data.nextSlug ? getPostUrlBySlug(entry.data.nextSlug) : "#"}
+           class:list={["w-full font-bold overflow-hidden active:scale-95", {"pointer-events-none": !entry.data.nextSlug}]}>
+            {entry.data.nextSlug && <div class="btn-card rounded-2xl w-full h-[3.75rem] max-w-full px-4 flex items-center !justify-start gap-4" >
+                <Icon name="material-symbols:chevron-left-rounded" class="text-[2rem] text-[var(--primary)]" />
+                <div class="overflow-hidden transition overflow-ellipsis whitespace-nowrap max-w-[calc(100%_-_3rem)] text-black/75 dark:text-white/75">
+                    {entry.data.nextTitle}
+                </div>
+            </div>}
+        </a>
+
+        <a href={entry.data.prevSlug ? getPostUrlBySlug(entry.data.prevSlug) : "#"}
+           class:list={["w-full font-bold overflow-hidden active:scale-95", {"pointer-events-none": !entry.data.prevSlug}]}>
+            {entry.data.prevSlug && <div class="btn-card rounded-2xl w-full h-[3.75rem] max-w-full px-4 flex items-center !justify-end gap-4">
+                <div class="overflow-hidden transition overflow-ellipsis whitespace-nowrap max-w-[calc(100%_-_3rem)] text-black/75 dark:text-white/75">
+                    {entry.data.prevTitle}
+                </div>
+                <Icon name="material-symbols:chevron-right-rounded" class="text-[2rem] text-[var(--primary)]" />
+            </div>}
+        </a>
+    </div>
+
+</MainGridLayout>

@@ -1,0 +1,30 @@
+---
+import { siteConfig } from "@/config";
+import ImageWrapper from "@components/misc/ImageWrapper.astro";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+
+const apps = siteConfig.apps || [];
+---
+
+<MainGridLayout title="应用推荐 - AI工具与实用服务合集" description="博主开发和推荐的实用工具合集，包括 AI 对话助手、云盘服务、图床工具、AI 绘图平台与提示词优化器等，提升工作效率的利器。">
+  <h1 class="text-3xl font-bold mb-6 text-black/90 dark:text-white/90">应用</h1>
+  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+    {apps.map((app) => (
+      <a href={app.url}
+         target={app.external ? "_blank" : undefined}
+         rel={app.external ? "noopener noreferrer" : undefined}
+         class="card-base rounded-[var(--radius-large)] overflow-hidden group block hover:scale-[1.02] transition-transform duration-300">
+        <div class="relative aspect-square bg-gradient-to-br from-black/5 to-black/10 dark:from-white/5 dark:to-white/10 flex items-center justify-center p-6">
+          <div class="w-full h-full max-w-[120px] max-h-[120px] md:max-w-[140px] md:max-h-[140px] relative">
+            <ImageWrapper src={app.image} alt={app.name} class="w-full h-full rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow duration-300" fit="contain" dim={false} position="center" />
+          </div>
+          <div class="absolute inset-0 bg-[var(--primary)]/0 group-hover:bg-[var(--primary)]/5 transition-colors duration-300"></div>
+        </div>
+        <div class="p-4 text-center">
+          <div class="text-base md:text-lg font-bold mb-1 text-[var(--primary)] transition truncate">{app.name}</div>
+          {app.description && <div class="text-xs md:text-sm text-black/60 dark:text-white/60 line-clamp-2">{app.description}</div>}
+        </div>
+      </a>
+    ))}
+  </div>
+</MainGridLayout>

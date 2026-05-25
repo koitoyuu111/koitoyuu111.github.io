@@ -1,0 +1,203 @@
+{
+  "rewrites": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "/sitemap-index.xml"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=86400, max-age=86400"
+        },
+        {
+          "key": "Pages-Cache-Control",
+          "value": "s-maxage=3600"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    },
+    {
+      "source": "/sitemap-index.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=3600"
+        }
+      ]
+    },
+    {
+      "source": "/sitemap-:number.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=3600"
+        }
+      ]
+    },
+    {
+      "source": "/rss.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=3600"
+        }
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/_astro/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/favicon/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/js/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/music/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/uploads/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
+  "caches": [
+    {
+      "source": "/sw.js",
+      "cacheTtl": 0
+    },
+    {
+      "source": "/sitemap-index.xml",
+      "cacheTtl": 3600
+    },
+    {
+      "source": "/sitemap-:number.xml",
+      "cacheTtl": 3600
+    },
+    {
+      "source": "/rss.xml",
+      "cacheTtl": 3600
+    },
+    {
+      "source": "/_astro/*",
+      "cacheTtl": 31536000
+    },
+    {
+      "source": "/favicon/*",
+      "cacheTtl": 31536000
+    },
+    {
+      "source": "/js/*",
+      "cacheTtl": 31536000
+    },
+    {
+      "source": "/music/*",
+      "cacheTtl": 31536000
+    },
+    {
+      "source": "/uploads/*",
+      "cacheTtl": 31536000
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/posts/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2/",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/posts/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/posts/%E3%80%90%E5%A4%87%E9%80%89%E7%94%A8%E4%B8%8D%E4%B8%BA%E5%AE%9E%E9%99%85%E5%87%BA%E7%8E%B0%E3%80%91",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/posts/vercel%E9%83%A8%E7%BD%B2%E6%8C%87%E5%8D%97/",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/posts/vercel%E9%83%A8%E7%BD%B2%E6%8C%87%E5%8D%97",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/606",
+      "destination": "https://lizard-parcel-a96.notion.site/2685723cc6b580da93ded9f42eeb8d08?pvs=74",
+      "statusCode": 301
+    },
+    {
+      "source": "/608",
+      "destination": "https://cloudrunmax.top/s/QpcO/608",
+      "statusCode": 301
+    }
+  ]
+}

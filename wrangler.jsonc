@@ -1,0 +1,16 @@
+{
+  // This repo is an Astro static site. Cloudflare's build log shows it runs:
+  //   pnpm run build
+  //   npx wrangler deploy
+  // `wrangler deploy` is a Workers deploy command, so we configure it to deploy
+  // the built static assets from ./dist.
+  //
+  // If you instead deploy via Cloudflare Pages (recommended), use the Pages
+  // dashboard Git integration (Build: pnpm build, Output: dist) and you can
+  // remove the custom deploy command.
+  "name": "fuwari",
+  "compatibility_date": "2025-12-20",
+  "assets": {
+    "directory": "./dist"
+  }
+}

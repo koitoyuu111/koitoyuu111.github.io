@@ -1,0 +1,84 @@
+---
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+---
+
+<MainGridLayout
+  title="项目作品 - こいとゆう"
+  description="こいとゆう的嵌入式项目作品集，涵盖电赛、工科赛、STM32 开发等项目"
+>
+  <h1 class="text-3xl font-bold mb-6 text-black/90 dark:text-white/90">项目作品</h1>
+
+  <div class="space-y-6">
+    <!-- 2026 电赛 -->
+    <div class="card-base rounded-[var(--radius-large)] p-6">
+      <div class="flex flex-col md:flex-row gap-4">
+        <div class="w-full md:w-48 h-32 rounded-lg overflow-hidden flex-shrink-0">
+          <img src="/images/project-2026-1.jpg" alt="2026电赛" class="w-full h-full object-cover" />
+        </div>
+        <div class="flex-1">
+          <h2 class="text-lg font-bold mb-1 text-[var(--primary)]">2026 电赛校赛 D 题 — 云台视觉追踪</h2>
+          <p class="text-sm text-black/60 dark:text-white/60 mb-2 leading-relaxed">
+            云台端搭载 K230 视觉模块（cv_lite Canny 边缘提取 + 矩形拟合），CAN 总线控制 DM4310 伺服电机，1000Hz PID 三环控制。小车端速度环 PID + 圆弧路径规划，蓝牙 + UART 协同。
+          </p>
+          <div class="flex flex-wrap gap-1.5 mb-2">
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">STM32F407</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">K230 cv_lite</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">CAN总线</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">DM4310</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">PID三环</span>
+          </div>
+          <a href="https://github.com/koitoyuu111/2026_School_Competition_Problem_D" target="_blank"
+             class="text-sm text-[var(--primary)] hover:underline">GitHub 仓库 &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2025 排爆小车 -->
+    <div class="card-base rounded-[var(--radius-large)] p-6">
+      <div class="flex flex-col md:flex-row gap-4">
+        <div class="w-full md:w-48 h-32 rounded-lg overflow-hidden flex-shrink-0">
+          <img src="/images/project-2025-1.jpg" alt="排爆小车" class="w-full h-full object-cover" />
+        </div>
+        <div class="flex-1">
+          <h2 class="text-lg font-bold mb-1 text-[var(--primary)]">2025 广东工科赛排爆小车</h2>
+          <p class="text-sm text-black/60 dark:text-white/60 mb-2 leading-relaxed">
+            基于 STM32F407 + ZDT_X42_V2 闭环步进伺服的排爆机器人。K230 视觉模块 AI kmodel 识别三种人质靶子 + 二维码 + 颜色追踪，35+ 状态机全自动任务流程，麦轮运动学 + PID 双环控制，蓝牙与机械臂协同。
+          </p>
+          <div class="flex flex-wrap gap-1.5 mb-2">
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">STM32F407</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">ZDT_X42_V2</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">K230 AI</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">35+状态机</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">麦轮运动学</span>
+          </div>
+          <a href="https://github.com/koitoyuu111/2025_GKS" target="_blank"
+             class="text-sm text-[var(--primary)] hover:underline">GitHub 仓库 &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 蓝牙手柄 -->
+    <div class="card-base rounded-[var(--radius-large)] p-6">
+      <div class="flex flex-col md:flex-row gap-4">
+        <div class="w-full md:w-48 h-32 rounded-lg overflow-hidden flex-shrink-0">
+          <img src="/images/project-bluetooth.jpg" alt="蓝牙手柄" class="w-full h-full object-cover" />
+        </div>
+        <div class="flex-1">
+          <h2 class="text-lg font-bold mb-1 text-[var(--primary)]">STM32 蓝牙手柄控制器</h2>
+          <p class="text-sm text-black/60 dark:text-white/60 mb-2 leading-relaxed">
+            基于 STM32F103 自制的蓝牙无线手柄，双摇杆（4路 ADC DMA）+ 9 键输入。1000Hz 定时中断中完成键值扫描，低通滤波 + 死区处理 + 线性映射。自定义 0xFF 0xFE 帧协议，支持 PID 无线调参。
+          </p>
+          <div class="flex flex-wrap gap-1.5 mb-2">
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">STM32F103</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">ADC+DMA</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">蓝牙通信</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">自定义协议</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">1000Hz中断</span>
+          </div>
+          <a href="https://github.com/koitoyuu111/STM32_Game-controller" target="_blank"
+             class="text-sm text-[var(--primary)] hover:underline">GitHub 仓库 &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</MainGridLayout>

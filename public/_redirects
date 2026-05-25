@@ -1,0 +1,7 @@
+# Cloudflare Pages redirects/proxying rules
+# Format: [source] [destination] [status?]
+# - 301/302/etc = redirect
+# - 200 = proxy (rewrite without changing URL)
+
+# Rewrites (proxy)
+/sitemap.xml /sitemap-index.xml 200

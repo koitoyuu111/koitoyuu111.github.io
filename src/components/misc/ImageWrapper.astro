@@ -1,0 +1,106 @@
+---
+import path from "node:path";
+interface Props {
+	id?: string;
+	src: string;
+	class?: string;
+	alt?: string;
+	position?: string;
+	basePath?: string;
+	fit?: "cover" | "contain"; // how image should fit its container
+	dim?: boolean; // whether to render the dim overlay layer
+	isLCP?: boolean; // whether this is the Largest Contentful Paint image
+	fetchPriority?: "high" | "low" | "auto"; // fetch priority hint for the browser
+}
+import { Image } from "astro:assets";
+import { imageFallbackConfig, siteConfig } from "../../config";
+import { url } from "../../utils/url-utils";
+
+const {
+	id,
+	src,
+	alt,
+	position = "center",
+	basePath = "/",
+	fit = "cover",
+	dim = true,
+	isLCP = false,
+	fetchPriority,
+} = Astro.props;
+// 当 isLCP 为 true 且未显式指定 fetchPriority 时，自动设为 "high"
+const effectiveFetchPriority = fetchPriority ?? (isLCP ? "high" : undefined);
+const className = Astro.props.class;
+
+const isLocal = !(
+	src.startsWith("/") ||
+	src.startsWith("http") ||
+	src.startsWith("https") ||
+	src.startsWith("data:")
+);
+const isPublic = src.startsWith("/");
+
+// TODO temporary workaround for images dynamic import
+// https://github.com/withastro/astro/issues/3373
+// biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
+let img;
+if (isLocal) {
+	const files = import.meta.glob<ImageMetadata>("../../**", {
+		import: "default",
+	});
+	let normalizedPath = path
+		.normalize(path.join("../../", basePath, src))
+		.replace(/\\/g, "/");
+	const file = files[normalizedPath];
+	if (!file) {
+		console.error(
+			`\n[ERROR] Image file not found: ${normalizedPath.replace("../../", "src/")}`,
+		);
+	}
+	img = await file();
+}
+
+const imageClass = `w-full h-full object-${fit}`;
+const imageStyle = `object-position: ${position}`;
+---
+<div id={id} class:list={[className, 'overflow-hidden relative image-wrapper']} style={`--theme-hue: ${siteConfig.themeColor.hue}`}>
+    <!-- 加载条: 仅在非 LCP 图片时显示 -->
+    {!isLCP && <div class="loading-bar absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-1 bg-gray-200 dark:bg-gray-700 z-10 rounded-full overflow-hidden">
+        <div class="loading-progress h-full w-8 bg-[oklch(0.70_0.14_var(--theme-hue))] animate-loading-progress rounded-full"></div>
+    </div>}
+    
+    <!-- 图片内容 -->
+    {dim && <div class="transition absolute inset-0 dark:bg-black/10 bg-opacity-50 pointer-events-none"></div>}
+    
+    {isLocal && img && <Image src={img} alt={alt || ""} class={`${imageClass} image-content ${!isLCP ? 'opacity-0 transition-opacity duration-500' : ''}`} style={imageStyle} onload={!isLCP ? "this.style.opacity='1'; this.parentElement.querySelector('.loading-bar').style.opacity='0';" : undefined} loading={isLCP ? "eager" : "lazy"} fetchpriority={effectiveFetchPriority} />}
+    
+    {!isLocal && (
+        imageFallbackConfig.enable && src.includes(imageFallbackConfig.originalDomain) ? 
+            <img src={isPublic ? url(src) : src} alt={alt || ""} class={`${imageClass} image-content ${!isLCP ? 'opacity-0 transition-opacity duration-500' : ''}`} style={imageStyle} onload={!isLCP ? "this.style.opacity='1'; this.parentElement.querySelector('.loading-bar').style.opacity='0';" : undefined} onerror={`this.onerror=null; this.src='${(isPublic ? url(src) : src).replace(imageFallbackConfig.originalDomain, imageFallbackConfig.fallbackDomain)}';`} loading={isLCP ? "eager" : "lazy"} fetchpriority={effectiveFetchPriority} /> :
+            <img src={isPublic ? url(src) : src} alt={alt || ""} class={`${imageClass} image-content ${!isLCP ? 'opacity-0 transition-opacity duration-500' : ''}`} style={imageStyle} onload={!isLCP ? "this.style.opacity='1'; this.parentElement.querySelector('.loading-bar').style.opacity='0';" : undefined} loading={isLCP ? "eager" : "lazy"} fetchpriority={effectiveFetchPriority} />
+    )}
+</div>
+
+<style>
+    .loading-bar {
+        transition: opacity 0.5s ease-out;
+    }
+    
+    @keyframes loading-progress {
+        0% {
+            transform: translateX(-100%);
+        }
+        100% {
+            transform: translateX(400%);
+        }
+    }
+    
+    .animate-loading-progress {
+        animation: loading-progress 1.5s ease-in-out infinite;
+    }
+    
+    .image-wrapper:hover .image-content {
+        transform: scale(1.05);
+        transition: transform 0.3s ease-out, opacity 0.5s ease-out;
+    }
+</style>
+

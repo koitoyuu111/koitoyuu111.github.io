@@ -1,0 +1,244 @@
+---
+import { Icon } from "astro-icon/components";
+import { profileConfig, umamiConfig } from "../../config";
+import { url } from "../../utils/url-utils";
+import ImageWrapper from "../misc/ImageWrapper.astro";
+import Typewriter from "./Typewriter.svelte";
+
+const config = profileConfig;
+---
+<div class="card-base p-3">
+    <a aria-label="Go to About Page" href={url('/about-privacy/')}
+       class="group block relative mx-auto mt-1 lg:mx-0 lg:mt-0 mb-3
+       max-w-[12rem] lg:max-w-none overflow-hidden rounded-xl active:scale-95">
+        <div class="absolute transition pointer-events-none group-hover:bg-black/30 group-active:bg-black/50
+        w-full h-full z-50 flex items-center justify-center">
+            <Icon name="fa6-regular:address-card"
+                  class="transition opacity-0 scale-90 group-hover:scale-100 group-hover:opacity-100 text-white text-5xl">
+            </Icon>
+        </div>
+        <ImageWrapper src={config.avatar || ""} alt={config.name + " Profile Image"} class="mx-auto lg:w-full h-full lg:mt-0 "></ImageWrapper>
+    </a>
+    <div class="px-2">
+        <div class="font-bold text-xl text-center mb-1 dark:text-neutral-50 transition">{config.name}</div>
+        <div class="h-1 w-5 bg-[var(--primary)] mx-auto rounded-full mb-2 transition"></div>
+        <div class="text-center mb-2.5 transition min-h-[3rem] flex items-center justify-center leading-6">
+            <Typewriter client:load lines={config.bio} />
+        </div>
+        <div class="flex gap-2 justify-center mb-1">
+            {config.links.length > 1 && config.links.map(item =>
+                    <a rel="me" aria-label={item.name} href={item.url} target="_blank" class="btn-regular rounded-lg h-10 w-10 active:scale-90">
+                        <Icon name={item.icon} class="text-[1.5rem]"></Icon>
+                    </a>
+            )}
+            {config.links.length == 1 && <a rel="me" aria-label={config.links[0].name} href={config.links[0].url} target="_blank"
+                                            class="btn-regular rounded-lg h-10 gap-2 px-3 font-bold active:scale-95">
+                <Icon name={config.links[0].icon} class="text-[1.5rem]"></Icon>
+                {config.links[0].name}
+            </a>}
+        </div>
+        
+        <!-- 全站访问量统计 - 美化版 -->
+        <div class="mt-4 pt-4 border-t border-[var(--line-divider)]">
+            <div class="flex items-center justify-center gap-1.5 mb-3">
+                <Icon name="material-symbols:analytics-outline-rounded" class="text-[var(--primary)] text-base"></Icon>
+                <span class="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">站点统计</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3" id="site-stats-container">
+                <!-- 浏览量卡片 -->
+                <div class="group relative overflow-hidden p-3 rounded-xl 
+                    bg-[var(--btn-regular-bg)] 
+                    border border-[var(--line-divider)]
+                    hover:border-[var(--primary)]
+                    hover:shadow-md transition-all duration-300 ease-out">
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-1.5 mb-1.5">
+                            <div class="w-6 h-6 rounded-lg bg-[var(--card-bg)] flex items-center justify-center shadow-sm">
+                                <Icon name="material-symbols:visibility-outline" class="text-[var(--primary)] text-sm"></Icon>
+                            </div>
+                            <span class="text-xs font-medium text-neutral-500 dark:text-neutral-400">浏览量</span>
+                        </div>
+                        <div class="flex items-baseline gap-1">
+                            <span id="site-pageviews" class="text-xl font-bold text-[var(--primary)] stats-number">--</span>
+                            <span class="text-[10px] text-neutral-400">PV</span>
+                        </div>
+                    </div>
+                    <!-- 装饰背景 -->
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-[var(--primary)] opacity-5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
+                </div>
+
+                <!-- 访客数卡片 -->
+                <div class="group relative overflow-hidden p-3 rounded-xl 
+                    bg-[var(--btn-regular-bg)] 
+                    border border-[var(--line-divider)]
+                    hover:border-[var(--primary)]
+                    hover:shadow-md transition-all duration-300 ease-out">
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-1.5 mb-1.5">
+                            <div class="w-6 h-6 rounded-lg bg-[var(--card-bg)] flex items-center justify-center shadow-sm">
+                                <Icon name="material-symbols:person-outline" class="text-[var(--primary)] text-sm"></Icon>
+                            </div>
+                            <span class="text-xs font-medium text-neutral-500 dark:text-neutral-400">访客数</span>
+                        </div>
+                        <div class="flex items-baseline gap-1">
+                            <span id="site-visitors" class="text-xl font-bold text-[var(--primary)] stats-number">--</span>
+                            <span class="text-[10px] text-neutral-400">UV</span>
+                        </div>
+                    </div>
+                    <!-- 装饰背景 -->
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-[var(--primary)] opacity-5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* 数字加载动画 */
+    .stats-number {
+        min-width: 2.5rem;
+        display: inline-block;
+        font-feature-settings: "tnum";
+    }
+    
+    @keyframes countUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .stats-loaded {
+        animation: countUp 0.4s ease-out forwards;
+    }
+    
+    /* 骨架屏闪烁效果 */
+    @keyframes shimmer {
+        0% {
+            background-position: -200% 0;
+        }
+        100% {
+            background-position: 200% 0;
+        }
+    }
+    
+    .stats-number:not(.stats-loaded) {
+        background: linear-gradient(90deg, 
+            var(--btn-content) 25%, 
+            var(--card-bg) 50%, 
+            var(--btn-content) 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        opacity: 0.5;
+    }
+</style>
+
+<script define:vars={{ umamiConfig }}>
+    // 数字滚动动画效果
+    function animateNumber(element, targetValue, duration = 1000) {
+        const startValue = 0;
+        const startTime = performance.now();
+        
+        function easeOutQuart(t) {
+            return 1 - Math.pow(1 - t, 4);
+        }
+        
+        function formatNumber(num) {
+            if (num >= 10000) return (num / 10000).toFixed(1) + 'w';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+            return num.toLocaleString();
+        }
+        
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easedProgress = easeOutQuart(progress);
+            const currentValue = Math.floor(startValue + (targetValue - startValue) * easedProgress);
+            
+            element.textContent = formatNumber(currentValue);
+            
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            } else {
+                element.textContent = formatNumber(targetValue);
+                element.classList.add('stats-loaded');
+            }
+        }
+        
+        requestAnimationFrame(update);
+    }
+    
+    // 获取全站访问量统计
+    async function loadSiteStats() {
+        if (!umamiConfig.enable) {
+            return;
+        }
+        
+        try {
+            // 调用全局工具获取 Umami 分享数据
+            const { websiteId, token } = await getUmamiShareData(umamiConfig.baseUrl, umamiConfig.shareId);
+            
+            // 第二步：获取全站统计数据（不指定url参数获取全站数据）
+            const currentTimestamp = Date.now();
+            const statsUrl = `${umamiConfig.baseUrl}/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}`;
+            
+            const statsResponse = await fetch(statsUrl, {
+                headers: {
+                    'x-umami-share-token': token,
+                    'x-umami-share-context': 'true'
+                }
+            });
+
+            if (statsResponse.status === 401) {
+                // token 失效，清理缓存后重新获取一次
+                clearUmamiShareCache();
+                return await loadSiteStats();
+            }
+            
+            if (!statsResponse.ok) {
+                throw new Error('获取统计数据失败');
+            }
+            
+            const statsData = await statsResponse.json();
+            const pageviews = statsData.pageviews || 0;
+            const visitors = statsData.visitors || 0;  // 修复: 使用 visitors (独立访客) 而非 visits (会话数)
+            
+            const pageviewsElement = document.getElementById('site-pageviews');
+            const visitorsElement = document.getElementById('site-visitors');
+            
+            // 使用数字滚动动画
+            if (pageviewsElement) {
+                animateNumber(pageviewsElement, pageviews, 1200);
+            }
+            if (visitorsElement) {
+                // 稍微延迟第二个数字的动画，产生错落感
+                setTimeout(() => {
+                    animateNumber(visitorsElement, visitors, 1000);
+                }, 150);
+            }
+        } catch (error) {
+            console.error('获取全站统计失败:', error);
+            const pageviewsElement = document.getElementById('site-pageviews');
+            const visitorsElement = document.getElementById('site-visitors');
+            if (pageviewsElement) {
+                pageviewsElement.textContent = '-';
+                pageviewsElement.classList.add('stats-loaded');
+            }
+            if (visitorsElement) {
+                visitorsElement.textContent = '-';
+                visitorsElement.classList.add('stats-loaded');
+            }
+        }
+    }
+
+    // 页面加载完成后获取统计数据
+    document.addEventListener('DOMContentLoaded', loadSiteStats);
+</script>
+

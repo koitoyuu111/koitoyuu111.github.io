@@ -1,0 +1,27 @@
+#!/bin/sh
+# Git pre-commit hook - 自动更新修改文章的 updated 字段
+# 
+# 安装方法：
+#   1. 确保 .husky 目录存在或手动复制此文件到 .git/hooks/pre-commit
+#   2. 给予执行权限: chmod +x .git/hooks/pre-commit
+
+# 获取已暂存的 Markdown 文件（只在 posts 目录下）
+STAGED_POSTS=$(git diff --cached --name-only --diff-filter=M | grep "^src/content/posts/.*\.md$")
+
+if [ -z "$STAGED_POSTS" ]; then
+    exit 0
+fi
+
+echo "检测到修改的文章，正在更新时间戳..."
+
+for file in $STAGED_POSTS; do
+    if [ -f "$file" ]; then
+        # 使用 Node.js 脚本更新时间戳
+        node scripts/update-post-timestamp.mjs "$file"
+        # 将更新后的文件添加到暂存区
+        git add "$file"
+    fi
+done
+
+echo "时间戳更新完成！"
+exit 0
