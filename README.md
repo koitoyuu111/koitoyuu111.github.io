@@ -8,9 +8,7 @@
 [![Svelte](https://img.shields.io/badge/Svelte-5.x-FF3E00?logo=svelte&logoColor=white)](https://svelte.dev)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.x-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 
-[🖥️ 在线预览](https://koitoyuu.github.io) · [📦 原始模板](https://github.com/saicaca/fuwari)
-
-以及此版本的魔改基础来自 [流转星(Betsy)/fuwari](https://github.com/Besty0728/fuwar)，原作者 [Betsy](https://github.com/Besty0728)
+以及此版本的魔改基础来自 [Besty0728/fuwari](https://github.com/Besty0728/fuwari)，原作者 [Betsy](https://github.com/Besty0728)
 
 </div>
 
