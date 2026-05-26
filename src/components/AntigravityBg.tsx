@@ -317,7 +317,14 @@ const Antigravity = (props: any) => {
   return (
     <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
         <div className="absolute inset-0 z-10 w-full h-full">
-            <Canvas camera={{ position: [0, 0, 50], fov: 35 }}>
+            <Canvas
+                gl={{ alpha: true, premultipliedAlpha: true }}
+                camera={{ position: [0, 0, 50], fov: 35 }}
+                onCreated={({ gl, scene }) => {
+                    gl.setClearColor(0x000000, 0);
+                    scene.background = null;
+                }}
+            >
                 <AntigravityInner {...props} count={particleCount} isDarkMode={isDarkMode} />
             </Canvas>
         </div>

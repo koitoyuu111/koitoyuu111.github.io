@@ -344,7 +344,7 @@ const bannerOffset =
 					background-attachment: var(--bg-attachment) !important;
 				opacity: 0 !important;
 				pointer-events: none !important;
-				z-index: -1 !important;
+				z-index: -2 !important;
 				display: block !important;
 				transition: opacity 0.3s ease-in-out !important;
 				/* iOS Safari 优化 */
@@ -407,10 +407,10 @@ const bannerOffset =
     }
     body[data-bg-attachment="scroll"] {
         background-image: var(--bg-url) !important;
-        background-position: top !important;
+        background-position: center !important;
         background-size: cover !important;
         background-repeat: no-repeat !important;
-        background-attachment: scroll !important;
+        background-attachment: fixed !important;
     }
     body[data-bg-attachment="scroll"].bg-loaded {
         background-image: var(--bg-url) !important;

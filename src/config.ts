@@ -46,7 +46,7 @@ export const siteConfig: SiteConfig = {
 		position: "center",
 		size: "cover",
 		repeat: "no-repeat",
-		attachment: "scroll",
+		attachment: "fixed",
 		opacity: 0.35,
 			switchInterval: 0,
 	},
