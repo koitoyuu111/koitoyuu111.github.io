@@ -32,12 +32,13 @@ export type SiteConfig = {
 	};
 	background: {
 		enable: boolean;
-		src: string;
+		src: string | string[];
 		position?: "top" | "center" | "bottom";
 		size?: "cover" | "contain" | "auto";
 		repeat?: "no-repeat" | "repeat" | "repeat-x" | "repeat-y";
 		attachment?: "fixed" | "scroll" | "local";
 		opacity?: number;
+		switchInterval?: number; // 背景切换间隔（毫秒），0 表示仅页面加载时随机
 	};
 	toc: {
 		enable: boolean;

@@ -89,6 +89,13 @@ const bannerOffsetByPosition = {
 };
 const bannerOffset =
 	bannerOffsetByPosition[siteConfig.banner.position || "center"];
+	// 背景图片处理：支持单张或多张随机切换
+	const bgSrc = siteConfig.background.src;
+	const bgImages: string[] = Array.isArray(bgSrc) ? bgSrc : [bgSrc];
+	const initialBgIndex = Math.floor(Math.random() * bgImages.length);
+	const initialBgUrl = bgImages[initialBgIndex];
+	const bgImagesJson = JSON.stringify(bgImages);
+	const bgSwitchInterval = siteConfig.background.switchInterval || 0;
 ---
 
 <!DOCTYPE html>
@@ -221,10 +228,54 @@ const bannerOffset =
 				}
 			}
 		</script>
+
+			<!-- Random background switching -->
+			<script is:inline>
+			(function() {
+				var body = document.body;
+				var bgImages = JSON.parse(body.getAttribute("data-bg-images") || "[]");
+				var bgInterval = parseInt(body.getAttribute("data-bg-interval") || "0");
+				var switchTimer = null;
+
+				function randomBg() {
+					if (!bgImages.length) return;
+					var idx = Math.floor(Math.random() * bgImages.length);
+					var newUrl = "url(" + bgImages[idx] + ")";
+					body.style.setProperty("--bg-url", newUrl);
+					document.documentElement.style.setProperty("--bg-url", newUrl);
+					// Preload and show
+					body.classList.remove("bg-loaded");
+					var img = new Image();
+					img.onload = function() { body.classList.add("bg-loaded"); };
+					img.onerror = function() { body.classList.add("bg-loaded"); };
+					img.src = bgImages[idx];
+					setTimeout(function() {
+						if (!body.classList.contains("bg-loaded")) body.classList.add("bg-loaded");
+					}, 5000);
+				}
+
+				// Switch background on each Swup page visit
+				function setupSwupHook() {
+					if (window.swup && window.swup.hooks) {
+						window.swup.hooks.on("visit:start", function() { randomBg(); });
+					} else {
+						document.addEventListener("swup:enable", function() {
+							window.swup.hooks.on("visit:start", function() { randomBg(); });
+						});
+					}
+				}
+				setupSwupHook();
+
+				// Periodic switching if interval is set (>0)
+				if (bgInterval > 0) {
+					switchTimer = setInterval(randomBg, bgInterval);
+				}
+			})();
+			</script>
 		<style define:vars={{
 			configHue,
 			'page-width': `${PAGE_WIDTH}rem`,
-			'bg-url': siteConfig.background.src ? `url(${siteConfig.background.src})` : 'none',
+			'bg-url': initialBgUrl ? `url(${initialBgUrl})` : 'none',
 			'bg-enable': siteConfig.background.enable ? '1' : '0',
 			'bg-position': siteConfig.background.position || 'center',
 			'bg-size': siteConfig.background.size || 'cover',
@@ -356,6 +407,8 @@ const bannerOffset =
 	<body class=" min-h-screen transition " class:list={[{"lg:is-home": isHomePage, "enable-banner": enableBanner}]}
 		  data-overlayscrollbars-initialize
 		  data-bg-attachment={siteConfig.background.attachment || "fixed"}
+		  data-bg-images={bgImagesJson}
+		  data-bg-interval={bgSwitchInterval}
 	>
 		<AntigravityBg client:only="react" />
 		<ConfigCarrier></ConfigCarrier>

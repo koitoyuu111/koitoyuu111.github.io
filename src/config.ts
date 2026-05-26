@@ -35,12 +35,13 @@ export const siteConfig: SiteConfig = {
 	},
 	background: {
 		enable: true,
-		src: "/images/bg.jpg",
+		src: ["/images/bg/4bdcd3674902b0a573d5b48b4dcea5f.jpg", "/images/bg/134717473_p0_master1200.jpg", "/images/bg/f601e60f387e372329cdd1c274f065a.jpg", "/images/bg/7186e45febfbcb7813857b2c40c9bd5d.jpg", "/images/bg/e19ca297bc56788917f548b95c9dc4e.jpg"],
 		position: "center",
 		size: "cover",
 		repeat: "no-repeat",
 		attachment: "scroll",
 		opacity: 0.35,
+			switchInterval: 0,
 	},
 	toc: {
 		enable: true,
