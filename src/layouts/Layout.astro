@@ -26,8 +26,6 @@ import {
 import { defaultFavicons } from "../constants/icon";
 import type { Favicon } from "../types/config";
 import { url, pathsEqual } from "../utils/url-utils";
-import "katex/dist/katex.css";
-
 interface Props {
 	title?: string;
 	banner?: string;
@@ -140,6 +138,9 @@ const bannerOffset =
 			<!-- busuanzi -->
 			<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 				<!-- Preload removed: 对于随机图 API 预加载没有意义，且会导致 credentials mode 警告 -->
+
+			<!-- Preload initial background image for faster first paint -->
+			<link rel="preload" as="image" href={initialBgUrl} />
 		
 		{/* <!-- Content Security Policy -->
 		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://giscus.app https://hpic.072103.xyz https://umami.2x.nz https://hm.baidu.com https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://static.cloudflareinsights.com https://*.adtrafficquality.google; style-src 'self' 'unsafe-inline' https://giscus.app https://fonts.googleapis.com https://api.iconify.design; font-src 'self' https://fonts.gstatic.com https://api.iconify.design; img-src 'self' data: https: http:; connect-src 'self' https://umami.2x.nz https://hm.baidu.com https://www.google-analytics.com https://analytics.google.com https://api.iconify.design https://static.cloudflareinsights.com https://pic.2x.nz https://q2.qlogo.cn https://ep1.adtrafficquality.google https://googleads.g.doubleclick.net; frame-src 'self' https://giscus.app *.bilibili.com https://www.google.com https://googleads.g.doubleclick.net https://support.nodeget.com https://*.adtrafficquality.google; object-src 'none'; base-uri 'self'; form-action 'self';"> */}
@@ -229,48 +230,68 @@ const bannerOffset =
 			}
 		</script>
 
-			<!-- Random background switching -->
-			<script is:inline>
-			(function() {
-				var body = document.body;
-				var bgImages = JSON.parse(body.getAttribute("data-bg-images") || "[]");
-				var bgInterval = parseInt(body.getAttribute("data-bg-interval") || "0");
-				var switchTimer = null;
+			<!-- Random background switching on page navigation -->
+			<script is:inline define:vars={{ bgImagesJson, bgSwitchInterval }}>
+				(function() {
+					var bgImages = JSON.parse(bgImagesJson);
+					var bgInterval = bgSwitchInterval;
+					var currentUrl = null;
 
-				function randomBg() {
-					if (!bgImages.length) return;
-					var idx = Math.floor(Math.random() * bgImages.length);
-					var newUrl = "url(" + bgImages[idx] + ")";
-					body.style.setProperty("--bg-url", newUrl);
-					document.documentElement.style.setProperty("--bg-url", newUrl);
-					// Preload and show
-					body.classList.remove("bg-loaded");
-					var img = new Image();
-					img.onload = function() { body.classList.add("bg-loaded"); };
-					img.onerror = function() { body.classList.add("bg-loaded"); };
-					img.src = bgImages[idx];
-					setTimeout(function() {
-						if (!body.classList.contains("bg-loaded")) body.classList.add("bg-loaded");
-					}, 5000);
-				}
+					// Track initial image URL
+					var initialCss = getComputedStyle(document.documentElement).getPropertyValue('--bg-url').trim();
+					var match = initialCss.match(/url\(["']?([^"')]+)["']?\)/);
+					if (match) currentUrl = match[1];
 
-				// Switch background on each Swup page visit
-				function setupSwupHook() {
-					if (window.swup && window.swup.hooks) {
-						window.swup.hooks.on("visit:start", function() { randomBg(); });
-					} else {
-						document.addEventListener("swup:enable", function() {
-							window.swup.hooks.on("visit:start", function() { randomBg(); });
-						});
+					function setBgUrl(url) {
+						var val = 'url(' + url + ')';
+						document.documentElement.style.setProperty('--bg-url', val);
+						document.body.style.setProperty('--bg-url', val);
+						currentUrl = url;
 					}
-				}
-				setupSwupHook();
 
-				// Periodic switching if interval is set (>0)
-				if (bgInterval > 0) {
-					switchTimer = setInterval(randomBg, bgInterval);
-				}
-			})();
+					function preloadThenSwitch(newUrl) {
+						var img = new Image();
+						img.onload = function() {
+							setBgUrl(newUrl);
+							document.body.classList.add('bg-loaded');
+						};
+						img.onerror = function() {
+							setBgUrl(newUrl);
+							document.body.classList.add('bg-loaded');
+						};
+						img.src = newUrl;
+						setTimeout(function() {
+							if (currentUrl !== newUrl) {
+								setBgUrl(newUrl);
+								document.body.classList.add('bg-loaded');
+							}
+						}, 8000);
+					}
+
+					function randomBg() {
+						if (!bgImages.length) return;
+						var available = bgImages.length > 1
+							? bgImages.filter(function(u) { return u !== currentUrl; })
+							: bgImages;
+						var idx = Math.floor(Math.random() * available.length);
+						preloadThenSwitch(available[idx]);
+					}
+
+					function setupSwupHook() {
+						if (window.swup && window.swup.hooks) {
+							window.swup.hooks.on('visit:start', function() { randomBg(); });
+						} else {
+							document.addEventListener('swup:enable', function() {
+								window.swup.hooks.on('visit:start', function() { randomBg(); });
+							});
+						}
+					}
+					setupSwupHook();
+
+					if (bgInterval > 0) {
+						setInterval(randomBg, bgInterval);
+					}
+				})();
 			</script>
 		<style define:vars={{
 			configHue,
@@ -407,8 +428,6 @@ const bannerOffset =
 	<body class=" min-h-screen transition " class:list={[{"lg:is-home": isHomePage, "enable-banner": enableBanner}]}
 		  data-overlayscrollbars-initialize
 		  data-bg-attachment={siteConfig.background.attachment || "fixed"}
-		  data-bg-images={bgImagesJson}
-		  data-bg-interval={bgSwitchInterval}
 	>
 		<AntigravityBg client:only="react" />
 		<ConfigCarrier></ConfigCarrier>

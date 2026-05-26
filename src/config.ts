@@ -36,12 +36,12 @@ export const siteConfig: SiteConfig = {
 	background: {
 		enable: true,
 		src: [
-				"/images/bg.jpg",
-				"/images/bg/4bdcd3674902b0a573d5b48b4dcea5f.jpg",
-				"/images/bg/134717473_p0_master1200.jpg",
-				"/images/bg/f601e60f387e372329cdd1c274f065a.jpg",
-				"/images/bg/7186e45febfbcb7813857b2c40c9bd5d.jpg",
-				"/images/bg/e19ca297bc56788917f548b95c9dc4e.jpg",
+				"/images/bg.webp",
+				"/images/bg/4bdcd3674902b0a573d5b48b4dcea5f.webp",
+				"/images/bg/134717473_p0_master1200.webp",
+				"/images/bg/f601e60f387e372329cdd1c274f065a.webp",
+				"/images/bg/7186e45febfbcb7813857b2c40c9bd5d.webp",
+				"/images/bg/e19ca297bc56788917f548b95c9dc4e.webp",
 			],
 		position: "center",
 		size: "cover",
@@ -75,7 +75,7 @@ export const navBarConfig: NavBarConfig = {
 };
 
 export const profileConfig: ProfileConfig = {
-	avatar: "/images/avatar.jpg",
+	avatar: "/images/avatar.webp",
 	name: "こいとゆう",
 	bio: ["嵌入式开发 · 机器视觉 · STM32", "好きこそものの上手なれ"],
 	links: [
