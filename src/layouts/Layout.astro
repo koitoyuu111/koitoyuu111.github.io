@@ -140,7 +140,13 @@ const bannerOffset =
 				<!-- Preload removed: 对于随机图 API 预加载没有意义，且会导致 credentials mode 警告 -->
 
 			<!-- Preload initial background image for faster first paint -->
-			<link rel="preload" as="image" href={initialBgUrl} />
+			<link rel="preload" as="image" href={initialBgUrl} fetchpriority="high" />
+			<!-- Prefetch one more background image for instant next switch -->
+			{bgImages.length > 1 && (() => {
+				const nextCandidates = bgImages.filter(u => u !== initialBgUrl);
+				const nextUrl = nextCandidates[Math.floor(Math.random() * nextCandidates.length)];
+				return nextUrl ? <link rel="prefetch" as="image" href={nextUrl} /> : null;
+			})()}
 		
 		{/* <!-- Content Security Policy -->
 		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://giscus.app https://hpic.072103.xyz https://umami.2x.nz https://hm.baidu.com https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://static.cloudflareinsights.com https://*.adtrafficquality.google; style-src 'self' 'unsafe-inline' https://giscus.app https://fonts.googleapis.com https://api.iconify.design; font-src 'self' https://fonts.gstatic.com https://api.iconify.design; img-src 'self' data: https: http:; connect-src 'self' https://umami.2x.nz https://hm.baidu.com https://www.google-analytics.com https://analytics.google.com https://api.iconify.design https://static.cloudflareinsights.com https://pic.2x.nz https://q2.qlogo.cn https://ep1.adtrafficquality.google https://googleads.g.doubleclick.net; frame-src 'self' https://giscus.app *.bilibili.com https://www.google.com https://googleads.g.doubleclick.net https://support.nodeget.com https://*.adtrafficquality.google; object-src 'none'; base-uri 'self'; form-action 'self';"> */}
@@ -249,23 +255,47 @@ const bannerOffset =
 						currentUrl = url;
 					}
 
-					function preloadThenSwitch(newUrl) {
+					// Cache for preloaded images
+					var imgCache = {};
+
+					function preloadImage(url) {
+						if (imgCache[url]) return imgCache[url];
 						var img = new Image();
-						img.onload = function() {
+						img.src = url;
+						imgCache[url] = img;
+						return img;
+					}
+
+					function preloadThenSwitch(newUrl) {
+						// If already cached and loaded, switch immediately
+						if (imgCache[newUrl] && imgCache[newUrl].complete && imgCache[newUrl].naturalWidth > 0) {
 							setBgUrl(newUrl);
 							document.body.classList.add('bg-loaded');
-						};
-						img.onerror = function() {
+							prefetchNext(newUrl);
+							return;
+						}
+
+						var img = preloadImage(newUrl);
+						var switched = false;
+						function doSwitch() {
+							if (switched) return;
+							switched = true;
 							setBgUrl(newUrl);
 							document.body.classList.add('bg-loaded');
-						};
-						img.src = newUrl;
-						setTimeout(function() {
-							if (currentUrl !== newUrl) {
-								setBgUrl(newUrl);
-								document.body.classList.add('bg-loaded');
-							}
-						}, 8000);
+							prefetchNext(newUrl);
+						}
+						img.onload = doSwitch;
+						img.onerror = doSwitch;
+						// Reduced from 8s to 3s
+						setTimeout(doSwitch, 3000);
+					}
+
+					// Prefetch the next likely image in the background
+					function prefetchNext(currentExcluded) {
+						if (bgImages.length <= 1) return;
+						var next = bgImages.filter(function(u) { return u !== currentExcluded; });
+						var idx = Math.floor(Math.random() * next.length);
+						preloadImage(next[idx]);
 					}
 
 					function randomBg() {
@@ -275,6 +305,12 @@ const bannerOffset =
 							: bgImages;
 						var idx = Math.floor(Math.random() * available.length);
 						preloadThenSwitch(available[idx]);
+					}
+
+					// Prefetch a random image on initial load
+					if (bgImages.length > 1) {
+						var others = bgImages.filter(function(u) { return u !== currentUrl; });
+						if (others.length) preloadImage(others[Math.floor(Math.random() * others.length)]);
 					}
 
 					function setupSwupHook() {
@@ -313,18 +349,7 @@ const bannerOffset =
 				--bg-attachment: var(--bg-attachment);
 				--bg-opacity: var(--bg-opacity);
 			}
-			
-			/* Background image configuration */
-			body {
-				--bg-url: var(--bg-url);
-				--bg-enable: var(--bg-enable);
-				--bg-position: var(--bg-position);
-				--bg-size: var(--bg-size);
-				--bg-repeat: var(--bg-repeat);
-				--bg-attachment: var(--bg-attachment);
-				--bg-opacity: var(--bg-opacity);
-			}
-			
+
 			body::before {
 				content: '' !important;
 				position: fixed !important;
@@ -822,14 +847,14 @@ function scrollFunction() {
 		}
 	}
 }
-window.onscroll = scrollFunction
+window.addEventListener('scroll', scrollFunction, { passive: true })
 
-window.onresize = () => {
+window.addEventListener('resize', () => {
 	// calculate the --banner-height-extend, which needs to be a multiple of 4 to avoid blurry text
 	let offset = Math.floor(window.innerHeight * (BANNER_HEIGHT_EXTEND / 100));
 	offset = offset - offset % 4;
 	document.documentElement.style.setProperty('--banner-height-extend', `${offset}px`);
-}
+}, { passive: true })
 
 </script>
 
@@ -837,45 +862,34 @@ window.onresize = () => {
 import { Fancybox } from "@fancyapps/ui"
 import "@fancyapps/ui/dist/fancybox/fancybox.css"
 
+const fancyboxOptions = {
+	wheel: 'zoom',
+	clickContent: 'close',
+	dblclickContent: 'zoom',
+	click: 'close',
+	dblclick: 'zoom',
+	Panels: {
+		display: ['counter', 'zoom']
+	},
+	Images: {
+		panning: true,
+		zoom: true,
+		protect: false
+	}
+}
+const fancyboxSelector = ".custom-md img, #post-cover img"
+
 const setup = () => {
-	Fancybox.bind(".custom-md img, #post-cover img", {
-		wheel: 'zoom',
-		clickContent: 'close',
-		dblclickContent: 'zoom',
-		click: 'close',
-		dblclick: 'zoom',
-		Panels: {
-			display: ['counter', 'zoom']
-		},
-		Images: {
-			panning: true,
-			zoom: true,
-			protect: false
-		}
-	})
+	Fancybox.bind(fancyboxSelector, fancyboxOptions)
 
 	window.swup.hooks.on("page:view", () => {
-		Fancybox.bind(".custom-md img, #post-cover img", {
-			wheel: 'zoom',
-			clickContent: 'close',
-			dblclickContent: 'zoom',
-			click: 'close',
-			dblclick: 'zoom',
-			Panels: {
-				display: ['counter', 'zoom']
-			},
-			Images: {
-				panning: true,
-				zoom: true,
-				protect: false
-			}
-		})
+		Fancybox.bind(fancyboxSelector, fancyboxOptions)
 	})
 
 	window.swup.hooks.on(
 		"content:replace",
 		() => {
-			Fancybox.unbind(".custom-md img, #post-cover img")
+			Fancybox.unbind(fancyboxSelector)
 		},
 		{ before: true },
 	)
