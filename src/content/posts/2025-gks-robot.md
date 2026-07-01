@@ -1,6 +1,6 @@
 ---
 title: 2025 广东工科赛 — 排爆机器人系统
-published: 2025-11-20T00:00:00.000Z
+published: 2026-06-18T00:00:00.000Z
 description: '基于 STM32F407 + K230 视觉模块的排爆机器人，具备 AI 人质识别与多色追踪能力'
 image: '/images/project-2025-1.jpg'
 tags: [工科赛, 排爆机器人, K230, AI视觉, 机械臂]

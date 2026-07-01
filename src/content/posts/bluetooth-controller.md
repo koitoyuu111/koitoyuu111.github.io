@@ -1,6 +1,6 @@
 ---
 title: STM32 蓝牙手柄控制器
-published: 2025-08-10T00:00:00.000Z
+published: 2026-06-25T00:00:00.000Z
 description: '基于 STM32F103 自制的蓝牙无线手柄，双摇杆+9键，1000Hz 实时数据传输'
 image: '/images/project-bluetooth.jpg'
 tags: [STM32, 蓝牙, 手柄, ADC, DMA, 自定义协议]

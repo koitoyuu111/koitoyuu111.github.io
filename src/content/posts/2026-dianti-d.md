@@ -1,6 +1,6 @@
 ---
 title: 2026 电赛校赛 D 题 — 云台视觉追踪系统
-published: 2026-04-15T00:00:00.000Z
+published: 2026-06-10T00:00:00.000Z
 description: '基于 STM32F407 + K230 视觉模块的云台视觉追踪系统，实现矩形靶子识别与伺服跟踪'
 image: '/images/project-2026-1.jpg'
 tags: [电赛, STM32, 机器视觉, PID控制, CAN总线]
