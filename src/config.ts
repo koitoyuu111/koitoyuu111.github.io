@@ -19,6 +19,7 @@ export const siteConfig: SiteConfig = {
 
 	keywords: ["嵌入式", "STM32", "机器视觉", "OpenMV", "PID控制", "电子设计竞赛", "K230"],
 	ogImage: "/images/avatar.webp",
+	siteStartDate: "2026-06-01",
 	lang: "zh_CN",
 	themeColor: {
 		hue: 345,

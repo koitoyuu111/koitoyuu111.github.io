@@ -115,6 +115,15 @@
         mask-image: linear-gradient(to bottom, transparent 0%, black 2rem, black calc(100% - 2rem), transparent 100%);
     }
 
+    /* TOC active heading highlight */
+    #toc a.visible {
+        @apply text-[var(--primary)] font-medium;
+    }
+    #toc a.visible .text-50,
+    #toc a.visible .text-30 {
+        @apply text-[var(--primary)];
+    }
+
     .hide-scrollbar {
         -ms-overflow-style: none;
         /* stylelint-disable-next-line property-no-unknown */

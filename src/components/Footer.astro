@@ -1,10 +1,10 @@
 ---
 
-import { profileConfig } from "../config";
+import { profileConfig, siteConfig } from "../config";
 const startYear = 2024;
 const buildYear = new Date().getFullYear();
+const siteStartDate = siteConfig.siteStartDate || "2025-01-01";
 ---
-
 
 <div class="transition border-t border-black/10 dark:border-white/15 my-10 border-dashed mx-32"></div>
 <div class="transition border-dashed border-[oklch(85%_0.01_var(--hue))] dark:border-white/15 rounded-2xl mb-12 flex flex-col items-center justify-center px-6">
@@ -14,6 +14,8 @@ const buildYear = new Date().getFullYear();
         <br>
         <a class="transition link text-[var(--primary)] font-medium" href="/about-privacy/">关于 & 隐私政策</a>
         <br>
+        <span id="site-runtime" class="text-black/40 dark:text-white/40">本站已运行 --</span>
+        <br>
         由
         <a class="transition link text-[var(--primary)] font-medium" target="_blank" href="https://astro.build">Astro</a> 和
         <a class="transition link text-[var(--primary)] font-medium" target="_blank" href="https://github.com/saicaca/fuwari">Fuwari</a> 强力驱动
@@ -21,12 +23,38 @@ const buildYear = new Date().getFullYear();
     </div>
 </div>
 
-<script is:inline>
+<script is:inline define:vars={{ siteStartDate }}>
     (function () {
         const el = document.getElementById('copyright-year');
-        if (!el) return;
-        const startYear = 2024;
-        const nowYear = new Date().getFullYear();
-        el.textContent = nowYear > startYear ? `${startYear} - ${nowYear}` : String(startYear);
+        if (el) {
+            const startYear = 2024;
+            const nowYear = new Date().getFullYear();
+            el.textContent = nowYear > startYear ? `${startYear} - ${nowYear}` : String(startYear);
+        }
+
+        const runtimeEl = document.getElementById('site-runtime');
+        if (runtimeEl && siteStartDate) {
+            const start = new Date(siteStartDate);
+            function update() {
+                const now = new Date();
+                let diff = Math.floor((now.getTime() - start.getTime()) / 1000);
+                const days = Math.floor(diff / 86400);
+                diff -= days * 86400;
+                const hours = Math.floor(diff / 3600);
+                diff -= hours * 3600;
+                const mins = Math.floor(diff / 60);
+                const secs = diff - mins * 60;
+
+                const years = Math.floor(days / 365);
+                const remainDays = days % 365;
+
+                let text = '本站已运行 ';
+                if (years > 0) text += years + ' 年 ';
+                text += remainDays + ' 天 ' + hours + ' 时 ' + mins + ' 分 ' + secs + ' 秒';
+                runtimeEl.textContent = text;
+            }
+            update();
+            setInterval(update, 1000);
+        }
     })();
 </script>

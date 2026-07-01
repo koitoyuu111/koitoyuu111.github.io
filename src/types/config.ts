@@ -13,6 +13,7 @@ export type SiteConfig = {
 	description?: string;
 	keywords?: string[];
 	ogImage?: string;
+	siteStartDate?: string;
 
 	lang: string;
 

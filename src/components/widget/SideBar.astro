@@ -4,6 +4,7 @@ import type { MarkdownHeading } from "astro";
 import { getSortedPosts } from "../../utils/content-utils";
 import Profile from "./Profile.astro";
 import Tag from "./Tags.astro";
+import DailyQuote from "./DailyQuote.svelte";
 import UpdatedPosts from "./UpdatedPosts.svelte";
 import VisitorInfo from "./VisitorInfo.astro";
 import WidgetLayout from "./WidgetLayout.astro";
@@ -45,6 +46,9 @@ const className = Astro.props.class;
     <div id="sidebar-sticky" class="transition-all duration-700 flex flex-col w-full gap-4 top-4 sticky top-4">
         
     <Tag class="onload-animation" style="animation-delay: 200ms"></Tag>
+    <div class="onload-animation" style="animation-delay: 250ms">
+        <DailyQuote client:load />
+    </div>
     <VisitorInfo class="onload-animation" style="animation-delay: 300ms"></VisitorInfo>
     
     <div class="onload-animation" style="animation-delay: 400ms">

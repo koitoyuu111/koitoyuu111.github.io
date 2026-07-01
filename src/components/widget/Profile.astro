@@ -37,7 +37,15 @@ const config = profileConfig;
                 {config.links[0].name}
             </a>}
         </div>
-        
+
+        <!-- 访问量徽章 -->
+        <div class="flex justify-center mt-3 mb-1">
+            <div class="inline-flex items-center rounded-md overflow-hidden border border-[var(--line-divider)] text-[10px] font-medium">
+                <span class="px-2 py-1 bg-[var(--primary)] text-white whitespace-nowrap">总访问量</span>
+                <span id="visitor-badge-count" class="px-2 py-1 bg-[var(--card-bg)] text-black/70 dark:text-white/70 whitespace-nowrap">--</span>
+            </div>
+        </div>
+
         <!-- 全站访问量统计 -->
         <div class="mt-4 pt-4 border-t border-[var(--line-divider)]">
             <div class="flex items-center justify-center gap-1.5 mb-3">
@@ -134,6 +142,10 @@ const config = profileConfig;
                 if (el) {
                     el.textContent = pv.textContent;
                     el.classList.add("stats-loaded");
+                }
+                const badge = document.getElementById("visitor-badge-count");
+                if (badge) {
+                    badge.textContent = pv.textContent;
                 }
                 clearInterval(checkInterval);
             }
