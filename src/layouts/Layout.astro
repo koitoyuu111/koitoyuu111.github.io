@@ -489,7 +489,8 @@ const bannerOffset =
 		  data-overlayscrollbars-initialize
 		  data-bg-attachment={siteConfig.background.attachment || "fixed"}
 	>
-		<AntigravityBg client:only="react" />
+		<a href="#main-content-wrapper" class="skip-to-content">跳到主内容</a>
+			<AntigravityBg client:only="react" />
 		<ConfigCarrier></ConfigCarrier>
 		<FloatingControls client:only="svelte" />
 		<ReadingProgressMobile client:only="svelte" />

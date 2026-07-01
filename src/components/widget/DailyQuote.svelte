@@ -48,7 +48,7 @@
 			</svg>
 		</button>
 	</div>
-	<div class="transition-opacity duration-200" class:opacity-0={!fade} class:opacity-100={fade}>
+	<div class="transition-opacity duration-200" class:opacity-0={!fade} class:opacity-100={fade} aria-live="polite">
 		<p class="text-sm text-black/75 dark:text-white/75 leading-relaxed mb-1">{quotes[index].jp}</p>
 		<p class="text-xs text-black/40 dark:text-white/40 text-right">{quotes[index].zh}</p>
 	</div>

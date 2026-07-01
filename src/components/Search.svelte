@@ -16,6 +16,7 @@ let keywordDesktop = "";
 let keywordMobile = "";
 let result: SearchResult[] = [];
 let isSearching = false;
+let noResults = false;
 let posts: any[] = [];
 
 const togglePanel = () => {
@@ -44,6 +45,7 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 	if (!keyword) {
 		setPanelVisibility(false, isDesktop);
 		result = [];
+		noResults = false;
 		return;
 	}
 
@@ -91,10 +93,12 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 			});
 
 		result = searchResults;
-		setPanelVisibility(result.length > 0, isDesktop);
+		noResults = keyword.length > 0 && result.length === 0;
+		setPanelVisibility(result.length > 0 || noResults, isDesktop);
 	} catch (error) {
 		console.error("Search error:", error);
 		result = [];
+		noResults = false;
 		setPanelVisibility(false, isDesktop);
 	} finally {
 		isSearching = false;
@@ -190,6 +194,9 @@ top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
             </div>
         </a>
     {/each}
+    {#if noResults}
+        <div class="px-3 py-6 text-center text-sm text-50">没有找到相关结果</div>
+    {/if}
 </div>
 
 <style>

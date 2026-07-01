@@ -198,3 +198,21 @@
 .collapsed {
     height: var(--collapsedHeight);
 }
+
+.skip-to-content {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 10000;
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transform: translateY(-120%);
+    transition: transform 0.2s;
+}
+.skip-to-content:focus {
+    transform: translateY(0);
+}
