@@ -110,6 +110,7 @@ const style = Astro.props.style;
         align-items: center;
         font-size: 0.8rem;
         color: rgba(255, 255, 255, 0.8);
+        min-width: 0;
     }
     /* 图标容器 - 简约圆形 */
     .icon-wrapper {
@@ -144,6 +145,13 @@ const style = Astro.props.style;
         word-break: break-all;
         overflow-wrap: break-word;
         color: rgba(255, 255, 255, 0.9);
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .ippure-card-img {
+        max-width: 100%;
+        height: auto;
     }
     .cdn-logo {
         height: 26px;

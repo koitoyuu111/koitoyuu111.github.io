@@ -57,13 +57,17 @@ const config = profileConfig;
                         </div>
                         <span class="text-xs font-medium text-neutral-500 dark:text-neutral-400">浏览量</span>
                     </div>
-                    <div class="flex items-baseline gap-1">
-                        <span id="site-pageviews" class="text-xl font-bold text-[var(--primary)] stats-number">--</span>
-                        <span class="text-[10px] text-neutral-400">PV</span>
+                    <div class="flex items-baseline gap-1 min-w-0">
+                        <span id="site-pageviews" class="text-xl font-bold text-[var(--primary)] stats-number truncate">--</span>
+                        <span class="text-[10px] text-neutral-400 shrink-0">PV</span>
                     </div>
                 </div>
                 <!-- 装饰背景 -->
                 <div class="absolute -right-4 -top-4 w-16 h-16 bg-[var(--primary)] opacity-5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
+                <!-- 不蒜子隐藏计数元素（绝对定位裁剪，防止 SDK 显示裸数字） -->
+                <span id="busuanzi_container_site_pv" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap">
+                    <span id="busuanzi_value_site_pv"></span>
+                </span>
             </div>
         </div>
     </div>
@@ -72,9 +76,13 @@ const config = profileConfig;
 <style>
     /* 数字加载动画 */
     .stats-number {
-        min-width: 2.5rem;
+        min-width: 3rem;
+        max-width: 100%;
         display: inline-block;
         font-feature-settings: "tnum";
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
     
     @keyframes countUp {
@@ -115,11 +123,6 @@ const config = profileConfig;
         opacity: 0.5;
     }
 </style>
-
-<!-- 不蒜子隐藏计数元素 -->
-<span id="busuanzi_container_site_pv" style="display:none">
-    <span id="busuanzi_value_site_pv"></span>
-</span>
 
 <script>
     (function() {
