@@ -12,6 +12,7 @@ export type SiteConfig = {
 	subtitle: string;
 	description?: string;
 	keywords?: string[];
+	ogImage?: string;
 
 	lang: string;
 
@@ -153,4 +154,17 @@ export type BlogPostData = {
 
 export type ExpressiveCodeConfig = {
 	theme: string;
+};
+
+export type GiscusConfig = {
+	enable: boolean;
+	repo: string;
+	repoId: string;
+	category: string;
+	categoryId: string;
+	mapping: "pathname" | "url" | "title" | "og:title";
+	reactionsEnabled: "0" | "1";
+	emitMetadata: "0" | "1";
+	inputPosition: "top" | "bottom";
+	lang: string;
 };

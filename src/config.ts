@@ -1,6 +1,7 @@
 import type {
 	AntiLeechConfig,
 	ExpressiveCodeConfig,
+	GiscusConfig,
 	ImageFallbackConfig,
 	LicenseConfig,
 	NavBarConfig,
@@ -17,6 +18,7 @@ export const siteConfig: SiteConfig = {
 		"こいとゆう的个人博客，分享嵌入式开发、机器视觉、STM32项目经验与电子设计竞赛记录",
 
 	keywords: ["嵌入式", "STM32", "机器视觉", "OpenMV", "PID控制", "电子设计竞赛", "K230"],
+	ogImage: "/images/avatar.webp",
 	lang: "zh_CN",
 	themeColor: {
 		hue: 345,
@@ -126,4 +128,17 @@ export const googleAnalyticsConfig = {
 
 export const expressiveCodeConfig: ExpressiveCodeConfig = {
 	theme: "github-dark",
+};
+
+export const giscusConfig: GiscusConfig = {
+	enable: false,
+	repo: "koitoyuu111/koitoyuu111.github.io",
+	repoId: "",
+	category: "Announcements",
+	categoryId: "",
+	mapping: "pathname",
+	reactionsEnabled: "1",
+	emitMetadata: "0",
+	inputPosition: "top",
+	lang: "zh-CN",
 };

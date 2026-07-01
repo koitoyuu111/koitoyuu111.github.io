@@ -1,0 +1,22 @@
+{
+	"name": "koitoyuu",
+	"short_name": "koitoyuu",
+	"description": "嵌入式开发 · 机器视觉 · STM32 个人博客",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#1a1a2e",
+	"theme_color": "#1a1a2e",
+	"icons": [
+		{
+			"src": "/favicon/android-chrome-192.png",
+			"sizes": "192x192",
+			"type": "image/png"
+		},
+		{
+			"src": "/favicon/android-chrome-512.png",
+			"sizes": "512x512",
+			"type": "image/png"
+		}
+	],
+	"lang": "zh-CN"
+}

@@ -1,0 +1,71 @@
+---
+import { giscusConfig } from "../../config";
+
+const {
+	enable,
+	repo,
+	repoId,
+	category,
+	categoryId,
+	mapping,
+	reactionsEnabled,
+	emitMetadata,
+	inputPosition,
+	lang,
+} = giscusConfig;
+---
+
+{enable && repoId && categoryId && (
+	<div class="giscus-wrapper mt-8 mb-4">
+		<div class="giscus"></div>
+		<script is:inline define:vars={{
+			repo, repoId, category, categoryId, mapping,
+			reactionsEnabled, emitMetadata, inputPosition, lang
+		}}>
+			(function () {
+				let observer = null;
+
+				function loadGiscus() {
+					const container = document.querySelector(".giscus");
+					if (!container || container.querySelector("script")) return;
+
+					const script = document.createElement("script");
+					script.src = "https://giscus.app/client.js";
+					script.setAttribute("data-repo", repo);
+					script.setAttribute("data-repo-id", repoId);
+					script.setAttribute("data-category", category);
+					script.setAttribute("data-category-id", categoryId);
+					script.setAttribute("data-mapping", mapping);
+					script.setAttribute("data-reactions-enabled", reactionsEnabled);
+					script.setAttribute("data-emit-metadata", emitMetadata);
+					script.setAttribute("data-input-position", inputPosition);
+					script.setAttribute("data-lang", lang);
+					script.setAttribute("data-theme", document.documentElement.classList.contains("dark") ? "dark" : "light");
+					script.setAttribute("crossorigin", "anonymous");
+					script.async = true;
+
+					container.appendChild(script);
+
+					if (!observer) {
+						observer = new MutationObserver(() => {
+							const iframe = document.querySelector("iframe.giscus-frame");
+							if (iframe) {
+								const isDark = document.documentElement.classList.contains("dark");
+								iframe.contentWindow?.postMessage(
+									{ giscus: { setConfig: { theme: isDark ? "dark" : "light" } } },
+									"https://giscus.app"
+								);
+							}
+						});
+						observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+					}
+				}
+
+				loadGiscus();
+
+				// Swup compatibility: reload Giscus after page transition
+				document.addEventListener("swup:contentReplaced", loadGiscus);
+			})();
+		</script>
+	</div>
+)}
