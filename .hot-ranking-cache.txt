@@ -1,1 +1,1 @@
-bluetooth-controller,about-me,2026-dianti-d,2025-gks-robot
+bluetooth-controller,about-me,2026-mspm0g3507-robot,2026-dianti-d,2025-gks-robot
