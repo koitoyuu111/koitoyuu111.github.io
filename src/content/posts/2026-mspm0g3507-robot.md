@@ -1,5 +1,5 @@
 ---
-title: MSPM0G3507 双轮差速机器人 — 从 F407 移植到 TI 新平台
+title: 电赛 M0G3507 — 从 F407 移植到 TI 新平台的双轮差速机器人
 published: 2026-07-16T00:00:00.000Z
 description: '基于 TI MSPM0G3507 (ARM Cortex-M0+, 80MHz) 的双轮差速机器人，从 STM32F407 完整移植运控代码'
 image: '/images/project-mspm0.jpg'
