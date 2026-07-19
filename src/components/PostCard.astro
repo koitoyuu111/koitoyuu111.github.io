@@ -152,6 +152,9 @@ const { remarkPluginFrontmatter } = await entry.render();
         tiltElement.addEventListener('mousemove', handleMouseMove);
         tiltElement.addEventListener('mouseleave', handleMouseLeave);
     }
+
+    // 初始化 3D 倾斜效果
+    initTiltEffect();
 </script>
 
 <style define:vars={{coverWidth}}>

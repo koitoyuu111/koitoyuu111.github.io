@@ -1,7 +1,6 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
 import { url } from "@utils/url-utils.ts";
-import { onMount } from "svelte";
 
 interface SearchResult {
 	url: string;
@@ -17,7 +16,7 @@ let keywordMobile = "";
 let result: SearchResult[] = [];
 let isSearching = false;
 let noResults = false;
-let posts: any[] = [];
+let pagefind: any = null;
 
 const togglePanel = () => {
 	const panel = document.getElementById("search-panel");
@@ -37,12 +36,13 @@ const setPanelVisibility = (show: boolean, isDesktop: boolean): void => {
 
 const highlightText = (text: string, keyword: string): string => {
 	if (!keyword) return text;
-	const regex = new RegExp(`(${keyword})`, "gi");
+	const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	const regex = new RegExp(`(${escaped})`, "gi");
 	return text.replace(regex, "<mark>$1</mark>");
 };
 
 const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
-	if (!keyword) {
+	if (!keyword || keyword.length < 2) {
 		setPanelVisibility(false, isDesktop);
 		result = [];
 		noResults = false;
@@ -52,47 +52,116 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 	isSearching = true;
 
 	try {
-		const searchResults = posts
-			.filter((post) => {
-				const keywordLower = keyword.toLowerCase();
-				const searchText =
-					`${post.title} ${post.description} ${post.content}`.toLowerCase();
-				const urlPath = `/posts/${post.link}`;
+		// 懒加载 Pagefind（使用 script 标签方式避免 Vite 构建时解析）
+		if (!pagefind) {
+			try {
+				// 检查 Pagefind 是否已加载
+				if (!(window as any).__pagefind) {
+					await new Promise<void>((resolve, reject) => {
+						const script = document.createElement('script');
+						script.src = '/pagefind/pagefind.js';
+						script.onload = () => resolve();
+						script.onerror = () => reject(new Error('Failed to load Pagefind'));
+						document.head.appendChild(script);
+					});
+					(window as any).__pagefind = true;
+				}
+				pagefind = (window as any).pagefind;
+				if (pagefind?.init) await pagefind.init();
+			} catch (e) {
+				console.warn("Pagefind not available, falling back to RSS search");
+				pagefind = null;
+			}
+		}
 
-				// 支持内容搜索和URL后缀搜索
-				return (
-					searchText.includes(keywordLower) ||
-					urlPath.toLowerCase().includes(keywordLower) ||
-					post.link.toLowerCase().includes(keywordLower)
-				);
-			})
-			.map((post) => {
-				const contentLower = post.content.toLowerCase();
-				const keywordLower = keyword.toLowerCase();
-				const contentIndex = contentLower.indexOf(keywordLower);
+		if (pagefind) {
+			// 使用 Pagefind 搜索
+			const searchResult = await pagefind.search(keyword, {
+				threshold: 0.5,
+			});
 
-				let excerpt = "";
-				if (contentIndex !== -1) {
-					const start = Math.max(0, contentIndex - 50);
-					const end = Math.min(post.content.length, contentIndex + 100);
-					excerpt = post.content.substring(start, end);
-					if (start > 0) excerpt = "..." + excerpt;
-					if (end < post.content.length) excerpt = excerpt + "...";
-				} else {
-					excerpt = post.description || post.content.substring(0, 150) + "...";
+			const results = await Promise.all(
+				searchResult.results.slice(0, 10).map(async (r: any) => {
+					const data = await r.data();
+					return {
+						url: url(data.url),
+						meta: {
+							title: data.meta?.title || data.url,
+						},
+						excerpt: highlightText(
+							data.excerpt || data.content?.substring(0, 150) || "",
+							keyword
+						),
+						urlPath: data.url,
+					};
+				})
+			);
+
+			result = results;
+		} else {
+			// Fallback: RSS 搜索
+			const response = await fetch("/rss.xml");
+			const text = await response.text();
+			const parser = new DOMParser();
+			const xml = parser.parseFromString(text, "text/xml");
+			const items = xml.querySelectorAll("item");
+
+			const posts = Array.from(items).map((item) => {
+				let content = "";
+				const contentEncoded =
+					item.getElementsByTagNameNS("*", "encoded")[0]?.textContent ||
+					item.querySelector("*|encoded")?.textContent ||
+					"";
+
+				if (contentEncoded) {
+					content = contentEncoded.replace(/<[^>]*>/g, "");
 				}
 
 				return {
-					url: url(`/posts/${post.link}/`),
-					meta: {
-						title: post.title,
-					},
-					excerpt: highlightText(excerpt, keyword),
-					urlPath: `/posts/${post.link}`,
+					title: item.querySelector("title")?.textContent || "",
+					description: item.querySelector("description")?.textContent || "",
+					content: content,
+					link:
+						item
+							.querySelector("link")
+							?.textContent?.replace(/.*\/posts\/(.*?)\//, "$1") || "",
 				};
 			});
 
-		result = searchResults;
+			const keywordLower = keyword.toLowerCase();
+			result = posts
+				.filter((post) => {
+					const searchText =
+						`${post.title} ${post.description} ${post.content}`.toLowerCase();
+					return searchText.includes(keywordLower);
+				})
+				.slice(0, 10)
+				.map((post) => {
+					const contentLower = post.content.toLowerCase();
+					const contentIndex = contentLower.indexOf(keywordLower);
+
+					let excerpt = "";
+					if (contentIndex !== -1) {
+						const start = Math.max(0, contentIndex - 50);
+						const end = Math.min(post.content.length, contentIndex + 100);
+						excerpt = post.content.substring(start, end);
+						if (start > 0) excerpt = "..." + excerpt;
+						if (end < post.content.length) excerpt = excerpt + "...";
+					} else {
+						excerpt = post.description || post.content.substring(0, 150) + "...";
+					}
+
+					return {
+						url: url(`/posts/${post.link}/`),
+						meta: {
+							title: post.title,
+						},
+						excerpt: highlightText(excerpt, keyword),
+						urlPath: `/posts/${post.link}`,
+					};
+				});
+		}
+
 		noResults = keyword.length > 0 && result.length === 0;
 		setPanelVisibility(result.length > 0 || noResults, isDesktop);
 	} catch (error) {
@@ -105,43 +174,15 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 	}
 };
 
-onMount(async () => {
-	try {
-		const response = await fetch("/rss.xml");
-		const text = await response.text();
-		const parser = new DOMParser();
-		const xml = parser.parseFromString(text, "text/xml");
-		const items = xml.querySelectorAll("item");
+// 防抖搜索
+let searchTimeout: ReturnType<typeof setTimeout>;
+const debouncedSearch = (keyword: string, isDesktop: boolean) => {
+	clearTimeout(searchTimeout);
+	searchTimeout = setTimeout(() => search(keyword, isDesktop), 300);
+};
 
-		posts = Array.from(items).map((item) => {
-			// 尝试多种方式获取content:encoded内容
-			let content = "";
-			const contentEncoded =
-				item.getElementsByTagNameNS("*", "encoded")[0]?.textContent ||
-				item.querySelector("*|encoded")?.textContent ||
-				"";
-
-			if (contentEncoded) {
-				content = contentEncoded.replace(/<[^>]*>/g, "");
-			}
-
-			return {
-				title: item.querySelector("title")?.textContent || "",
-				description: item.querySelector("description")?.textContent || "",
-				content: content,
-				link:
-					item
-						.querySelector("link")
-						?.textContent?.replace(/.*\/posts\/(.*?)\//, "$1") || "",
-			};
-		});
-	} catch (error) {
-		console.error("Error fetching RSS:", error);
-	}
-});
-
-$: search(keywordDesktop, true);
-$: search(keywordMobile, false);
+$: debouncedSearch(keywordDesktop, true);
+$: debouncedSearch(keywordMobile, false);
 </script>
 
 <!-- search bar for desktop view -->
@@ -150,7 +191,7 @@ $: search(keywordMobile, false);
       dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
 ">
     <Icon icon="material-symbols:search" class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
-    <input placeholder="搜索" bind:value={keywordDesktop} on:focus={() => search(keywordDesktop, true)}
+    <input placeholder="搜索文章..." bind:value={keywordDesktop} on:focus={() => search(keywordDesktop, true)}
            class="transition-all pl-10 text-sm bg-transparent outline-0
          h-full w-40 focus:w-52 text-black/50 dark:text-white/50"
     >
@@ -172,30 +213,40 @@ top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
       dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
   ">
         <Icon icon="material-symbols:search" class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
-        <input placeholder="Search" bind:value={keywordMobile}
+        <input placeholder="搜索文章..." bind:value={keywordMobile}
                class="pl-10 absolute inset-0 text-sm bg-transparent outline-0
                focus:w-60 text-black/50 dark:text-white/50"
         >
     </div>
 
+    <!-- loading indicator -->
+    {#if isSearching}
+        <div class="px-3 py-4 text-center text-sm text-50 flex items-center justify-center gap-2">
+            <div class="w-4 h-4 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin"></div>
+            搜索中...
+        </div>
+    {/if}
+
     <!-- search results -->
-    {#each result as item}
-        <a href={item.url}
-           class="transition first-of-type:mt-2 lg:first-of-type:mt-0 group block
-       rounded-xl text-lg px-3 py-2 hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)]">
-            <div class="transition text-90 inline-flex font-bold group-hover:text-[var(--primary)]">
-                {item.meta.title}<Icon icon="fa6-solid:chevron-right" class="transition text-[0.75rem] translate-x-1 my-auto text-[var(--primary)]"></Icon>
-            </div>
-            <div class="transition text-xs text-white mb-1 font-mono">
-                {item.urlPath}
-            </div>
-            <div class="transition text-sm text-50">
-                {@html item.excerpt}
-            </div>
-        </a>
-    {/each}
-    {#if noResults}
-        <div class="px-3 py-6 text-center text-sm text-50">没有找到相关结果</div>
+    {#if !isSearching}
+        {#each result as item}
+            <a href={item.url}
+               class="transition first-of-type:mt-2 lg:first-of-type:mt-0 group block
+           rounded-xl text-lg px-3 py-2 hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)]">
+                <div class="transition text-90 inline-flex font-bold group-hover:text-[var(--primary)]">
+                    {item.meta.title}<Icon icon="fa6-solid:chevron-right" class="transition text-[0.75rem] translate-x-1 my-auto text-[var(--primary)]"></Icon>
+                </div>
+                <div class="transition text-xs text-white mb-1 font-mono">
+                    {item.urlPath}
+                </div>
+                <div class="transition text-sm text-50">
+                    {@html item.excerpt}
+                </div>
+            </a>
+        {/each}
+        {#if noResults}
+            <div class="px-3 py-6 text-center text-sm text-50">没有找到相关结果</div>
+        {/if}
     {/if}
 </div>
 

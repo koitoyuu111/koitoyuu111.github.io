@@ -19,12 +19,33 @@ export async function getStaticPaths() {
 	const blogEntries = await getSortedPosts();
 	return blogEntries.map((entry) => ({
 		params: { slug: entry.slug },
-		props: { entry },
+		props: { entry, allPosts: blogEntries },
 	}));
 }
 
-const { entry } = Astro.props;
+const { entry, allPosts } = Astro.props;
 const { Content, headings, remarkPluginFrontmatter } = await entry.render();
+
+// 计算相关文章（基于共同标签数量）
+const currentTags = new Set(entry.data.tags);
+const relatedPosts = allPosts
+	.filter((post) => post.slug !== entry.slug)
+	.map((post) => {
+		const sharedTags = post.data.tags.filter((tag: string) => currentTags.has(tag)).length;
+		return { post, sharedTags };
+	})
+	.filter(({ sharedTags }) => sharedTags > 0)
+	.sort((a, b) => b.sharedTags - a.sharedTags || new Date(b.post.data.published).getTime() - new Date(a.post.data.published).getTime())
+	.slice(0, 3)
+	.map(({ post }) => post);
+
+// 计算同系列文章
+const seriesPosts = entry.data.series
+	? allPosts
+			.filter((post) => post.data.series === entry.data.series)
+			.sort((a, b) => (a.data.seriesOrder || 0) - (b.data.seriesOrder || 0) || new Date(a.data.published).getTime() - new Date(b.data.published).getTime())
+	: [];
+const currentSeriesIndex = seriesPosts.findIndex((post) => post.slug === entry.slug);
 
 const postUrl = new URL(getPostUrlBySlug(entry.slug), Astro.site).href;
 
@@ -133,6 +154,30 @@ const jsonLd = {
                 ></PostMetadata>
                 {!entry.data.image && <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mb-5"></div>}
             </div>
+
+            <!-- 系列导航 -->
+            {seriesPosts.length > 1 && (
+                <div class="mb-6 p-4 rounded-xl bg-[var(--license-block-bg)] border border-[var(--line-divider)] onload-animation">
+                    <div class="flex items-center gap-2 mb-3">
+                        <Icon name="material-symbols:collections-bookmark-outline" class="text-[1.25rem] text-[var(--primary)]" />
+                        <span class="font-bold text-sm text-black/80 dark:text-white/80">{entry.data.series} 系列</span>
+                        <span class="text-xs text-black/40 dark:text-white/40 ml-auto">{currentSeriesIndex + 1} / {seriesPosts.length}</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        {seriesPosts.map((sp, idx) => (
+                            <a href={getPostUrlBySlug(sp.slug)}
+                               class:list={[
+                                   "text-xs px-3 py-1.5 rounded-lg transition-all",
+                                   idx === currentSeriesIndex
+                                       ? "bg-[var(--primary)] text-white font-bold"
+                                       : "bg-[var(--btn-regular-bg)] text-black/60 dark:text-white/60 hover:bg-[var(--btn-regular-bg-hover)] hover:text-[var(--primary)]"
+                               ]}>
+                                {idx + 1}. {sp.data.title}
+                            </a>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <!-- always show cover as long as it has one -->
 
@@ -504,6 +549,38 @@ const jsonLd = {
             </script>
     <br>
 
+    <!-- 相关文章推荐 -->
+    {relatedPosts.length > 0 && (
+        <div class="mb-6 onload-animation">
+            <div class="flex items-center gap-2 mb-4">
+                <Icon name="material-symbols:recommend-outline" class="text-[1.25rem] text-[var(--primary)]" />
+                <h2 class="text-lg font-bold text-black/85 dark:text-white/85">相关文章</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {relatedPosts.map((related) => (
+                    <a href={getPostUrlBySlug(related.slug)}
+                       class="card-base group rounded-xl p-4 hover:bg-[var(--card-bg-hover)] transition-all active:scale-[0.98]">
+                        <div class="text-sm font-bold text-black/80 dark:text-white/80 group-hover:text-[var(--primary)] transition-colors line-clamp-2 mb-2">
+                            {related.data.title}
+                        </div>
+                        <div class="text-xs text-black/40 dark:text-white/40">
+                            {formatDateToYYYYMMDD(related.data.published)}
+                        </div>
+                        {related.data.tags.length > 0 && (
+                            <div class="flex flex-wrap gap-1 mt-2">
+                                {related.data.tags.slice(0, 2).map((tag: string) => (
+                                    <span class="text-[0.625rem] px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)]">
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </a>
+                ))}
+            </div>
+        </div>
+    )}
+
     <div class="flex flex-col md:flex-row justify-between mb-4 gap-4 overflow-hidden w-full">
         <a href={entry.data.nextSlug ? getPostUrlBySlug(entry.data.nextSlug) : "#"}
            class:list={["w-full font-bold overflow-hidden active:scale-95", {"pointer-events-none": !entry.data.nextSlug}]}>
@@ -525,5 +602,101 @@ const jsonLd = {
             </div>}
         </a>
     </div>
+
+    <!-- 移动端 TOC 抽屉 -->
+    {headings.length > 0 && (
+        <div id="mobile-toc-wrapper" class="lg:hidden">
+            <!-- 悬浮按钮 -->
+            <button id="mobile-toc-btn"
+                    class="fixed bottom-24 left-4 z-50 w-11 h-11 rounded-xl bg-[var(--card-bg)] border border-[var(--line-divider)] shadow-lg flex items-center justify-center text-[var(--primary)] active:scale-95 transition-transform"
+                    aria-label="打开目录">
+                <Icon name="material-symbols:format-list-bulleted" class="text-[1.25rem]" />
+            </button>
+
+            <!-- 遮罩层 -->
+            <div id="mobile-toc-overlay" class="fixed inset-0 z-[60] bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+            <!-- 抽屉 -->
+            <div id="mobile-toc-drawer"
+                 class="fixed bottom-0 left-0 right-0 z-[70] max-h-[70vh] bg-[var(--card-bg)] rounded-t-2xl shadow-2xl transform translate-y-full transition-transform duration-300 ease-out flex flex-col">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-[var(--line-divider)]">
+                    <div class="flex items-center gap-2">
+                        <Icon name="material-symbols:format-list-bulleted" class="text-[1.25rem] text-[var(--primary)]" />
+                        <span class="font-bold text-black/80 dark:text-white/80">目录</span>
+                    </div>
+                    <button id="mobile-toc-close" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[var(--btn-plain-bg-hover)] active:scale-95 transition-all">
+                        <Icon name="material-symbols:close-rounded" class="text-[1.25rem]" />
+                    </button>
+                </div>
+                <div id="mobile-toc-content" class="overflow-y-auto p-4 space-y-1">
+                    {headings.filter((h) => h.depth < 4).map((heading) => (
+                        <a href={`#${heading.slug}`}
+                           class:list={[
+                               "block px-3 py-2 rounded-lg text-sm transition-colors",
+                               "hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)]",
+                               heading.depth === 2 ? "font-bold text-black/80 dark:text-white/80" : "text-black/60 dark:text-white/60",
+                               {"pl-6": heading.depth === 3}
+                           ]}>
+                            {heading.text}
+                        </a>
+                    ))}
+                </div>
+            </div>
+        </div>
+    )}
+
+    <script is:inline>
+        (function() {
+            var btn = document.getElementById('mobile-toc-btn');
+            var overlay = document.getElementById('mobile-toc-overlay');
+            var drawer = document.getElementById('mobile-toc-drawer');
+            var closeBtn = document.getElementById('mobile-toc-close');
+            var content = document.getElementById('mobile-toc-content');
+
+            if (!btn || !drawer) return;
+
+            function openDrawer() {
+                overlay.classList.remove('opacity-0', 'pointer-events-none');
+                drawer.classList.remove('translate-y-full');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeDrawer() {
+                overlay.classList.add('opacity-0', 'pointer-events-none');
+                drawer.classList.add('translate-y-full');
+                document.body.style.overflow = '';
+            }
+
+            btn.addEventListener('click', openDrawer);
+            overlay.addEventListener('click', closeDrawer);
+            closeBtn.addEventListener('click', closeDrawer);
+
+            // 点击目录链接后关闭
+            if (content) {
+                content.addEventListener('click', function(e) {
+                    if (e.target.closest('a')) {
+                        setTimeout(closeDrawer, 100);
+                    }
+                });
+            }
+
+            // Swup 兼容
+            document.addEventListener('swup:contentReplaced', function() {
+                btn = document.getElementById('mobile-toc-btn');
+                overlay = document.getElementById('mobile-toc-overlay');
+                drawer = document.getElementById('mobile-toc-drawer');
+                closeBtn = document.getElementById('mobile-toc-close');
+                content = document.getElementById('mobile-toc-content');
+                if (btn) btn.addEventListener('click', openDrawer);
+                if (overlay) overlay.addEventListener('click', closeDrawer);
+                if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+                if (content) {
+                    content.addEventListener('click', function(e) {
+                        if (e.target.closest('a')) setTimeout(closeDrawer, 100);
+                    });
+                }
+            });
+        })();
+    </script>
 
 </MainGridLayout>

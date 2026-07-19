@@ -12,7 +12,6 @@
   let isBackgroundHidden = false;
   let showBackToTop = false;
   let isHomePage = false;
-  let isHotPage = false;
   let isPostPage = false;
 
   // 切换排序
@@ -20,17 +19,6 @@
     currentSortIndex = (currentSortIndex + 1) % sortModes.length;
     const mode = sortModes[currentSortIndex];
     localStorage.setItem("post-sort-mode", mode.key);
-
-    if (mode.key === "views") {
-      sessionStorage.setItem("sort-toast", `已按${mode.label}排序`);
-      window.location.href = "/hot/";
-      return;
-    }
-    if (mode.key === "published" && isHotPage) {
-      sessionStorage.setItem("sort-toast", `已按${mode.label}排序`);
-      window.location.href = "/";
-      return;
-    }
 
     sortPosts(mode.key);
     showToast(`已按${mode.label}排序（当前页）`);
@@ -54,13 +42,6 @@
 
     // 只对非置顶文章排序
     normalCards.sort((a, b) => {
-      if (mode === "views") {
-        const slugA = a.dataset.slug || "";
-        const slugB = b.dataset.slug || "";
-        const viewsA = (window as any).umamiCache?.[slugA]?.pageViews || 0;
-        const viewsB = (window as any).umamiCache?.[slugB]?.pageViews || 0;
-        return viewsB - viewsA;
-      }
       return Number(b.dataset[mode] || 0) - Number(a.dataset[mode] || 0);
     });
 
@@ -143,36 +124,23 @@
     const currentPath = window.location.pathname;
     const isCurrentHomePage =
       currentPath === "/" || /^\/(\d+|page\/\d+)\/?$/.test(currentPath);
-    const isCurrentHotPage = /^\/hot(\/\d+)?\/?$/.test(currentPath);
 
-    if (isCurrentHomePage || isCurrentHotPage) {
+    if (isCurrentHomePage) {
       isHomePage = true;
-      isHotPage = isCurrentHotPage;
       isPostPage = false;
 
-      if (isCurrentHotPage) {
-        // /hot/ 页面默认选中 views
-        currentSortIndex = sortModes.findIndex((m) => m.key === "views");
-        localStorage.setItem("post-sort-mode", "views");
-      } else {
-        const savedSort = localStorage.getItem("post-sort-mode") as SortMode | null;
-        if (savedSort === "views") {
-          // 从 /hot/ 回到首页，重置为 published
-          currentSortIndex = 0;
-          localStorage.setItem("post-sort-mode", "published");
-        } else if (savedSort && savedSort !== "published") {
-          const savedIndex = sortModes.findIndex((m) => m.key === savedSort);
-          if (savedIndex !== -1) {
-            currentSortIndex = savedIndex;
-            waitAndSort(savedSort);
-          }
-        } else {
-          currentSortIndex = 0;
+      const savedSort = localStorage.getItem("post-sort-mode") as SortMode | null;
+      if (savedSort && savedSort !== "published") {
+        const savedIndex = sortModes.findIndex((m) => m.key === savedSort);
+        if (savedIndex !== -1) {
+          currentSortIndex = savedIndex;
+          waitAndSort(savedSort);
         }
+      } else {
+        currentSortIndex = 0;
       }
     } else {
       isHomePage = false;
-      isHotPage = false;
       isPostPage = /^\/posts\//.test(currentPath);
     }
   }
@@ -188,23 +156,6 @@
         setTimeout(() => waitAndSort(mode, retries + 1), 200);
       }
       return;
-    }
-
-    // 对于浏览量排序，需要等待 umamiCache 加载
-    if (mode === "views") {
-      const cards = container.querySelectorAll('[id^="post-card-"]');
-      const hasAnyViewData = Array.from(cards).some((card) => {
-        const slug = (card as HTMLElement).dataset.slug;
-        return (
-          slug && (window as any).umamiCache?.[slug]?.pageViews !== undefined
-        );
-      });
-
-      if (!hasAnyViewData && retries < maxRetries) {
-        // 浏览量数据未加载，继续等待
-        setTimeout(() => waitAndSort(mode, retries + 1), 200);
-        return;
-      }
     }
 
     // 条件满足，执行排序

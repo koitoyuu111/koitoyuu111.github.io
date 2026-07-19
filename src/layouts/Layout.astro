@@ -135,14 +135,7 @@ const bannerOffset =
 				"url": Astro.site,
 				"name": siteConfig.title,
 				"description": siteConfig.description || siteConfig.subtitle,
-				"inLanguage": siteConfig.lang.replace("_", "-"),
-				...(siteConfig.title && {
-					potentialAction: {
-						"@type": "SearchAction",
-						target: `${Astro.site}search?q={search_term_string}`,
-						"query-input": "required name=search_term_string"
-					}
-				})
+				"inLanguage": siteConfig.lang.replace("_", "-")
 			})}></script>
 			<script type="application/ld+json" set:html={JSON.stringify({
 				"@context": "https://schema.org",
@@ -210,7 +203,10 @@ const bannerOffset =
 						document.documentElement.classList.add('dark');
 						break
 					case AUTO_MODE:
-						if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+						// 优先使用系统偏好，但夜间 (22:00-7:00) 强制深色
+						const hour = new Date().getHours();
+						const isNightTime = hour >= 22 || hour < 7;
+						if (isNightTime || window.matchMedia('(prefers-color-scheme: dark)').matches) {
 							document.documentElement.classList.add('dark');
 						} else {
 							document.documentElement.classList.remove('dark');
@@ -483,6 +479,17 @@ const bannerOffset =
 		<link rel="alternate" type="application/rss+xml" title={profileConfig.name} href={`${Astro.site}rss.xml`}/>
 		<!-- Resource Hints removed per request -->
 
+		<!-- PWA Service Worker 注册 -->
+		<script is:inline>
+			if ('serviceWorker' in navigator) {
+				window.addEventListener('load', function() {
+					navigator.serviceWorker.register('/sw.js').catch(function(err) {
+						console.warn('[SW] Registration failed:', err);
+					});
+				});
+			}
+		</script>
+
 
 	</head>
 	<body class=" min-h-screen transition " class:list={[{"lg:is-home": isHomePage, "enable-banner": enableBanner}]}
@@ -524,7 +531,7 @@ const bannerOffset =
 		</style>
 		<div id="cookie-consent-banner">
 			<div class="cc-title">🍪 Cookie</div>
-			<div class="cc-desc">本站使用 Cookie 保存您的主题偏好设置。<br/>This site uses cookies to save your theme preferences.<br/><a href="/about-privacy/">隐私政策 / Privacy Policy</a></div>
+			<div class="cc-desc">本站使用 localStorage 保存您的主题偏好设置。<br/>This site uses localStorage to save your theme preferences.<br/><a href="/about-privacy/">隐私政策 / Privacy Policy</a></div>
 			<div class="cc-actions">
 				<label class="cc-always"><input type="checkbox" id="cc-always" />始终记住 Always</label>
 				<button class="cc-btn cc-btn-yes" id="cookie-accept">同意 Yes</button>
@@ -813,11 +820,7 @@ const setup = () => {
 		}
 	});
 	window.swup.hooks.on('page:view', () => {
-		// hide the temp high element when the transition is done
-		const heightExtend = document.getElementById('page-height-extend')
-		if (heightExtend) {
-			heightExtend.classList.remove('hidden')
-		}
+		// page:view 触发时不做操作，等待 visit:end 再隐藏高度扩展元素
 	});
 	window.swup.hooks.on('visit:end', (_visit: {to: {url: string}}) => {
 		setTimeout(() => {

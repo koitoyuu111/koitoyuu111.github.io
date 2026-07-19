@@ -5,7 +5,7 @@
 	"scripts": {
 		"dev": "astro dev",
 		"start": "astro dev",
-		"build": "astro build",
+		"build": "astro build && pagefind --site dist",
 		"build:indexnow": "astro build && node scripts/submit-indexnow-incremental.mjs",
 		"submit-indexnow": "node scripts/submit-indexnow.mjs",
 		"submit-indexnow-inc": "node scripts/submit-indexnow-incremental.mjs",
@@ -86,6 +86,7 @@
 		"@types/markdown-it": "^14.1.2",
 		"@types/mdast": "^4.0.4",
 		"@types/sanitize-html": "^2.15.0",
+		"pagefind": "^1.5.2",
 		"postcss-import": "^16.1.0",
 		"postcss-nesting": "^13.0.1",
 		"rehype": "^13.0.2"

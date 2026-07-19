@@ -63,39 +63,38 @@ const imageClass = `w-full h-full object-${fit}`;
 const imageStyle = `object-position: ${position}`;
 ---
 <div id={id} class:list={[className, 'overflow-hidden relative image-wrapper']} style={`--theme-hue: ${siteConfig.themeColor.hue}`}>
-    <!-- 加载条: 仅在非 LCP 图片时显示 -->
-    {!isLCP && <div class="loading-bar absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-1 bg-gray-200 dark:bg-gray-700 z-10 rounded-full overflow-hidden">
-        <div class="loading-progress h-full w-8 bg-[oklch(0.70_0.14_var(--theme-hue))] animate-loading-progress rounded-full"></div>
-    </div>}
+    <!-- 骨架屏占位: 仅在非 LCP 图片时显示 -->
+    {!isLCP && <div class="skeleton-placeholder absolute inset-0 z-10 bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 animate-shimmer"></div>}
     
     <!-- 图片内容 -->
     {dim && <div class="transition absolute inset-0 dark:bg-black/10 bg-opacity-50 pointer-events-none"></div>}
     
-    {isLocal && img && <Image src={img} alt={alt || ""} class={`${imageClass} image-content ${!isLCP ? 'opacity-0 transition-opacity duration-500' : ''}`} style={imageStyle} onload={!isLCP ? "this.style.opacity='1'; this.parentElement.querySelector('.loading-bar').style.opacity='0';" : undefined} loading={isLCP ? "eager" : "lazy"} fetchpriority={effectiveFetchPriority} />}
+    {isLocal && img && <Image src={img} alt={alt || ""} class={`${imageClass} image-content ${!isLCP ? 'opacity-0 transition-opacity duration-500' : ''}`} style={imageStyle} onload={!isLCP ? "this.style.opacity='1'; const skeleton = this.parentElement.querySelector('.skeleton-placeholder'); if(skeleton) skeleton.style.opacity='0';" : undefined} loading={isLCP ? "eager" : "lazy"} fetchpriority={effectiveFetchPriority} />}
     
     {!isLocal && (
         imageFallbackConfig.enable && src.includes(imageFallbackConfig.originalDomain) ? 
-            <img src={isPublic ? url(src) : src} alt={alt || ""} class={`${imageClass} image-content ${!isLCP ? 'opacity-0 transition-opacity duration-500' : ''}`} style={imageStyle} onload={!isLCP ? "this.style.opacity='1'; this.parentElement.querySelector('.loading-bar').style.opacity='0';" : undefined} onerror={`this.onerror=null; this.src='${(isPublic ? url(src) : src).replace(imageFallbackConfig.originalDomain, imageFallbackConfig.fallbackDomain)}';`} loading={isLCP ? "eager" : "lazy"} fetchpriority={effectiveFetchPriority} /> :
-            <img src={isPublic ? url(src) : src} alt={alt || ""} class={`${imageClass} image-content ${!isLCP ? 'opacity-0 transition-opacity duration-500' : ''}`} style={imageStyle} onload={!isLCP ? "this.style.opacity='1'; this.parentElement.querySelector('.loading-bar').style.opacity='0';" : undefined} loading={isLCP ? "eager" : "lazy"} fetchpriority={effectiveFetchPriority} />
+            <img src={isPublic ? url(src) : src} alt={alt || ""} class={`${imageClass} image-content ${!isLCP ? 'opacity-0 transition-opacity duration-500' : ''}`} style={imageStyle} onload={!isLCP ? "this.style.opacity='1'; const skeleton = this.parentElement.querySelector('.skeleton-placeholder'); if(skeleton) skeleton.style.opacity='0';" : undefined} onerror={`this.onerror=null; this.src='${(isPublic ? url(src) : src).replace(imageFallbackConfig.originalDomain, imageFallbackConfig.fallbackDomain)}';`} loading={isLCP ? "eager" : "lazy"} fetchpriority={effectiveFetchPriority} /> :
+            <img src={isPublic ? url(src) : src} alt={alt || ""} class={`${imageClass} image-content ${!isLCP ? 'opacity-0 transition-opacity duration-500' : ''}`} style={imageStyle} onload={!isLCP ? "this.style.opacity='1'; const skeleton = this.parentElement.querySelector('.skeleton-placeholder'); if(skeleton) skeleton.style.opacity='0';" : undefined} loading={isLCP ? "eager" : "lazy"} fetchpriority={effectiveFetchPriority} />
     )}
 </div>
 
 <style>
-    .loading-bar {
+    .skeleton-placeholder {
         transition: opacity 0.5s ease-out;
+        background-size: 200% 100%;
     }
     
-    @keyframes loading-progress {
+    @keyframes shimmer {
         0% {
-            transform: translateX(-100%);
+            background-position: 200% 0;
         }
         100% {
-            transform: translateX(400%);
+            background-position: -200% 0;
         }
     }
     
-    .animate-loading-progress {
-        animation: loading-progress 1.5s ease-in-out infinite;
+    .animate-shimmer {
+        animation: shimmer 1.5s ease-in-out infinite;
     }
     
     .image-wrapper:hover .image-content {

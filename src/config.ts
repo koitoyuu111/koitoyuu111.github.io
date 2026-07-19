@@ -134,7 +134,7 @@ export const expressiveCodeConfig: ExpressiveCodeConfig = {
 export const giscusConfig: GiscusConfig = {
 	enable: false,
 	repo: "koitoyuu111/koitoyuu111.github.io",
-	repoId: "",
+	repoId: "R_kgDOSmRw9w",
 	category: "Announcements",
 	categoryId: "",
 	mapping: "pathname",

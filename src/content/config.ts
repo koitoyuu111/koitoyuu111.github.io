@@ -12,6 +12,10 @@ const postsCollection = defineCollection({
 		lang: z.string().optional().default(""),
 		pinned: z.boolean().optional().default(false),
 
+		/* 文章系列：同一系列的文章会显示系列导航 */
+		series: z.string().optional().default(""),
+		seriesOrder: z.number().optional().default(0),
+
 		/* 性能优化：预渲染所有内容（包括折叠区），适用于长文章 */
 		prerenderAll: z.boolean().optional().default(false),
 

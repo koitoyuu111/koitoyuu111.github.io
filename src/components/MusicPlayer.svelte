@@ -15,8 +15,8 @@ let showLoadingToast = false; // 控制加载提示显示
 let showLoadedToast = false; // 控制加载完成提示显示
 let loadStartTime = 0; // 记录加载开始时间
 
-// 音频文件配置 - 支持多格式回退
-const audioSources = ["/music/background.flac", "/music/background.mp3"];
+// 音频文件配置
+const audioSources = ["/music/background.mp3"];
 
 let currentSourceIndex = 0;
 
