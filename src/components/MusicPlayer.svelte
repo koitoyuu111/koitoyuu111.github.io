@@ -16,7 +16,7 @@ let showLoadedToast = false; // 控制加载完成提示显示
 let loadStartTime = 0; // 记录加载开始时间
 
 // 音频文件配置
-const audioSources = ["/music/background.mp3"];
+const audioSources = ["/music/灰澈 - 星茶会.mp3"];
 
 let currentSourceIndex = 0;
 
