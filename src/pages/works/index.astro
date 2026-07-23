@@ -9,6 +9,30 @@ import MainGridLayout from "@layouts/MainGridLayout.astro";
   <h1 class="text-3xl font-bold mb-6 text-black/90 dark:text-white/90">项目作品</h1>
 
   <div class="space-y-6">
+    <!-- MSPM0G3507 双轮差速机器人 -->
+    <div class="card-base rounded-[var(--radius-large)] p-6">
+      <div class="flex flex-col md:flex-row gap-4">
+        <div class="w-full md:w-48 h-32 rounded-lg overflow-hidden flex-shrink-0">
+          <img src="/images/project-mspm0.png" alt="MSPM0G3507 PCB" class="w-full h-full object-cover" />
+        </div>
+        <div class="flex-1">
+          <h2 class="text-lg font-bold mb-1 text-[var(--primary)]">MSPM0G3507 双轮差速机器人 (v2.0)</h2>
+          <p class="text-sm text-black/60 dark:text-white/60 mb-2 leading-relaxed">
+            基于 TI MSPM0G3507 (Cortex-M0+, 80MHz) 的双轮差速机器人，从 STM32F407 完整移植运控代码。自制 PCB（TwoSunday 板），TB6612 电机驱动 + QEI/外部中断双编码器，200Hz PID 速度环，支持 K230/MaixCam2 视觉模块、WT9011 IMU、8路循迹、OLED 显示、VOFA 调试。
+          </p>
+          <div class="flex flex-wrap gap-1.5 mb-2">
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">MSPM0G3507</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">TB6612</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">200Hz PID</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">自制PCB</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">K230/MaixCam2</span>
+          </div>
+          <a href="https://github.com/koitoyuu111/MSPM0G3507" target="_blank"
+             class="text-sm text-[var(--primary)] hover:underline">GitHub 仓库 &rarr;</a>
+        </div>
+      </div>
+    </div>
+
     <!-- 2026 电赛 -->
     <div class="card-base rounded-[var(--radius-large)] p-6">
       <div class="flex flex-col md:flex-row gap-4">
