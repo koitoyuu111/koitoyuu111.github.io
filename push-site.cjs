@@ -11,5 +11,5 @@ function run(cmd) {
 }
 
 run('git add .');
-run('git commit -m "docs: update MSPM0G3507 blog post with PCB details and MaixCam2 support"');
+run('git commit -m "docs: detailed MSPM0G3507 blog post with code analysis, pin map, PID algorithm, encoder decoding"');
 run('git push origin main');
