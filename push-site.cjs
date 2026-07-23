@@ -5,13 +5,11 @@ function run(cmd) {
   try {
     const out = execSync(cmd, { cwd: dir, encoding: 'utf8', timeout: 120000 });
     console.log(out);
-    return true;
   } catch (e) {
     console.log('ERR: ' + (e.stderr || e.message));
-    return false;
   }
 }
 
 run('git add .');
-run('git commit -m "feat: add MSPM0G3507 project to works page and blog"');
+run('git commit -m "docs: update MSPM0G3507 blog post with PCB details and MaixCam2 support"');
 run('git push origin main');

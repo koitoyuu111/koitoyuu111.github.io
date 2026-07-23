@@ -1,15 +1,32 @@
 ---
 title: 电赛 M0G3507 — 从 F407 移植到 TI 新平台的双轮差速机器人
 published: 2026-07-16T00:00:00.000Z
-description: '基于 TI MSPM0G3507 (ARM Cortex-M0+, 80MHz) 的双轮差速机器人，从 STM32F407 完整移植运控代码'
+description: '基于 TI MSPM0G3507 (ARM Cortex-M0+, 80MHz) 的双轮差速机器人，自制 PCB，从 STM32F407 完整移植运控代码'
 image: '/images/project-mspm0.png'
 tags: [MSPM0G3507, TI, 双轮差速, PID, IMU, 嵌入式]
 category: 项目分享
+series: 电赛系列
+seriesOrder: 3
 ---
 
 ## 项目概述
 
-将原本跑在 STM32F407 上的双轮差速机器人运控代码，完整移植到 TI MSPM0G3507 (ARM Cortex-M0+, 80MHz)。支持 Keil / IAR / GCC 三套工具链。
+将原本跑在 STM32F407 上的双轮差速机器人运控代码，完整移植到 TI MSPM0G3507 (ARM Cortex-M0+, 80MHz)。自制 PCB（TwoSunday 板），支持 Keil / IAR / GCC / TI Clang 四套工具链。
+
+## 自制 PCB
+
+![MSPM0G3507 自制 PCB](/images/project-mspm0.png)
+
+红色 PCB 为自主设计的 TwoSunday 控制板，集成：
+
+- MSPM0G3507 主控最小系统
+- TB6612 电机驱动接口
+- MaixCam2 / K230 视觉模块接口（UART + 5V 供电）
+- WT9011 IMU 接口
+- 编码器接口 x2
+- OLED 显示屏接口
+- 12V 电源输入 + 3.3V LDO
+- SWD 调试接口 (RST / BSL / DRIVE)
 
 ## 硬件平台
 
@@ -17,6 +34,7 @@ category: 项目分享
 | --- | --- | --- |
 | 主控 | MSPM0G3507 (Cortex-M0+, 80MHz) | - |
 | 电机驱动 | TB6612FNG | PWM + GPIO |
+| 视觉模块 | K230 / MaixCam2 | UART |
 | 陀螺仪 | WT9011 | UART DMA / 软件 I2C |
 | 显示屏 | 0.96" OLED + 串口屏 | 软件 I2C / UART |
 | 编码器 | 增量式 x2 | QEI + 外部中断 4 倍频 |
@@ -34,7 +52,7 @@ SysTick 1ms
         ├── 独立双轮 PID 速度环
         ├── TB6612 电机输出
         ├── 按键处理
-        └── LCD / OLED 显示刷新
+        └── OLED 显示刷新
 ```
 
 ## 核心模块
@@ -44,6 +62,13 @@ SysTick 1ms
 - **速度环**：带一阶低通滤波 (α=0.15) 的增量式 PID，积分限幅 ±3000
 - **角度环**：PD 控制，带 ±180° 角度 wrapping
 - **转向环**：角速度 × Kd + 遥控 × Kp
+
+### K230 / MaixCam2 视觉模块
+
+通过 UART 接收视觉模块的目标坐标，用于巡线、目标追踪等任务。支持两种模块：
+
+- **K230**：嘉楠 AI 视觉模块，运行 kmodel 目标检测
+- **MaixCam2**：硅速科技视觉模块，支持颜色追踪、二维码识别
 
 ### WT9011 IMU
 
@@ -71,6 +96,6 @@ SysTick 1ms
 
 ## 技术关键词
 
-`MSPM0G3507` `TB6612` `WT9011 IMU` `PID 速度环` `QEI 编码器` `4倍频正交解码` `200Hz运控` `OLED` `VOFA调试` `8路循迹`
+`MSPM0G3507` `TB6612` `WT9011 IMU` `PID 速度环` `QEI 编码器` `4倍频正交解码` `200Hz运控` `OLED` `VOFA调试` `8路循迹` `K230` `MaixCam2` `自制PCB`
 
 [GitHub 仓库](https://github.com/koitoyuu111/MSPM0G3507)
