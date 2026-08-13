@@ -542,7 +542,7 @@ const bannerOffset =
 		(function(){
 			var CK='cookie-consent',cs=localStorage.getItem(CK);
 			if(cs==='always-accepted'||cs==='accepted')return;
-			if(cs==='always-rejected')return;
+			if(cs==='always-rejected'||cs==='rejected')return;
 			var b=document.getElementById('cookie-consent-banner');
 			function hide(){b.classList.remove('cc-show');b.classList.add('cc-hide');}
 			setTimeout(function(){b.style.display='block';requestAnimationFrame(function(){b.classList.add('cc-show');});},600);

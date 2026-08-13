@@ -1,7 +1,8 @@
 import { definePlugin } from "@expressive-code/core";
-import type { Element } from "hast";
+import type { ExpressiveCodePlugin } from "@expressive-code/core";
+import type { Element } from "@expressive-code/core/hast";
 
-export function pluginCustomCopyButton() {
+export function pluginCustomCopyButton(): ExpressiveCodePlugin {
 	return definePlugin({
 		name: "Custom Copy Button",
 		hooks: {

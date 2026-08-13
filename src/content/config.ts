@@ -1,61 +1,74 @@
-import { defineCollection, z } from "astro:content";
+import { defineCollection, z, type CollectionConfig } from "astro:content";
 
-const postsCollection = defineCollection({
-	schema: z.object({
-		title: z.string(),
-		published: z.date(),
-		updated: z.date().optional(),
-		draft: z.boolean().optional().default(false),
-		description: z.string().optional().default(""),
-		image: z.string().optional().default(""),
-		tags: z.array(z.string()).optional().default([]),
-		lang: z.string().optional().default(""),
-		pinned: z.boolean().optional().default(false),
+const postsSchema = z.object({
+	title: z.string(),
+	published: z.date(),
+	updated: z.date().optional(),
+	draft: z.boolean().optional().default(false),
+	description: z.string().optional().default(""),
+	image: z.string().optional().default(""),
+	tags: z.array(z.string()).optional().default([]),
+	lang: z.string().optional().default(""),
+	pinned: z.boolean().optional().default(false),
 
-		/* 文章系列：同一系列的文章会显示系列导航 */
-		series: z.string().optional().default(""),
-		seriesOrder: z.number().optional().default(0),
+	/* 文章系列：同一系列的文章会显示系列导航 */
+	series: z.string().optional().default(""),
+	seriesOrder: z.number().optional().default(0),
 
-		/* 性能优化：预渲染所有内容（包括折叠区），适用于长文章 */
-		prerenderAll: z.boolean().optional().default(false),
+	/* 性能优化：预渲染所有内容（包括折叠区），适用于长文章 */
+	prerenderAll: z.boolean().optional().default(false),
 
-		/* For internal use */
-		prevTitle: z.string().default(""),
-		prevSlug: z.string().default(""),
-		nextTitle: z.string().default(""),
-		nextSlug: z.string().default(""),
-	}),
+	/* For internal use */
+	prevTitle: z.string().default(""),
+	prevSlug: z.string().default(""),
+	nextTitle: z.string().default(""),
+	nextSlug: z.string().default(""),
 });
 
-const specCollection = defineCollection({
-	schema: z.object({
-		title: z.string().optional(),
-		published: z.date().optional(),
-		updated: z.date().optional(),
-		draft: z.boolean().optional().default(false),
-	}),
+const postsCollection: CollectionConfig<typeof postsSchema> = defineCollection({
+	schema: postsSchema,
 });
 
-const assetsCollection = defineCollection({
+const specSchema = z.object({
+	title: z.string().optional(),
+	published: z.date().optional(),
+	updated: z.date().optional(),
+	draft: z.boolean().optional().default(false),
+});
+
+const specCollection: CollectionConfig<typeof specSchema> = defineCollection({
+	schema: specSchema,
+});
+
+const assetsSchema = z.object({
+	title: z.string().optional(),
+	description: z.string().optional(),
+});
+
+const assetsCollection: CollectionConfig<typeof assetsSchema> = defineCollection({
 	type: "data",
-	schema: z.object({
-		title: z.string().optional(),
-		description: z.string().optional(),
-	}),
+	schema: assetsSchema,
 });
 
-const friendsCollection = defineCollection({
+const friendsSchema = z.object({
+	name: z.string(),
+	url: z.string(),
+	avatar: z.string(),
+	introduction: z.string(),
+	friendsPage: z.string(),
+});
+
+const friendsCollection: CollectionConfig<typeof friendsSchema> = defineCollection({
 	type: "data",
-	schema: z.object({
-		name: z.string(),
-		url: z.string(),
-		avatar: z.string(),
-		introduction: z.string(),
-		friendsPage: z.string(),
-	}),
+	schema: friendsSchema,
 });
 
-export const collections = {
+export const collections: {
+	posts: typeof postsCollection;
+	spec: typeof specCollection;
+	assets: typeof assetsCollection;
+	friends: typeof friendsCollection;
+} = {
 	posts: postsCollection,
 	spec: specCollection,
 	assets: assetsCollection,

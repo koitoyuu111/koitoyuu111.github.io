@@ -1,6 +1,7 @@
 /* eslint-disable react/no-unknown-property */
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useMemo, useRef, useEffect, useState } from 'react';
+import type { ReactElement } from 'react';
 import * as THREE from 'three';
 
 const colorsDark = [
@@ -282,7 +283,7 @@ const BlurFollower = () => {
     );
 };
 
-const Antigravity = (props: any) => {
+const Antigravity = (props: any): ReactElement => {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [particleCount, setParticleCount] = useState(100);
 

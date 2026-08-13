@@ -2,12 +2,12 @@
  * 阅读进度共享状态
  * 统一管理滚动监听，避免多个组件重复监听
  */
-import { writable } from "svelte/store";
+import { writable, type Writable } from "svelte/store";
 
 // 共享状态
-export const readingProgress = writable(0);
-export const isPostPage = writable(false);
-export const showFixedBar = writable(false);
+export const readingProgress: Writable<number> = writable(0);
+export const isPostPage: Writable<boolean> = writable(false);
+export const showFixedBar: Writable<boolean> = writable(false);
 
 let initialized = false;
 let cleanup: (() => void) | null = null;
@@ -65,7 +65,7 @@ function updateProgress() {
 	readingProgress.set(progress);
 }
 
-export function initReadingProgress() {
+export function initReadingProgress(): void {
 	const isPost = window.location.pathname.includes("/posts/");
 	isPostPage.set(isPost);
 
@@ -95,7 +95,7 @@ export function initReadingProgress() {
 	}
 }
 
-export function destroyReadingProgress() {
+export function destroyReadingProgress(): void {
 	if (cleanup) {
 		cleanup();
 		cleanup = null;
