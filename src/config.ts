@@ -23,7 +23,7 @@ export const siteConfig: SiteConfig = {
 	lang: "zh_CN",
 	themeColor: {
 		hue: 345,
-		fixed: true,
+		fixed: false,
 		forceDarkMode: false,
 	},
 	banner: {
@@ -74,6 +74,7 @@ export const navBarConfig: NavBarConfig = {
 		LinkPreset.Home,
 		LinkPreset.Archive,
 		LinkPreset.Works,
+		{ name: "相册", url: "/gallery/" },
 	],
 };
 
@@ -129,6 +130,7 @@ export const googleAnalyticsConfig = {
 
 export const expressiveCodeConfig: ExpressiveCodeConfig = {
 	theme: "github-dark",
+	lightTheme: "github-light",
 };
 
 export const giscusConfig: GiscusConfig = {

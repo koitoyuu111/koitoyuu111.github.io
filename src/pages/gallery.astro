@@ -1,0 +1,85 @@
+---
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+
+interface Photo {
+	src: string;
+	title: string;
+	desc: string;
+}
+
+const photos: Photo[] = [
+	{
+		src: "/images/project-mspm0.png",
+		title: "TwoSunday 控制板",
+		desc: "MSPM0G3507 双轮差速机器人自制 PCB",
+	},
+	{
+		src: "/images/project-2026-1.jpg",
+		title: "2026 电赛校赛 D 题",
+		desc: "K230 云台视觉追踪系统",
+	},
+	{
+		src: "/images/project-2026-2.jpg",
+		title: "2026 电赛校赛 D 题",
+		desc: "云台与小车协同调试",
+	},
+	{
+		src: "/images/project-2025-1.jpg",
+		title: "2025 广东工科赛",
+		desc: "K230 视觉排爆机器人",
+	},
+	{
+		src: "/images/project-2025-2.jpg",
+		title: "2025 广东工科赛",
+		desc: "排爆小车结构细节",
+	},
+	{
+		src: "/images/project-bluetooth.jpg",
+		title: "STM32 蓝牙手柄",
+		desc: "双摇杆 4 路 ADC DMA + 9 键输入",
+	},
+];
+---
+
+<MainGridLayout title="相册 - 项目实拍" description="こいとゆう的电子设计项目实拍相册：电赛云台、工科赛排爆机器人、自制 PCB 与蓝牙手柄等作品照片。">
+    <div data-pagefind-body class="card-base rounded-[var(--radius-large)] px-6 md:px-9 py-6">
+        <h1 class="text-2xl md:text-3xl font-bold mb-2 text-black/90 dark:text-white/90">相册</h1>
+        <p class="text-sm text-black/50 dark:text-white/50 mb-6">电子设计项目实拍。点击图片可全屏查看,支持滚轮缩放。</p>
+
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+            {photos.map((photo) => (
+                <a href={photo.src}
+                   data-fancybox="gallery"
+                   data-caption={photo.title + " - " + photo.desc}
+                   class="group relative block rounded-xl overflow-hidden border border-[var(--line-divider)] hover:border-[var(--primary)] transition-colors duration-300"
+                >
+                    <img src={photo.src}
+                         alt={photo.title + " - " + photo.desc}
+                         loading="lazy"
+                         class="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-3 pt-8 pb-2.5">
+                        <div class="text-white text-sm font-bold truncate">{photo.title}</div>
+                        <div class="text-white/70 text-xs truncate">{photo.desc}</div>
+                    </div>
+                </a>
+            ))}
+        </div>
+    </div>
+</MainGridLayout>
+
+<script>
+import { Fancybox } from "@fancyapps/ui";
+import "@fancyapps/ui/dist/fancybox/fancybox.css";
+
+function bindGallery() {
+    Fancybox.bind('[data-fancybox="gallery"]', {
+        groupAll: true,
+        Caption: { showOnStart: true },
+    });
+}
+
+bindGallery();
+
+// Swup 页面切换后重新绑定（DOM 已被替换）
+document.addEventListener("swup:contentReplaced", bindGallery);
+</script>

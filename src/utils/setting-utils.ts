@@ -36,16 +36,26 @@ export function applyThemeToDocument(theme: LIGHT_DARK_MODE): void {
 			document.documentElement.classList.add("dark");
 			break;
 		case AUTO_MODE:
-			if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-				document.documentElement.classList.add("dark");
-			} else {
-				document.documentElement.classList.remove("dark");
+			// 与 Layout 内联脚本保持一致：优先系统偏好，夜间 (22:00-7:00) 强制深色
+			{
+				const hour = new Date().getHours();
+				const isNightTime = hour >= 22 || hour < 7;
+				if (
+					isNightTime ||
+					window.matchMedia("(prefers-color-scheme: dark)").matches
+				) {
+					document.documentElement.classList.add("dark");
+				} else {
+					document.documentElement.classList.remove("dark");
+				}
 			}
 			break;
 	}
 	document.documentElement.setAttribute(
 		"data-theme",
-		expressiveCodeConfig.theme,
+		document.documentElement.classList.contains("dark")
+			? expressiveCodeConfig.theme
+			: (expressiveCodeConfig.lightTheme || expressiveCodeConfig.theme),
 	);
 }
 

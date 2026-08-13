@@ -1,5 +1,6 @@
 ---
 import type { GetStaticPaths } from "astro";
+import HomeHero from "../components/HomeHero.astro";
 import PostPage from "../components/PostPage.astro";
 import Pagination from "../components/control/Pagination.astro";
 import { PAGE_SIZE } from "../constants/constants";
@@ -23,8 +24,12 @@ const len = page.data.length;
 ---
 
 <MainGridLayout title={page.currentPage === 1 ? undefined : `技术文章列表 - 第 ${page.currentPage} 页`} description={pageDescription}>
-    <!-- SEO: 首页需要 h1 标签 -->
-    <h1 class="sr-only">こいとゆう - 嵌入式开发技术博客{page.currentPage > 1 ? ` - 第 ${page.currentPage} 页` : ''}</h1>
+    <!-- 首页 hero：包含可见的 h1；分页页使用 sr-only h1 避免重复标题 -->
+    {page.currentPage === 1 ? (
+        <HomeHero />
+    ) : (
+        <h1 class="sr-only">こいとゆう - 嵌入式开发技术博客 - 第 {page.currentPage} 页</h1>
+    )}
     <PostPage page={page}></PostPage>
     <Pagination class="mx-auto onload-animation" page={page} style=`animation-delay: calc(var(--content-delay) + ${(len)*50}ms)`></Pagination>
 </MainGridLayout>

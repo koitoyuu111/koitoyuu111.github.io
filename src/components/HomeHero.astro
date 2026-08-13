@@ -1,0 +1,101 @@
+---
+import { Icon } from "astro-icon/components";
+import { profileConfig, siteConfig } from "../config";
+import { getWritingStats } from "../utils/writing-stats";
+
+const stats = await getWritingStats();
+
+const start = new Date(siteConfig.siteStartDate || "2026-06-01");
+const runDays = Math.max(
+	1,
+	Math.floor((Date.now() - start.getTime()) / 86400000) + 1,
+);
+
+const totalWordsWan = (stats.totalWords / 10000).toFixed(1);
+---
+
+<section class="home-hero card-base glass-effect relative overflow-hidden onload-animation mb-4">
+    <!-- 装饰性渐变光斑 -->
+    <div class="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-20 dark:opacity-10 blur-3xl"
+         style="background: radial-gradient(circle, oklch(0.70 0.14 var(--hue)) 0%, transparent 70%);"></div>
+    <div class="pointer-events-none absolute -bottom-24 -left-24 w-72 h-72 rounded-full opacity-15 dark:opacity-10 blur-3xl"
+         style="background: radial-gradient(circle, oklch(0.70 0.14 var(--hue)) 0%, transparent 70%);"></div>
+
+    <div class="relative flex flex-col items-center text-center px-6 py-10 md:py-14">
+        {profileConfig.avatar && (
+            <img src={profileConfig.avatar}
+                 alt={profileConfig.name}
+                 width="96" height="96"
+                 class="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover mb-5 ring-2 ring-[var(--primary)] ring-offset-4 ring-offset-[var(--card-bg)] shadow-lg"
+                 loading="eager" fetchpriority="high" />
+        )}
+
+        <h1 class="text-3xl md:text-4xl font-bold mb-3 text-black/85 dark:text-white/90 tracking-wide">
+            <span class="text-[var(--primary)]">{siteConfig.title}</span>
+        </h1>
+
+        <p class="text-sm md:text-base text-black/60 dark:text-white/60 mb-2">
+            {siteConfig.subtitle}
+        </p>
+
+        {siteConfig.description && (
+            <p class="max-w-xl text-xs md:text-sm text-black/45 dark:text-white/45 leading-relaxed">
+                {siteConfig.description}
+            </p>
+        )}
+
+        <!-- 站点数据条 -->
+        <div class="flex flex-wrap items-center justify-center gap-2 md:gap-3 mt-6">
+            <a href="/archive/" class="hero-stat">
+                <Icon name="material-symbols:article-outline" class="text-[1.05rem]" />
+                <span><strong>{stats.totalPosts}</strong> 篇文章</span>
+            </a>
+            <a href="/works/" class="hero-stat">
+                <Icon name="material-symbols:edit-note-outline" class="text-[1.05rem]" />
+                <span><strong>{totalWordsWan}</strong> 万字</span>
+            </a>
+            <div class="hero-stat">
+                <Icon name="material-symbols:schedule-outline" class="text-[1.05rem]" />
+                <span>已运行 <strong>{runDays}</strong> 天</span>
+            </div>
+            <div class="hero-stat">
+                <Icon name="material-symbols:visibility-outline" class="text-[1.05rem]" />
+                <span><strong id="hero-site-pv">--</strong> 次访问</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+(function () {
+    // 不蒜子 SDK 会填充全站 PV（侧边栏 Profile 组件中的隐藏计数元素），
+    // 轮询读取该值并更新 hero 数字。
+    let attempts = 0;
+    const check = setInterval(() => {
+        const pv = document.getElementById("busuanzi_value_site_pv");
+        if (pv && pv.textContent && pv.textContent !== "0") {
+            const el = document.getElementById("hero-site-pv");
+            if (el) el.textContent = pv.textContent;
+            clearInterval(check);
+        }
+        if (++attempts > 50) clearInterval(check);
+    }, 200);
+})();
+</script>
+
+<style>
+    .hero-stat {
+        @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs md:text-sm
+               bg-[var(--btn-regular-bg)] text-black/60 dark:text-white/60
+               border border-transparent transition-all duration-200
+               hover:border-[var(--primary)] hover:text-[var(--primary)] no-underline;
+    }
+
+    .hero-stat strong {
+        @apply font-bold text-black/80 dark:text-white/90;
+    }
+
+    .hero-stat:hover strong {
+        @apply text-[var(--primary)];
+    }
+</style>

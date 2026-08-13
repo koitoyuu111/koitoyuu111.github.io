@@ -15,6 +15,7 @@ import remarkMath from "remark-math";
 import remarkSectionize from "remark-sectionize";
 import { imageFallbackConfig, siteConfig } from "./src/config.ts";
 import { AdmonitionComponent } from "./src/plugins/rehype-component-admonition.mjs";
+import { BilibiliComponent } from "./src/plugins/rehype-component-bilibili.mjs";
 import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.mjs";
 import { LinkCardComponent } from "./src/plugins/rehype-component-link-card.mjs";
 import rehypeImageFallback from "./src/plugins/rehype-image-fallback.mjs";
@@ -73,7 +74,8 @@ export default defineConfig({
         customPages: [],
     }),
     expressiveCode({
-        themes: [expressiveCodeConfig.theme, expressiveCodeConfig.theme],
+        // 第一项为亮色主题，第二项为暗色主题（跟随 html data-theme 自动切换）
+        themes: [expressiveCodeConfig.lightTheme, expressiveCodeConfig.theme],
         plugins: [
             pluginCollapsibleSections(),
             pluginLineNumbers(),
@@ -139,6 +141,7 @@ export default defineConfig({
                     components: {
                         github: GithubCardComponent,
                         link: LinkCardComponent,
+                        bilibili: BilibiliComponent,
                         note: (x, y) => AdmonitionComponent(x, y, "note"),
                         tip: (x, y) => AdmonitionComponent(x, y, "tip"),
                         important: (x, y) => AdmonitionComponent(x, y, "important"),
