@@ -55,6 +55,93 @@
     });
   }
 
+  /* ---------------- 1.5 代码块复制按钮 ---------------- */
+
+  var LANG_LABEL = {
+    c: "C",
+    cpp: "C++",
+    csharp: "C#",
+    python: "Python",
+    javascript: "JS",
+    js: "JS",
+    typescript: "TS",
+    bash: "Bash",
+    shell: "Shell",
+    asm: "ASM",
+    makefile: "Makefile",
+    matlab: "MATLAB",
+    json: "JSON",
+    yaml: "YAML",
+    ini: "INI",
+  };
+
+  function readCodeText(codeEl) {
+    // 从 DOM 取文本（而不是 innerHTML），实体字符已自动还原
+    return (codeEl.textContent || "").replace(/\s+$/, "");
+  }
+
+  function copyText(text) {
+    // 优先用异步剪贴板 API；在非安全上下文（例如局域网 http）下回退到 execCommand
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function (resolve, reject) {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "readonly");
+      ta.style.cssText = "position:fixed;top:-9999px;left:-9999px;opacity:0";
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      ok ? resolve() : reject(new Error("execCommand copy failed"));
+    });
+  }
+
+  function mountCodeCopy() {
+    var blocks = document.querySelectorAll("#content pre, main pre");
+    Array.prototype.forEach.call(blocks, function (pre) {
+      if (pre.parentElement && pre.parentElement.classList.contains("ft-code-wrap")) return;
+
+      var wrap = el("div", "ft-code-wrap");
+      if (pre.parentNode) pre.parentNode.insertBefore(wrap, pre);
+      wrap.appendChild(pre);
+
+      var code = pre.querySelector("code") || pre;
+      // 语言角标：直接用 main.js 给出的 language-xxx class
+      var langMatch = /language-([\w+#-]+)/.exec(code.className || "");
+      if (langMatch) {
+        var tag = el("span", "ft-code-lang");
+        tag.textContent = LANG_LABEL[langMatch[1].toLowerCase()] || langMatch[1].toUpperCase();
+        wrap.appendChild(tag);
+      }
+
+      var btn = el("button", "ft-copy-btn", { type: "button", title: "复制这段代码" });
+      btn.setAttribute("aria-label", "复制代码");
+      btn.textContent = "复制";
+      wrap.appendChild(btn);
+
+      btn.addEventListener("click", function () {
+        copyText(readCodeText(code)).then(
+          function () {
+            btn.textContent = "已复制 ✓";
+            btn.classList.add("ft-copied");
+            window.setTimeout(function () {
+              btn.textContent = "复制";
+              btn.classList.remove("ft-copied");
+            }, 1600);
+          },
+          function () {
+            btn.textContent = "复制失败";
+            window.setTimeout(function () { btn.textContent = "复制"; }, 1600);
+          }
+        );
+      });
+    });
+  }
+
   /* ---------------- 2. 建立搜索索引 ---------------- */
 
   var INDEX = [];
@@ -406,6 +493,7 @@
 
   ready(function () {
     wrapTables();
+    mountCodeCopy();
     buildIndex();
     mountToolbar();
     mountSearch();

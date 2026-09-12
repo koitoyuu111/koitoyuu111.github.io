@@ -33,6 +33,77 @@
   border-radius: 4px;
 }
 
+/* ---------- 代码块复制按钮 ---------- */
+.ft-code-wrap {
+  position: relative;
+}
+/* 与站点原有的 pre 间距一致；顶部加内边距给角标/复制按钮让位，避免遮住第一行代码 */
+.ft-code-wrap > pre {
+  margin: 14px 0;
+  padding-top: 34px;
+}
+.ft-copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--ft-chip-bg, var(--panel));
+  color: var(--ft-chip-fg, var(--muted));
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s, background 0.15s, color 0.15s, transform 0.1s;
+}
+/* 悬停/聚焦时完全显现；触摸设备没有 hover，所以默认就保留 0.7 的不透明度 */
+.ft-code-wrap:hover .ft-copy-btn,
+.ft-copy-btn:focus-visible {
+  opacity: 1;
+}
+.ft-copy-btn:hover {
+  background: var(--ft-chip-bg-hover, var(--hover-bg));
+  color: var(--text);
+}
+.ft-copy-btn:active {
+  transform: scale(0.94);
+}
+.ft-copy-btn.ft-copied {
+  opacity: 1;
+  color: var(--good);
+  border-color: var(--good);
+}
+/* 语言角标，放在左上角 */
+.ft-code-lang {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: var(--hover-bg);
+  color: var(--muted);
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  opacity: 0.85;
+}
+/* 给代码块顶部留出角标/按钮的空间，避免遮住第一行代码 */
+@media print {
+  .ft-copy-btn,
+  .ft-code-lang {
+    display: none !important;
+  }
+  .ft-code-wrap > pre {
+    padding-top: 16px;
+  }
+}
+
 /* ---------- 右上角工具条 ---------- */
 #foc-tools {
   position: fixed;
