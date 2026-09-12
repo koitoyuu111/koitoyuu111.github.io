@@ -79,6 +79,8 @@ export type NavBarLink = {
 	name: string;
 	url: string;
 	external?: boolean;
+	/** 站内但非 Astro 页面（如 public/ 下的独立静态站点）时置为 true，绕过 swup 无刷新跳转 */
+	noSwup?: boolean;
 };
 
 export type NavBarGroup = {

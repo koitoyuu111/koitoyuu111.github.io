@@ -71,7 +71,7 @@ export default defineConfig({
         changefreq: 'weekly',
         priority: 0.7,
         // 确保所有 URL 都是绝对路径
-        customPages: [],
+        customPages: ["https://koitoyuu111.github.io/foc/"],
     }),
     expressiveCode({
         // 第一项为亮色主题，第二项为暗色主题（跟随 html data-theme 自动切换）

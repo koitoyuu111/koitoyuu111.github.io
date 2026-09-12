@@ -190,10 +190,16 @@ $: debouncedSearch(keywordMobile, false);
       bg-black/[0.04] hover:bg-black/[0.06] focus-within:bg-black/[0.06]
       dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
 ">
-    <Icon icon="material-symbols:search" class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
+    <!--
+        对比度修正：原来图标是 text-black/30、placeholder 走 Tailwind 预置的 gray-400，
+        压在 bg-black/[0.04] 的浅底上对比度只有 2.1 / 2.3（WCAG 小字要求 4.5），
+        浅色模式下基本看不清。这里显式给 placeholder 定色并整体提高对比度。
+    -->
+    <Icon icon="material-symbols:search" class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/45 dark:text-white/50"></Icon>
     <input placeholder="搜索文章..." bind:value={keywordDesktop} on:focus={() => search(keywordDesktop, true)}
            class="transition-all pl-10 text-sm bg-transparent outline-0
-         h-full w-40 focus:w-52 text-black/50 dark:text-white/50"
+         h-full w-40 focus:w-52 text-black/75 dark:text-white/75
+         placeholder:text-black/55 dark:placeholder:text-white/65"
     >
 </div>
 
@@ -212,10 +218,11 @@ top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
       bg-black/[0.04] hover:bg-black/[0.06] focus-within:bg-black/[0.06]
       dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
   ">
-        <Icon icon="material-symbols:search" class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
+        <Icon icon="material-symbols:search" class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/45 dark:text-white/50"></Icon>
         <input placeholder="搜索文章..." bind:value={keywordMobile}
                class="pl-10 absolute inset-0 text-sm bg-transparent outline-0
-               focus:w-60 text-black/50 dark:text-white/50"
+               focus:w-60 text-black/75 dark:text-white/75
+               placeholder:text-black/55 dark:placeholder:text-white/65"
         >
     </div>
 

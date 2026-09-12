@@ -75,6 +75,11 @@ export const navBarConfig: NavBarConfig = {
 		LinkPreset.Archive,
 		LinkPreset.Works,
 		{ name: "相册", url: "/gallery/" },
+		// 注意：这里**不要**加 noSwup。
+		// 一旦加了，点这个链接就是整页重载 —— 主站的音乐播放器会被重置（听起来像"FOC 站没音乐功能"），
+		// 而且背景图、其它状态都会重来一遍。交给 swup 无刷新接管即可，
+		// FOC 页的 iframe 由学习站自己的 js/blog-theme.js 负责揭晓（不依赖父页脚本重跑）。
+		{ name: "FOC 学习站", url: "/foc/", noSwup: true },
 	],
 };
 

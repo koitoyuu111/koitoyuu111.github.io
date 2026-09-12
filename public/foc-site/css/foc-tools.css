@@ -1,0 +1,256 @@
+/* ============================================================
+   FOC 学习站 · 博客集成工具层
+   - 隐藏站点自带的 ⚙ 设置按钮（主题/字号已由博客统一接管）
+   - 右上角工具条：搜索定位 + 网页缩放
+   - 宽表格横向滚动容器（解决内容被撑爆、看不全的问题）
+   配色全部复用站点 CSS 变量，因此会跟随博客调色板自动变化。
+   ============================================================ */
+
+/* ---------- 移除自带的浮动设置按钮与面板 ---------- */
+#btn-settings,
+#settings-panel {
+  display: none !important;
+}
+
+/* ---------- 宽表格：横向滚动，不再撑破页面 ---------- */
+.ft-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin: 16px 0;
+  border-radius: 8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.ft-table-scroll > table {
+  margin: 0 !important;
+}
+.ft-table-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+.ft-table-scroll::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+/* ---------- 右上角工具条 ---------- */
+#foc-tools {
+  position: fixed;
+  top: 9px;
+  right: 14px;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  /* 用主站的「芯片」底色而不是面板色：浅色/深色下都与卡片底色有明确区分，
+     不会出现「白药丸压白卡片」糊成一片、字看不清的问题。
+     独立打开学习站时（没有博客桥接）回退到站点自己的 --panel / --text。 */
+  background: var(--ft-chip-bg, var(--panel));
+  color: var(--ft-chip-fg, var(--text));
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+  font-size: 12.5px;
+  line-height: 1;
+  user-select: none;
+}
+#foc-tools button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  /* 标签往正文色方向压 38%，避免小字号下强调色偏淡看不清 */
+  color: color-mix(in oklab, var(--ft-chip-fg, var(--text)) 62%, var(--text));
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+#foc-tools button:hover {
+  background: var(--ft-chip-bg-hover, var(--hover-bg));
+  color: var(--text);
+}
+#foc-tools button:active {
+  transform: scale(0.95);
+}
+#foc-tools .ft-zoom-label {
+  min-width: 46px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+#foc-tools .ft-sep {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 2px;
+}
+#foc-tools .ft-icon {
+  font-size: 13px;
+}
+
+/* ---------- 搜索遮罩 ---------- */
+#ft-search {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 8vh 16px 16px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+#ft-search[hidden] {
+  display: none;
+}
+#ft-search-box {
+  width: 100%;
+  max-width: 680px;
+  max-height: 76vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  animation: ft-pop 0.16s ease;
+}
+@keyframes ft-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+  }
+}
+#ft-search-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+#ft-search-head .ft-icon {
+  color: var(--accent);
+  font-size: 15px;
+}
+#ft-search-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+}
+#ft-search-input::placeholder {
+  color: var(--muted);
+}
+#ft-search-meta {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11.5px;
+}
+#ft-search-results {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 8px 10px;
+}
+.ft-hit {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.ft-hit .ft-hit-title {
+  display: block;
+  line-height: 1.5;
+}
+.ft-hit .ft-hit-title mark {
+  background: transparent;
+  color: var(--accent);
+  font-weight: 700;
+}
+.ft-hit .ft-hit-path {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.ft-hit:hover,
+.ft-hit.active {
+  background: var(--accent-soft);
+}
+.ft-hit.active {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.ft-empty {
+  padding: 22px 14px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ---------- 跳转高亮 ---------- */
+.ft-flash {
+  animation: ft-flash 1.8s ease;
+  border-radius: 6px;
+}
+@keyframes ft-flash {
+  0% {
+    background: color-mix(in oklab, var(--accent) 30%, transparent);
+    box-shadow: 0 0 0 6px color-mix(in oklab, var(--accent) 30%, transparent);
+  }
+  100% {
+    background: transparent;
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+/* ---------- 窄屏适配 ---------- */
+@media (max-width: 760px) {
+  #foc-tools {
+    top: 6px;
+    right: 8px;
+    font-size: 11.5px;
+  }
+  #foc-tools button {
+    height: 24px;
+    padding: 0 7px;
+  }
+  #foc-tools .ft-label {
+    display: none;
+  }
+  #ft-search {
+    padding-top: 5vh;
+  }
+}
+
+/* ---------- 打印时隐藏工具条 ---------- */
+@media print {
+  #foc-tools,
+  #ft-search {
+    display: none !important;
+  }
+  .ft-table-scroll {
+    overflow: visible !important;
+  }
+}

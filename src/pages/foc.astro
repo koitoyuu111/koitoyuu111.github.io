@@ -1,0 +1,128 @@
+---
+import Navbar from "@components/Navbar.astro";
+import Layout from "@layouts/Layout.astro";
+// 本页直接用 Layout（不走 MainGridLayout），下列全局样式在该打包路径下不会被带上，
+// 必须显式引入，否则：
+//   1) 缺 main.css  → .card-base / .float-panel / .float-panel-closed 全失效，
+//      导航栏那几个浮动面板的「关闭态」失灵、全部堆在右上角；
+//   2) 缺 variables.styl → --card-bg / --btn-regular-bg 等调色板变量为空，
+//      导航栏毛玻璃只剩 backdrop-blur、没有底色，字压在背景图上发虚看不清；
+//   3) 缺 transition.css → .transition-swup-fade / .onload-animation 的入场动画失效。
+import "../styles/main.css";
+import "../styles/variables.styl";
+import "../styles/transition.css";
+import "../styles/scrollbar.css";
+
+// 缓存失效标记：每次构建都会变，用来强制浏览器重新拉取 iframe 里的 index.html。
+// 背景：/foc-site/ 下的文件都是静态的、名字不带 hash，浏览器会按启发式规则缓存它们，
+// 于是"改了代码但页面上看不出变化"——这次排查静态资源是否新鲜就踩过这个坑。
+const FOC_ASSET_VER = Date.now().toString(36);
+---
+
+<Layout
+	title="FOC 学习站 - 磁场定向控制：从直觉到实战"
+	description="9 章交互式 FOC 学习站：从电机与磁场的直觉，到 Clarke / Park 变换、SVPWM 扇区法、完整 FOC 环路，再到驱动板拓扑与 STM32G4 外设实战，含大量可交互动画与公式推导。"
+>
+	<!-- Navbar：与 MainGridLayout 保持一致的包裹结构 -->
+	<div
+		id="top-row"
+		class="z-50 pointer-events-none relative transition-all duration-700 max-w-[var(--page-width)] px-0 md:px-4 mx-auto"
+	>
+		<div id="navbar-wrapper" class="pointer-events-auto sticky top-0 transition-all">
+			<Navbar></Navbar>
+		</div>
+	</div>
+
+	<!-- 学习站本体：独立文档通过 iframe 隔离，配色由学习站自己的 js/blog-theme.js 与主站对齐 -->
+	<main
+		id="swup-container"
+		class="transition-swup-fade relative z-30 mx-auto mt-4 mb-4 max-w-[var(--page-width)] px-0 md:px-4"
+	>
+		<div
+			id="foc-card"
+			class="card-base h-[calc(100dvh-6.5rem)] min-h-[30rem] overflow-hidden rounded-[var(--radius-large)]"
+		>
+			<!--
+				invisible：挡住「学习站自己的青绿/深色」那一下。
+				学习站自己的 js/blog-theme.js 是同步脚本，首次绘制前就写好了主站调色板，
+				写完立刻回调 __focThemeReady 通知本页揭晓 —— 所以既不会闪色，也不用等 iframe
+				全部加载完（learn 站的 CDN 资源会把 load 拖到好几秒后）。
+				6 秒兜底定时器保证万一回调没来也不会留白。
+			-->
+			<iframe
+				id="foc-frame"
+				src={`/foc-site/index.html?v=${FOC_ASSET_VER}`}
+				title="FOC 学习站 v2.5 - 磁场定向控制：从直觉到实战"
+				class="block h-full w-full border-0 invisible"
+				loading="eager"
+				allow="fullscreen"
+			></iframe>
+		</div>
+	</main>
+
+	<!--
+		swup 的容器是 ["main", "#toc"]，本页没有目录栏。
+		缺了 #toc 这个容器，swup 在跳转进/离开本页时会判定失败并退回整页重载，
+		那样主站音乐就会被重置。放一个占位容器（放在 main 外面，避免容器嵌套）即可。
+	-->
+	<div id="toc" style="display: none" aria-hidden="true"></div>
+</Layout>
+
+<script>
+	const frame = document.getElementById("foc-frame") as HTMLIFrameElement | null;
+
+	// 本页主内容在 iframe 内，主站那个「跳到主内容」链接在此页会露出来，隐藏掉
+	const skipLink = document.querySelector<HTMLElement>(".skip-to-content");
+	if (skipLink) skipLink.style.display = "none";
+
+	function revealFrame() {
+		frame?.classList.remove("invisible");
+	}
+
+	// 学习站的 js/blog-theme.js 应用完主站调色板后会回调这里
+	(window as unknown as { __focThemeReady: () => void }).__focThemeReady = revealFrame;
+
+	// 父页脚本有可能晚于 iframe 的 head 脚本执行，所以再主动查一次（并轮询兜底）
+	(function watchApplied() {
+		let tries = 0;
+		const timer = window.setInterval(() => {
+			tries += 1;
+			try {
+				const win = frame?.contentWindow as (Window & { __focThemeApplied?: boolean }) | null;
+				if (win?.__focThemeApplied) {
+					window.clearInterval(timer);
+					revealFrame();
+					return;
+				}
+			} catch {
+				/* 跨文档访问失败就交给 load 事件 */
+			}
+			if (tries > 30) window.clearInterval(timer);
+		}, 100);
+	})();
+
+	// 兜底：桥接脚本因为任何原因没跑成，也不能让整页空白
+	frame?.addEventListener("load", revealFrame);
+	window.setTimeout(revealFrame, 6000);
+
+	/**
+	 * 焦点在主站（页面还没被点过）时，把 `/` 与 Ctrl+K 转发进 iframe，
+	 * 让学习站的搜索快捷键在任何位置按下都能用。
+	 */
+	document.addEventListener("keydown", (e) => {
+		if (document.activeElement === frame) return; // 焦点已在学习站内部
+		const t = e.target as HTMLElement | null;
+		const tag = t?.tagName;
+		if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t?.isContentEditable) return;
+
+		const isSlash = e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey;
+		const isCtrlK = (e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "k";
+		if (!isSlash && !isCtrlK) return;
+
+		e.preventDefault();
+		const doc = frame?.contentDocument;
+		if (!doc) return;
+		frame?.focus();
+		doc.dispatchEvent(new KeyboardEvent("keydown", { key: "/", bubbles: true }));
+	});
+</script>

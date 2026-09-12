@@ -1,5 +1,8 @@
 ---
 import Layout from "../layouts/Layout.astro";
+// 本页直接用 Layout（不走 MainGridLayout），需显式引入全局组件层样式，
+// 否则 .float-panel-closed 等规则缺失，导航栏浮动面板会全部显示出来。
+import "../styles/main.css";
 import { url } from "../utils/url-utils";
 ---
 

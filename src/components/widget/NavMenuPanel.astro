@@ -46,6 +46,7 @@ const { navItems } = Astro.props;
                                class="group flex justify-between items-center py-2 pl-6 pr-1 rounded-lg gap-8
                                    hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)] transition"
                                target={child.external ? "_blank" : null}
+                               data-no-swup={child.noSwup ? true : undefined}
                             >
                                 <div class="transition text-black/75 dark:text-white/75 font-bold group-hover:text-[var(--primary)] group-active:text-[var(--primary)]">
                                     {child.name}
@@ -67,6 +68,7 @@ const { navItems } = Astro.props;
                 hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)] transition
             "
                target={item.external ? "_blank" : null}
+               data-no-swup={item.noSwup ? true : undefined}
             >
                 <div class="transition text-black/75 dark:text-white/75 font-bold group-hover:text-[var(--primary)] group-active:text-[var(--primary)]">
                     {item.name}
