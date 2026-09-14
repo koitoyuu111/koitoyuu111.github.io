@@ -8,16 +8,16 @@
      （:root:root / [data-theme][data-theme]）保证不受后面 style.css 的加载顺序影响。
      放在这里而不是 CSS 之后，是因为下面那个 jsdelivr 的 KaTeX 样式表会阻塞解析，
      放后面会让「揭晓」被拖慢好几秒。 -->
-<script src="js/blog-theme.js?v=20260914c"></script>
+<script src="js/blog-theme.js?v=20260914d"></script>
 <title>FOC 学习站 v2.5 — 磁场定向控制：从直觉到实战</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
-<link rel="stylesheet" href="css/style.css?v=20260914c">
+<link rel="stylesheet" href="css/style.css?v=20260914d">
 <!-- 博客集成工具层：搜索定位 / 网页缩放 / 宽表格滚动（放在最后以便覆盖） -->
-<link rel="stylesheet" href="css/foc-tools.css?v=20260914c">
-<script defer src="js/foc-tools.js?v=20260914c"></script>
+<link rel="stylesheet" href="css/foc-tools.css?v=20260914d">
+<script defer src="js/foc-tools.js?v=20260914d"></script>
 </head>
 <body>
 
@@ -77,9 +77,16 @@
 <!-- ==================== 导论 ==================== -->
 <section class="chapter" id="ch0">
   <h1>FOC 学习站</h1>
+<div class="chap-intro">
+  <div class="ci-title">📖 本章导读</div>
+  <p class="ci-goal"><strong>定位</strong>：全站总览：FOC 到底在解决什么问题、为什么需要坐标变换，以及这份材料怎么用。</p>
+  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#s-ch0-1">为什么需要 FOC？</a> <a href="#s-ch0-2">本站路线图</a> <a href="#s-ch0-3">如何使用本站</a></div>
+  <p class="ci-howto"><strong>读法</strong>：先花 10 分钟读完这页，再按顺序往下走。第 1~4 章是「把原理拆开」，第 5 章再合起来。</p>
+</div>
+
   <p class="lead">磁场定向控制（Field-Oriented Control）是现代电机控制的基石。本站用<strong>可视化动画 + 数学推导 + 底层分析 + 代码实战</strong>四位一体的方式，带你从「为什么」一路走到「怎么写」。</p>
 
-  <h2>为什么需要 FOC？</h2>
+  <h2 id="s-ch0-1">为什么需要 FOC？</h2>
   <p>想象你在骑一辆双人自行车，但你的搭档（电机转子）一直在转圈。你踩下去的力（电流）只有<strong>垂直于他与你的连线方向</strong>的分量才能产生推进力（转矩），其余分量只是在把他往你身上推或拉开（无用甚至有害）。</p>
   <p>FOC 做的事就是：<strong>实时算出搭档此刻转到哪个角度，然后精准地只踩"垂直方向"那一脚</strong>。在电机里：</p>
   <ul>
@@ -88,7 +95,7 @@
   </ul>
   <p>把三相交流电"变换"到跟随转子旋转的 dq 坐标系后，交流量就变成了直流量，于是可以用最经典的 <strong>PI 控制器</strong>分别精准控制励磁和转矩。这就是 FOC 的核心思想。</p>
 
-  <h2>本站路线图</h2>
+  <h2 id="s-ch0-2">本站路线图</h2>
   <div class="roadmap">
     <div class="road-item"><span class="road-num">1</span><div><b>电机与磁场的直觉</b><br>用动画建立"旋转磁场拖动转子"的物理直觉</div></div>
     <div class="road-item"><span class="road-num">2</span><div><b>Clarke 变换</b><br>三相 → 两相静止坐标系，化简的第一步</div></div>
@@ -104,7 +111,7 @@
     <div class="road-item"><span class="road-num">12</span><div><b>无感符号总表</b><br>下标上标、电气量、机械量、控制量、观测器专用、HFI 专用、易混淆对照、单位换算速查</div></div>
   </div>
 
-  <h2>如何使用本站</h2>
+  <h2 id="s-ch0-3">如何使用本站</h2>
   <p>每一章都包含四个部分：</p>
   <ul>
     <li>🎬 <strong>视觉理解</strong>：Canvas 动画，先看懂现象</li>
@@ -118,8 +125,15 @@
 <!-- ==================== 第 1 章 ==================== -->
 <section class="chapter" id="ch1">
   <h1>第 1 章 · 电机与磁场的直觉</h1>
+<div class="chap-intro">
+  <div class="ci-title">📖 本章导读</div>
+  <p class="ci-goal"><strong>定位</strong>：建立物理直觉：三相电流怎么合成旋转磁场、转矩从哪来、转矩角为什么是关键。</p>
+  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#s-ch1-1">1.1 视觉理解：三相电流如何合成旋转磁场</a> <a href="#s-ch1-2">1.2 底层分析：三相绕组与磁动势</a> <a href="#s-ch1-3">1.3 底层分析：转矩从哪来</a> <a href="#s-ch1-4">1.4 视觉理解：转矩角与转矩脉动</a> <a href="#s-ch1-5">1.5 面试视角：电机类型与基本参数</a> <a href="#s-ch1-6">1.6 代码举例：合成旋转磁场（C）</a></div>
+  <p class="ci-howto"><strong>读法</strong>：1.1 与 1.4 看动画建立直觉，1.2 与 1.3 补数学，1.5 是面试必考的基本参数（BLDC/PMSM、极对数、MTPA）。</p>
+</div>
 
-  <h2>1.1 视觉理解：三相电流如何合成旋转磁场</h2>
+
+  <h2 id="s-ch1-1">1.1 视觉理解：三相电流如何合成旋转磁场</h2>
   <p>三相定子绕组在空间上互差 120°。当通入相位互差 120° 的三相正弦电流时，每相产生的磁场矢量叠加起来，会合成一个<strong>幅值恒定、匀速旋转</strong>的合成磁场。下面左侧是三相电流波形（拖动时间滑块），右侧是此刻的空间矢量合成。</p>
 
   <div class="viz-block" id="viz-rotating-field">
@@ -136,14 +150,14 @@
     <div class="viz-caption">图 1-1：左图为三相电流 $i_a,i_b,i_c$（相位互差 120°）；右图为对应的空间电流矢量合成。注意<b>合成矢量（白色箭头）幅值恒定、以电角速度匀速旋转</b>。</div>
   </div>
 
-  <h2>1.2 底层分析：三相绕组与磁动势</h2>
+  <h2 id="s-ch1-2">1.2 底层分析：三相绕组与磁动势</h2>
   <p>设三相绕组轴线分别为 $a,b,c$（空间互差 $\frac{2\pi}{3}$），每相匝数 $N$，通入电流：</p>
   $$i_a = I_m\cos(\omega t),\quad i_b = I_m\cos(\omega t - \tfrac{2\pi}{3}),\quad i_c = I_m\cos(\omega t + \tfrac{2\pi}{3})$$
   <p>每相产生的磁动势（MMF）是沿该相轴线方向的脉振矢量。把三相 MMF 用空间矢量表示并叠加（这里先直觉理解，严格推导见第 2 章），合成磁动势为：</p>
   $$\vec{F} = \tfrac{3}{2} N I_m \, e^{j\omega t}$$
   <p>这是一个<strong>幅值为 $\frac{3}{2}NI_m$、以角速度 $\omega$ 匀速旋转</strong>的矢量。这就是"旋转磁场"。</p>
 
-  <h2>1.3 底层分析：转矩从哪来</h2>
+  <h2 id="s-ch1-3">1.3 底层分析：转矩从哪来</h2>
   <p>转子（永磁体）有自己的磁场 $\vec{\psi}_r$。定子旋转磁场 $\vec{F}$ 与转子磁场之间的夹角 $\delta$（称为<strong>转矩角 / 功角</strong>）决定了电磁转矩：</p>
   $$T_e = \tfrac{3}{2} p \, \psi_r \, i_s \sin\delta$$
   <p>其中 $p$ 为极对数，$i_s$ 为定子电流幅值。关键结论：</p>
@@ -154,7 +168,7 @@
   </ul>
   <div class="callout">FOC 的目标就是：<b>始终保持 $\delta = 90°$</b>，让每一分电流都用来产生转矩。</div>
 
-  <h2>1.4 视觉理解：转矩角与转矩脉动</h2>
+  <h2 id="s-ch1-4">1.4 视觉理解：转矩角与转矩脉动</h2>
   <p>下面动画对比了"六步换相"（转矩角在 60°~120° 跳变）和"FOC"（转矩角恒定 90°）两种情况下，合成转矩波形的差异。可以暂停观察。</p>
   <div class="viz-block" id="viz-torque-ripple">
     <div class="viz-canvas-row">
@@ -169,7 +183,7 @@
     <div class="viz-caption">图 1-2：<b>左侧</b>为转子 dq 坐标系示意 —— 蓝色箭头是转子磁场方向（d 轴），白色箭头是定子电流矢量，两者夹角即转矩角 $\delta$；<b>右上</b>为 $\delta$ 随时间变化，<b>右下</b>为对应的归一化转矩 $T_e/T_{e,\max}=\sin\delta$。<span style="color:#f39c12">橙色=六步换相</span>（$\delta$ 在 60°~120° 间跳变 → 转矩脉动）；<span style="color:#2ecc71">绿色=FOC</span>（$\delta$ 恒定 90° → 转矩恒定最优）。点「单步」可逐帧观察矢量转动与 $\delta$ 的关系。</div>
   </div>
 
-  <h2>1.5 面试视角：电机类型与基本参数</h2>
+  <h2 id="s-ch1-5">1.5 面试视角：电机类型与基本参数</h2>
   <p>做电机控制之前，先搞清楚控制对象是什么。面试里“BLDC 和 PMSM 有什么区别”几乎是必问题。</p>
   <ul>
     <li><strong>BLDC（无刷直流电机）</strong>：反电动势是<strong>梯形波</strong>，通常用方波（六步换相）驱动，控制简单、成本低，但转矩脉动大、有换相噪声（见 1.4 的对比动画）。</li>
@@ -193,7 +207,7 @@
     </div>
   </div>
 
-  <h2>1.6 代码举例：合成旋转磁场（C）</h2>
+  <h2 id="s-ch1-6">1.6 代码举例：合成旋转磁场（C）</h2>
   <p>下面的 C 函数就是图 1-1 背后的核心计算，把三相电流合成 αβ 平面上的矢量（这正是 Clarke 变换，详见第 2 章）：</p>
   <pre><code class="language-c">#include &lt;math.h&gt;
 #include &lt;stdio.h&gt;
@@ -236,13 +250,20 @@ int main(void) {
 <!-- ==================== 第 2 章 ==================== -->
 <section class="chapter" id="ch2">
   <h1>第 2 章 · Clarke 变换</h1>
+<div class="chap-intro">
+  <div class="ci-title">📖 本章导读</div>
+  <p class="ci-goal"><strong>定位</strong>：第一次坐标变换：把三相（3 个量、实际只有 2 个自由度）压成 αβ 两相正交量。</p>
+  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#s-ch2-1">2.1 为什么需要坐标变换</a> <a href="#s-ch2-2">2.2 理论推导：从三相到 αβ</a> <a href="#s-ch2-3">2.3 视觉理解：三相点如何投影到 αβ 平面</a> <a href="#s-ch2-4">2.4 底层分析：物理意义与工程细节</a> <a href="#s-ch2-5">2.5 面试视角：电流采样工程细节</a> <a href="#s-ch2-6">2.6 代码举例</a></div>
+  <p class="ci-howto"><strong>读法</strong>：重点是 2.2 的推导和 2.5 的电流采样工程细节（单/双/三电阻各自怎么采、什么时候不能采）。</p>
+</div>
 
-  <h2>2.1 为什么需要坐标变换</h2>
+
+  <h2 id="s-ch2-1">2.1 为什么需要坐标变换</h2>
   <p>三相电流 $i_a,i_b,i_c$ 是三个随时间正弦变化的量，但它们并不独立：对绕组星型连接且中点不引出，有</p>
   $$i_a + i_b + i_c = 0$$
   <p>三个相关变量描述一个二维物理量（平面上的电流矢量）是冗余的。Clarke 变换把三相量投影到静止的 <strong>αβ 两相正交坐标系</strong>，消去冗余，把问题从三维降到二维。</p>
 
-  <h2>2.2 理论推导：从三相到 αβ</h2>
+  <h2 id="s-ch2-2">2.2 理论推导：从三相到 αβ</h2>
   <p>取 α 轴与 a 相绕组轴线重合，β 轴超前 α 轴 90°。把三相磁动势矢量向 α、β 轴投影。设等效两相绕组匝数为 $N_2$，三相为 $N_3$，并令变换前后磁动势不变：</p>
   $$
   \begin{aligned}
@@ -271,7 +292,7 @@ int main(void) {
   $$
   <div class="callout"><b>等幅值 vs 等功率：</b>等幅值变换保证 $|\vec i_{\alpha\beta}| = |\vec i_{abc}|$，在电机控制中最常用（SimpleFOC、TI InstaSPIN 都用它）；等功率变换则保持功率不变，多见于电网分析。本站统一用等幅值形式。</div>
 
-  <h2>2.3 视觉理解：三相点如何投影到 αβ 平面</h2>
+  <h2 id="s-ch2-3">2.3 视觉理解：三相点如何投影到 αβ 平面</h2>
   <p>下面动画中，左侧是三相电流在各自轴线上的瞬时值（三条互差 120° 的轴），右侧是同一时刻的 αβ 矢量。拖动时间，观察三相脉振如何合成一个旋转矢量。</p>
   <div class="viz-block" id="viz-clarke">
     <div class="viz-canvas-row">
@@ -286,14 +307,14 @@ int main(void) {
     <div class="viz-caption">图 2-1：左：三相电流沿各自轴线（红 a、绿 b、蓝 c）的瞬时投影；右：合成后的 αβ 矢量轨迹（随时间画出一个圆）。</div>
   </div>
 
-  <h2>2.4 底层分析：物理意义与工程细节</h2>
+  <h2 id="s-ch2-4">2.4 底层分析：物理意义与工程细节</h2>
   <ul>
     <li><strong>降维</strong>：3 个相关变量 → 2 个独立变量，后续所有运算（Park、PI、SVPWM）都在二维平面进行。</li>
     <li><strong>仍是交流</strong>：αβ 分量仍是正弦交流量（互差 90°），所以不能直接用 PI 无静差跟踪 —— 这正是下一章 Park 变换要解决的。</li>
     <li><strong>硬件实现</strong>：实际 MCU 通常只采样两相电流（$i_a,i_b$），第三相由 $i_c=-i_a-i_b$ 算出，节省一路 ADC。因此工程代码里常写成 $i_\beta = (i_a + 2i_b)/\sqrt3$。</li>
   </ul>
 
-  <h2>2.5 面试视角：电流采样工程细节</h2>
+  <h2 id="s-ch2-5">2.5 面试视角：电流采样工程细节</h2>
   <p>Clarke 变换的输入是三相电流的<strong>瞬时采样值</strong>，采得准不准直接决定控制质量。两个高频考点：</p>
   <ul>
     <li><strong>什么时候采？</strong>三相电流应在 <strong>PWM 有效矢量作用的中段</strong>采样：此时电流稳定、离开关瞬态最远，开关噪声最小。中心对齐 PWM 的谷底/峰顶时刻正好对应两个有效矢量中心，因此工程上普遍用定时器比较事件硬件触发 ADC。</li>
@@ -317,7 +338,7 @@ int main(void) {
     </div>
   </div>
 
-  <h2>2.6 代码举例</h2>
+  <h2 id="s-ch2-6">2.6 代码举例</h2>
   <p><strong>C（嵌入式常用，只采两相电流）：</strong></p>
   <pre><code class="language-c">#include <math.h>
 #define SQRT3 1.7320508075688772f
@@ -352,11 +373,18 @@ void clarke_inv(float alpha, float beta,
 <!-- ==================== 第 3 章 ==================== -->
 <section class="chapter" id="ch3">
   <h1>第 3 章 · Park 变换与 dq 轴</h1>
+<div class="chap-intro">
+  <div class="ci-title">📖 本章导读</div>
+  <p class="ci-goal"><strong>定位</strong>：第二次坐标变换：站到转子上看，把交流量变成直流量——这是 FOC 能用 PI 控制的前提。</p>
+  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#s-ch3-1">3.1 核心思想：站到转子上去看</a> <a href="#s-ch3-2">3.2 理论推导</a> <a href="#s-ch3-3">3.3 视觉理解：同一个矢量在两个坐标系下的读数</a> <a href="#s-ch3-4">3.4 底层分析：d 轴和 q 轴分别控制什么</a> <a href="#s-ch3-5">3.5 面试视角：角度从哪来</a> <a href="#s-ch3-6">3.6 代码举例</a></div>
+  <p class="ci-howto"><strong>读法</strong>：3.2 推导、3.4 讲清 d/q 各自管什么（励磁 vs 转矩）、3.5 讲角度从哪来（编码器 / 无感）。</p>
+</div>
 
-  <h2>3.1 核心思想：站到转子上去看</h2>
+
+  <h2 id="s-ch3-1">3.1 核心思想：站到转子上去看</h2>
   <p>Clarke 变换把三相变成二维，但 αβ 仍是<strong>交流</strong>正弦量。如果我们建立一个<strong>随转子同步旋转</strong>的坐标系 dq（d 轴对准转子磁链方向），那么站在 dq 系上看，原本旋转的电流矢量就变成了<strong>相对静止的直流量</strong>。直流量意味着：用普通 PI 控制器就能实现无静差跟踪。这是 Park 变换的全部意义。</p>
 
-  <h2>3.2 理论推导</h2>
+  <h2 id="s-ch3-2">3.2 理论推导</h2>
   <p>设转子电角度为 $\theta_e$，则 dq 系相对静止 αβ 系旋转了 $\theta_e$。把 αβ 矢量向旋转的 d、q 轴投影（逆时针为正，q 轴超前 d 轴 90°）：</p>
   $$
   \boxed{
@@ -386,7 +414,7 @@ void clarke_inv(float alpha, float beta,
   \begin{bmatrix} u_d \\ u_q \end{bmatrix}
   $$
 
-  <h2>3.3 视觉理解：同一个矢量在两个坐标系下的读数</h2>
+  <h2 id="s-ch3-3">3.3 视觉理解：同一个矢量在两个坐标系下的读数</h2>
   <p>下面动画中，电流矢量（白色）在 αβ 系中匀速旋转。绿色坐标系是随矢量同步旋转的 dq 系。观察：αβ 读数是正弦波，而 dq 读数几乎是常数。可以让 dq 系"失锁"（转速与矢量不同步），直观看到交流分量又回来了。</p>
   <div class="viz-block" id="viz-park">
     <div class="viz-canvas-row">
@@ -401,14 +429,14 @@ void clarke_inv(float alpha, float beta,
     <div class="viz-caption">图 3-1：左：αβ（灰，静止）与 dq（绿，旋转）坐标系下的同一电流矢量；右：四个分量随时间的波形。当 dq 系转速=100%（与矢量同步）时，$i_d,i_q$ 为常数；失步时恢复为交流。</div>
   </div>
 
-  <h2>3.4 底层分析：d 轴和 q 轴分别控制什么</h2>
+  <h2 id="s-ch3-4">3.4 底层分析：d 轴和 q 轴分别控制什么</h2>
   <ul>
     <li><strong>$i_q$（交轴电流）</strong>：与转子磁链垂直，<b>直接产生电磁转矩</b>。$T_e = \frac{3}{2}p\psi_r i_q$（表贴式 PMSM）。想要多大转矩，就给多大 $i_q$ 指令。</li>
     <li><strong>$i_d$（直轴电流）</strong>：与转子磁链同向，<b>不产生转矩</b>（对表贴式电机），只起增磁/弱磁作用。正常运行令 $i_d=0$（$i_d=0$ 控制），高速弱磁区才让 $i_d&lt;0$。</li>
   </ul>
   <p>这就是"解耦"：原本耦合在一起的三相交流，被拆成两个可以独立 PI 调节的直流量 —— 一个管转矩（$i_q$），一个管磁场（$i_d$）。这正是直流电机里"励磁电流"和"电枢电流"的关系，FOC 因此也叫"按转子磁场定向的控制"，让交流电机拥有了直流电机般的控制性能。</p>
 
-  <h2>3.5 面试视角：角度从哪来</h2>
+  <h2 id="s-ch3-5">3.5 面试视角：角度从哪来</h2>
   <p>Park 变换的灵魂是 $\theta_e$。<strong>FOC 的全部性能都建立在“角度准”这一个前提上</strong>，所以角度获取是面试必考话题。</p>
   <ul>
     <li><strong>增量编码器（ABZ）</strong>：靠计数脉冲得相对位置，上电需回零/对齐；分辨率 = 线数 × 4（四倍频）再除以极对数得电角度分辨率。</li>
@@ -435,7 +463,7 @@ void clarke_inv(float alpha, float beta,
     </div>
   </div>
 
-  <h2>3.6 代码举例</h2>
+  <h2 id="s-ch3-6">3.6 代码举例</h2>
   <p><strong>C（嵌入式）：</strong></p>
   <pre><code class="language-c">typedef struct { float d, q; } dq_t;
 
@@ -484,6 +512,13 @@ int main(void) {
 <!-- ==================== 第 4 章 ==================== -->
 <section class="chapter" id="ch4">
   <h1>第 4 章 · SVPWM：用 8 个开关变出任意电压</h1>
+<div class="chap-intro">
+  <div class="ci-title">📖 本章导读</div>
+  <p class="ci-goal"><strong>定位</strong>：用只会「通 / 断」的 6 个开关，在平均意义上合成<strong>任意方向、任意大小</strong>的电压矢量。</p>
+  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#s-ch4-1">4.1 第 0 步：开关只有两档，怎么变出「中间电压」？</a> <a href="#s-ch4-2">4.2 第 1 步：逆变器其实只有 8 种状态</a> <a href="#s-ch4-3">4.2.1 合成矢量是怎么算出来的？—— 相电压做 Clarke 变换</a> <a href="#s-ch4-4">4.3 第 2 步：只有 6 个方向怎么办 —— 用「平均」凑</a> <a href="#s-ch4-5">4.3.1 扇区法：把所有细节算出来</a> <a href="#s-ch4-6">4.4 第 3 步：这几段时间怎么排？（七段式）</a> <a href="#s-ch4-7">4.5 第 4 步：把「时间」翻译成「占空比」</a> <a href="#s-ch4-8">4.6 一个更省事、且完全等价的写法</a> <a href="#s-ch4-9">4.7 马鞍波，以及那多出来的 15%</a> <a href="#s-ch4-10">4.8 面试视角：PWM 工程细节</a> <a href="#s-ch4-11">4.9 代码举例</a></div>
+  <p class="ci-howto"><strong>读法</strong>：本章有<strong>两条等价路线</strong>，先选一条走完，别来回横跳：<br>&nbsp;&nbsp;📐 <strong>原理路线</strong> 4.1 → 4.2 → 4.3 → 4.4 → 4.5：从 8 个开关状态一步步推到占空比，适合第一次学；<br>&nbsp;&nbsp;⚡ <strong>速成路线</strong> 直接看 <strong>4.6 零序注入法</strong>：不需要算扇区、不需要查表，8 行代码就能跑——工程上多数人用这条。<br>&nbsp;&nbsp;🎓 <strong>加餐（想深究再看）</strong>：4.2.1 基本矢量的 Clarke 验算、4.3.1 扇区法的全部细节（含两张全计算过程表）；4.9 里还有那个「扇区判据在 60° 整数倍处浮点错位」的坑。<br>&nbsp;&nbsp;最后 4.7 解释「SVPWM 为什么比 SPWM 多出 15%」，4.8 是面试速查。</p>
+</div>
+
 
   <div class="callout">
     <strong>先搞清楚这一章要干什么。</strong><br>
@@ -493,7 +528,7 @@ int main(void) {
     没接触过 PWM 也完全没关系 —— 我们从台灯调光讲起，全程不用背公式。
   </div>
 
-  <h2>4.1 第 0 步：开关只有两档，怎么变出「中间电压」？</h2>
+  <h2 id="s-ch4-1">4.1 第 0 步：开关只有两档，怎么变出「中间电压」？</h2>
   <p>一个开关只有两种状态：接通，电压是 $U_{dc}$；断开，电压是 0。中间值是不存在的。</p>
   <p>但如果我以每秒两万次的速度疯狂开关，其中 <strong>30% 的时间接通</strong>呢？</p>
   <p>电机绕组是一个很大的<strong>电感</strong>。电感里的电流不能突变，它「看不清」这么快的跳动，只对<strong>平均效果</strong>有反应。就像一个转得飞快的风扇，你看不见扇叶，只感觉到一阵连续的风。</p>
@@ -517,7 +552,7 @@ int main(void) {
     后面所有看起来玄乎的东西，全都是这一句话的推论。
   </div>
 
-  <h2>4.2 第 1 步：逆变器其实只有 8 种状态</h2>
+  <h2 id="s-ch4-2">4.2 第 1 步：逆变器其实只有 8 种状态</h2>
   <p>三相逆变器有 3 个桥臂（A、B、C），每个桥臂上下两个开关管，<strong>永远一通一断</strong>（同时通 = 电源短路炸管）。</p>
   <p>所以每个桥臂只有 2 种状态，三个桥臂一共 $2^3 = 8$ 种。我们用 1 表示「上管通、这相接到 $+U_{dc}$」，0 表示「下管通、这相接到 0」。</p>
   <p>关键问题：<strong>每一种开关组合，电机三相绕组上实际看到的是什么电压？</strong></p>
@@ -552,7 +587,7 @@ int main(void) {
     </tbody>
   </table>
 
-  <h2>4.2.1 合成矢量是怎么算出来的？—— 相电压做 Clarke 变换</h2>
+  <h2 id="s-ch4-3">4.2.1 合成矢量是怎么算出来的？—— 相电压做 Clarke 变换</h2>
   <p>表里那列「合成矢量」不是拍脑袋画的。把相电压 $v_a, v_b, v_c$ 丢进第 2 章的<strong>等幅值 Clarke 变换</strong>（式 2-2），就得到一个平面点 $(u_\alpha, u_\beta)$，再换算成<strong>大小 + 角度</strong>，就是合成矢量本身：</p>
   $$
   u_\alpha = v_a, \qquad u_\beta = \frac{v_b - v_c}{\sqrt{3}}, \qquad
@@ -642,7 +677,7 @@ int main(void) {
     而我们想要的方向可以是<strong>任意角度</strong>，比如 37°。这就是下一节要解决的问题。
   </div>
 
-  <h2>4.3 第 2 步：只有 6 个方向怎么办 —— 用「平均」凑</h2>
+  <h2 id="s-ch4-4">4.3 第 2 步：只有 6 个方向怎么办 —— 用「平均」凑</h2>
   <p>现在目标矢量指向 37°，可我只有 0° 和 60° 两个家伙。怎么办？</p>
 
   <div class="callout">
@@ -682,7 +717,7 @@ int main(void) {
     <strong>线性调制上限：</strong>$T_k + T_{k+1}$ 最大只能是 $T_s$（不能再掺零矢量了），此时平均矢量端点正好落在六边形边上。要保证<strong>转一圈的每个角度都不超</strong>，矢量端点轨迹必须落在六边形的<strong>内切圆</strong>里，半径 $\frac{2}{3}U_{dc}\cos 30^\circ = \frac{1}{\sqrt3}U_{dc} \approx 0.577\,U_{dc}$。这就是 SVPWM 能输出的最大相电压幅值。
   </div>
 
-  <h2>4.3.1 扇区法：把所有细节算出来</h2>
+  <h2 id="s-ch4-5">4.3.1 扇区法：把所有细节算出来</h2>
 
   <div class="callout">
     <strong>先明确本节定位，别搞反了主次。</strong><br>
@@ -856,7 +891,7 @@ int main(void) {
     <strong>最后澄清：这个「错位」本身不产生错误电压。</strong>分界线上的点数学上同时属于两个相邻扇区，其中一个矢量作用时间 $\to0$，两套解<strong>完全等价</strong>（实测占空比反推最大差 $1.1\times10^{-16}$）。所以如果你只关心输出电压，可以不管它；但如果你在写「逐扇区不等价处理」的代码（如逐扇区死区补偿、单电阻最小窗口移相），这个错位就会变成<strong>实打实的电压误差</strong>。
   </div>
 
-  <h2>4.4 第 3 步：这几段时间怎么排？（七段式）</h2>
+  <h2 id="s-ch4-6">4.4 第 3 步：这几段时间怎么排？（七段式）</h2>
   <p>我们现在知道「U₁ 出 0.35、U₂ 出 0.40、零矢量出 0.25」。但<strong>在一个周期里按什么顺序出</strong>，还没定。</p>
   <p>排法有讲究，要满足三个要求：</p>
   <ul>
@@ -884,7 +919,7 @@ int main(void) {
     <div class="viz-caption">图 4-4：七段式时序全貌。上左：矢量在这一周期里依次跳到 U₀ → U₁ → U₂ → U₇ → U₂ → U₁ → U₀，白色箭头是这一周期的平均值。上右：时间条，扫描线走到哪一段，左上就跳到哪个矢量。下：三相的实际 PWM 波形（中心对齐、左右对称）—— 注意每一相都是<strong>一整段连续的脉冲</strong>，一个周期只开关两次。</div>
   </div>
 
-  <h2>4.5 第 4 步：把「时间」翻译成「占空比」</h2>
+  <h2 id="s-ch4-7">4.5 第 4 步：把「时间」翻译成「占空比」</h2>
   <p>上面算的是时间，硬件要的是占空比。转换极其直接：<strong>某一相在这 7 段里有几段是「上管通」，把这些段的时长加起来，就是它的占空比。</strong></p>
   <p>还是以扇区 1（U₁=100，U₂=110）为例，把 7 段摊开看：</p>
 
@@ -904,7 +939,7 @@ int main(void) {
   $$D_a = t_1 + t_2 + t_0,\qquad D_b = t_2 + t_0,\qquad D_c = t_0$$
   <p>就这么简单。其余 5 个扇区同理，只是 A/B/C 的角色轮换。</p>
 
-  <h2>4.6 一个更省事、且完全等价的写法</h2>
+  <h2 id="s-ch4-8">4.6 一个更省事、且完全等价的写法</h2>
   <p>上面「判扇区 → 算时间 → 查表换成占空比」这一套，是教科书和面试的标准答案，但代码又长又容易写错（向量作用时间算错、查表顺序错，是新手最常见的坑）。</p>
   <p>工程上更常用的是<strong>零序注入法</strong>。它绕开了扇区，只有 5 行（下面 $v$ 都已按 $v = u/U_{dc}$ 标幺：占空比 0.5 ↔ 相电压为 0，占空比 1 ↔ 桥臂中点平均电压 = $U_{dc}$）：</p>
   <ol>
@@ -925,7 +960,7 @@ int main(void) {
     <strong>结论：在线性调制区内，零序注入法与经典 SVPWM 的输出<strong>逐位相同</strong>，是同一件事的两种写法。</strong>本站已用数值方式验证过：360 个角度 × 20 个调制度下，两者占空比完全一致，且由占空比反算回来的 $u_\alpha,u_\beta$ 误差在 $10^{-16}$ 量级（即浮点精度极限）。
   </div>
 
-  <h2>4.7 马鞍波，以及那多出来的 15%</h2>
+  <h2 id="s-ch4-9">4.7 马鞍波，以及那多出来的 15%</h2>
   <p>零序注入法顺带解释了一个困扰很多人的现象：<strong>为什么 SVPWM 的三相占空比波形是「马鞍形」，不是正弦？</strong></p>
   <p>因为被减掉的 $v_{mid}$ 本身不是常数，它是个<strong>三倍频的三角波</strong>。三次谐波在三相里是同相的（零序），注入它不影响线电压，但会让相电压调制波被「压扁」成马鞍形。</p>
   <p><strong>这么折腾图什么？为了多要 15% 的电压。</strong></p>
@@ -973,7 +1008,7 @@ int main(void) {
     <div class="viz-caption">图 4-6：24V 母线全景动画。① 端电压视角：虚线是反 Clarke 得到的原始目标（12V + 三相正弦），高调制度下会冲出 0~24V 母线；整体平移 k 后（实线）刚好塞进母线，黄线「浮动中点 n = 12V + k」以 3 倍频在 8.5~15.5V 之间摆动，左侧黄色标注就是当前的 k。② 相电压 = 端电压 − 浮动中点：注入的 k 被中点浮动精确吃掉，电机看到的仍是纯正弦（幅值上限 13.86V = 24/√3）。③ 占空比 = 端电压/24V：马鞍波，白虚线是三相公共电平 0.5 + k/24；调制度拉到 1.00 时三条实线恰好铺满 0~1。</div>
   </div>
 
-  <h2>4.8 面试视角：PWM 工程细节</h2>
+  <h2 id="s-ch4-10">4.8 面试视角：PWM 工程细节</h2>
   <p>SVPWM 算出的占空比要真正变成栅极驱动信号，还有两个工程问题面试爱问：死区和更新时序。</p>
   <p><strong>死区（dead time）</strong>：同一桥臂上下两管绝不能同时导通（直通短路烧管），所以切换时要插入两管都关断的死区时间（几十 ns 到几 μs）。但死区会让<strong>实际输出电压偏离指令</strong>：死区期间电流方向决定哪个续流二极管导通，电流为正时实际电压被拉低、为负时被拉高，误差符号只取决于电流极性。低频时误差占比大，表现为相电压波形畸变、低速转矩脉动。补偿思路：按电流极性给占空比加/减一个死区等效修正量（硬件法或软件查表/在线自适应）。</p>
   <p><strong>单更新 vs 双更新</strong>：中心对齐 PWM 一个周期有峰、谷两个时刻可以更新占空比寄存器。</p>
@@ -1009,7 +1044,7 @@ int main(void) {
     </div>
   </div>
 
-  <h2>4.9 代码举例</h2>
+  <h2 id="s-ch4-11">4.9 代码举例</h2>
   <p><strong>版本 A（推荐，工程常用）：零序注入法，5 行搞定</strong></p>
   <pre><code class="language-c">#include &lt;math.h&gt;
 #define SQRT3 1.7320508075688772f
@@ -1127,15 +1162,22 @@ int main(void) {
 <!-- ==================== 第 5 章 ==================== -->
 <section class="chapter" id="ch5">
   <h1>第 5 章 · 完整 FOC 环路与实战</h1>
+<div class="chap-intro">
+  <div class="ci-title">📖 本章导读</div>
+  <p class="ci-goal"><strong>定位</strong>：把前四章串成一个闭环：采样 → Clarke → Park → PI → iPark → SVPWM。</p>
+  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#s-ch5-1">5.1 完整控制框图</a> <a href="#s-ch5-2">5.2 信号流（一个控制周期的完整旅程）</a> <a href="#s-ch5-3">5.3 PI 控制器与解耦补偿</a> <a href="#s-ch5-4">5.4 代码举例 1：一个最小可用的 FOC 电流环（C）</a> <a href="#s-ch5-5">5.5 实战框架推荐：SimpleFOC</a> <a href="#s-ch5-6">5.6 视觉理解：双闭环响应</a> <a href="#s-ch5-7">5.7 小结与进阶方向</a></div>
+  <p class="ci-howto"><strong>读法</strong>：5.1 控制框图和 5.2「一个控制周期的完整旅程」最重要；5.4 是最小可编译实现，5.5 讲框架选型（SimpleFOC）。</p>
+</div>
 
-  <h2>5.1 完整控制框图</h2>
+
+  <h2 id="s-ch5-1">5.1 完整控制框图</h2>
   <p>把前四章串起来，完整的 FOC 电流环 + 速度环结构如下：</p>
   <div class="viz-block">
     <canvas id="cv-block-diagram" width="900" height="360"></canvas>
     <div class="viz-caption">图 5-1：FOC 双闭环控制框图。外环为速度环，输出 $i_q$ 指令；内环为电流环（dq 解耦），输出经反 Park → SVPWM 驱动逆变器。位置/速度由编码器或观测器获得。</div>
   </div>
 
-  <h2>5.2 信号流（一个控制周期的完整旅程）</h2>
+  <h2 id="s-ch5-2">5.2 信号流（一个控制周期的完整旅程）</h2>
   <ol>
     <li><strong>采样</strong>：ADC 读取两相电流 $i_a,i_b$（$i_c=-i_a-i_b$），编码器读取机械角度 $\theta_m$</li>
     <li><strong>Clarke</strong>：$i_a,i_b \to i_\alpha,i_\beta$</li>
@@ -1147,7 +1189,7 @@ int main(void) {
     <li><strong>SVPWM</strong>：$u_\alpha,u_\beta \to$ 三相占空比 → 定时器 PWM 输出</li>
   </ol>
 
-  <h2>5.3 PI 控制器与解耦补偿</h2>
+  <h2 id="s-ch5-3">5.3 PI 控制器与解耦补偿</h2>
   <p>dq 轴电压方程存在交叉耦合项。PMSM 在 dq 系下的稳态电压方程：</p>
   $$
   \begin{aligned}
@@ -1163,7 +1205,7 @@ int main(void) {
   <p>PI 参数整定常用“极点配置法”：把电流环近似为一阶惯性环节，按期望带宽 $\omega_c$ 取 $K_p = \omega_c L$，$K_i = \omega_c R_s$。</p>
   <div class="callout"><b>带宽分级设计经验（面试常问）：</b>电流环带宽通常取开关频率的 $1/10$ 左右（受采样+计算+PWM 滞后约 1.5 个控制周期的限制）；速度环带宽取电流环的 $1/5 \sim 1/10$，保证内外环时间尺度分离，否则内环没来得及响应外环就振荡了。另外电流环几乎从不加 D：电流信号本身噪声大，微分会放大开关噪声，且一阶对象用 PI 已能无静差跟踪。</div>
 
-  <h2>5.4 代码举例 1：一个最小可用的 FOC 电流环（C）</h2>
+  <h2 id="s-ch5-4">5.4 代码举例 1：一个最小可用的 FOC 电流环（C）</h2>
   <pre><code class="language-c">typedef struct { float kp, ki, integ, out_max; } pi_t;
 
 float pi_update(pi_t* pi, float err, float dt) {
@@ -1199,11 +1241,11 @@ void foc_current_loop(float ia, float ib, float theta_e,
     set_pwm_duty(ta, tb, tc);
 }</code></pre>
 
-  <h2>5.5 实战框架推荐：SimpleFOC</h2>
+  <h2 id="s-ch5-5">5.5 实战框架推荐：SimpleFOC</h2>
   <p>如果你手上有 Arduino / STM32 + 云台电机或无刷电机，最快上手硬件 FOC 的方式是开源库 <a href="https://simplefoc.com" target="_blank">SimpleFOC</a>（Arduino C++）。它内部封装了本站讲的全部变换（Clarke / Park / SVPWM）和电流环、速度环、位置环，只需配置电机极对数、PWM 引脚和编码器即可运行，支持力矩 / 速度 / 位置三种控制模式。</p>
   <p>建议路线：先用 SimpleFOC 在硬件上跑通、建立直观感受，再回到本站第 2~5 章手搓底层 C 代码加深理解 —— 知道库在做什么，比只会调库更重要。完整示例代码见其 <a href="https://docs.simplefoc.com" target="_blank">官方文档</a>。</p>
 
-  <h2>5.6 视觉理解：双闭环响应</h2>
+  <h2 id="s-ch5-6">5.6 视觉理解：双闭环响应</h2>
   <p>下面是一个简化的 FOC 速度环仿真：给定阶跃速度指令，观察速度响应、$i_q$ 电流（转矩）和 $i_d$ 电流的变化。可以调节 PI 参数感受超调与响应速度的权衡。</p>
   <div class="viz-block" id="viz-closed-loop">
     <canvas id="cv-loop" width="860" height="280"></canvas>
@@ -1218,7 +1260,7 @@ void foc_current_loop(float ia, float ib, float theta_e,
 
   <p>到这里，FOC 的“算法层”已经完整。但从算法到产品还隔着<strong>启动流程、无感估算、故障保护、嵌入式实现</strong>这些系统级问题 —— 它们也是面试的重头戏，全部放在<a href="#ch6">第 6 章</a>。</p>
 
-  <h2>5.7 小结与进阶方向</h2>
+  <h2 id="s-ch5-7">5.7 小结与进阶方向</h2>
   <ul>
     <li>✅ 你已掌握：旋转磁场直觉 → Clarke → Park → SVPWM → 双闭环 FOC 完整链路</li>
     <li>🔭 无传感器 FOC：用滑模观测器（SMO）/ 龙伯格观测器 / 高频注入估算 $\theta_e$，省去编码器</li>
@@ -1231,9 +1273,16 @@ void foc_current_loop(float ia, float ib, float theta_e,
 <!-- ==================== 第 6 章 ==================== -->
 <section class="chapter" id="ch6">
   <h1>第 6 章 · 工程实战与面试突击</h1>
+<div class="chap-intro">
+  <div class="ci-title">📖 本章导读</div>
+  <p class="ci-goal"><strong>定位</strong>：从零到转起来：启动流程、编码器校准（以 MT6701 为例）、无感入门、保护与嵌入式要点。</p>
+  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#s-ch6-1">6.1 完整启动流程：从上电到转起来</a> <a href="#s-ch6-2">6.2 角度对齐与编码器校准：以 MT6701 为例</a> <a href="#s-ch6-3">6.3 无感 FOC：没有编码器怎么知道角度</a> <a href="#s-ch6-4">6.4 保护与故障处理</a> <a href="#s-ch6-5">6.5 嵌入式实现要点</a> <a href="#s-ch6-6">6.6 面试速查：高频问题一句话答案</a> <a href="#s-ch6-7">6.7 本章小结</a></div>
+  <p class="ci-howto"><strong>读法</strong>：6.1 与 6.2 是实际调试最先撞上的两块；6.3 是无感入门；6.6 是面试高频问题速查。</p>
+</div>
+
   <p>前五章解决“算法怎么算”，本章解决“系统怎么跑”。这些内容不会出现在教科书公式里，却是实际项目和面试中被追问最多的部分。</p>
 
-  <h2>6.1 完整启动流程：从上电到转起来</h2>
+  <h2 id="s-ch6-1">6.1 完整启动流程：从上电到转起来</h2>
   <p>一个可靠的 FOC 系统上电后通常按以下顺序走：</p>
   <ul>
     <li><strong>上电自检</strong>：母线电压是否在范围、温度传感器/编码器通信是否正常、驱动使能是否就绪。</li>
@@ -1244,7 +1293,7 @@ void foc_current_loop(float ia, float ib, float theta_e,
   </ul>
   <div class="callout"><b>常见坑：</b>偏置没校好 → 低速转矩脉动；角度对齐差一个电周期（多极对数电机易错）→ 启动就反转/过流；开环切闭环时机太早 → 观测器未收敛导致失步啸叫。</div>
 
-  <h2>6.2 角度对齐与编码器校准：以 MT6701 为例</h2>
+  <h2 id="s-ch6-2">6.2 角度对齐与编码器校准：以 MT6701 为例</h2>
   <p>6.1 说的「角度对齐」到底在对什么？一句话：<strong>Park 变换和电流环只认电角度，而电角度是从编码器读数换算出来的——对齐就是把换算链路里的未知常数测出来</strong>：</p>
   $$\theta_e = \mathrm{dir}\times\big(\theta_{enc}-\theta_{offset}\big)\times p \pmod{360^\circ}$$
 
@@ -1325,7 +1374,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
     </div>
   </div>
 
-  <h2>6.3 无感 FOC：没有编码器怎么知道角度</h2>
+  <h2 id="s-ch6-3">6.3 无感 FOC：没有编码器怎么知道角度</h2>
   <p>无感方案的核心思想：<strong>从电信号里反推转子位置</strong>。按转速段分两类：</p>
   <ul>
     <li><strong>反电动势法（中高速）</strong>：转速起来后反电动势可观，用<strong>滑模观测器（SMO）</strong>把电流误差作为滑模面，切换项近似反电动势符号，低通滤波后取 $\hat{\theta}_e = -\mathrm{atan2}(\hat{e}_\alpha, \hat{e}_\beta)$；缺点是滑模<strong>抖振</strong>需要滤波，而滤波引入相位滞后，需按转速做相位补偿。另一类是<strong>磁链观测器</strong>（电压模型积分反电动势），低速时积分器漂移问题需处理。</li>
@@ -1343,7 +1392,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
     </div>
   </div>
 
-  <h2>6.4 保护与故障处理</h2>
+  <h2 id="s-ch6-4">6.4 保护与故障处理</h2>
   <p>面试常问“你们系统做了哪些保护”，按响应速度从快到慢：</p>
   <ul>
     <li><strong>硬件过流保护（最快）</strong>：采样电阻电压进模拟比较器，超限直接关 PWM 输出（硬件封锁），不经过中断和软件，响应在 μs 级 —— 这是保护功率级的最后一道防线。</li>
@@ -1353,7 +1402,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
     <li><strong>过温降额</strong>：MOS 管/电机温度分级处理：先降电流限幅（降额），超硬限才停机，避免突变停机带来的二次冲击。</li>
   </ul>
 
-  <h2>6.5 嵌入式实现要点</h2>
+  <h2 id="s-ch6-5">6.5 嵌入式实现要点</h2>
   <ul>
     <li><strong>中断优先级</strong>：电流环 ISR 最高优先级（50~100μs 周期内必须跑完：采样+Clarke+Park+2×PI+反Park+SVPWM，现代 MCU 通常只占百分之几到十）；速度环可降频在电流环内分频执行；通信/显示等低优先级任务绝不能阻塞控制环。</li>
     <li><strong>硬件联动</strong>：PWM 定时器比较事件触发 ADC，ADC 转换结束触发中断 —— 采样时刻、计算时刻、占空比更新时刻全部硬件同步，消除软件抖动。</li>
@@ -1361,7 +1410,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
     <li><strong>角度表示</strong>：常用 0~65535 对应 0~360° 的整数角度，三角函数查表，增量编码器计数直接对齐这种表示，加法溢出自动回绕正好对应角度周期性。</li>
   </ul>
 
-  <h2>6.6 面试速查：高频问题一句话答案</h2>
+  <h2 id="s-ch6-6">6.6 面试速查：高频问题一句话答案</h2>
   <div class="interview">
     <div class="qa"><div class="q">Q：FOC 的核心思想一句话？</div><div class="a">把三相交流变换到跟随转子旋转的 dq 坐标系，让交流量变直流量，用两个 PI 分别独立控制励磁（$i_d$）和转矩（$i_q$）。</div></div>
     <div class="qa"><div class="q">Q：等幅值变换和等功率变换的区别？</div><div class="a">系数不同：等幅值保证 $|\vec i_{\alpha\beta}|$ 与相电流幅值一致（电机控制主流），等功率保证变换前后功率不变（电网分析常用），两者只差一个 $\sqrt{2/3}$ 系数。</div></div>
@@ -1379,7 +1428,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
     <div class="qa"><div class="q">Q：硬件过流保护为什么要用比较器而不是中断？</div><div class="a">中断响应有 μs 级延迟和软件风险，模拟比较器直接封 PWM 是硬实时、不可被软件阻塞的最后一道防线。</div></div>
   </div>
 
-  <h2>6.7 本章小结</h2>
+  <h2 id="s-ch6-7">6.7 本章小结</h2>
   <ul>
     <li>✅ 启动流程：自检 → 偏置校准 → 角度对齐 → 开环拖拽 → 无缝切闭环</li>
     <li>✅ 无感：中高速反电动势法（SMO/磁链观测器），零低速高频注入</li>
@@ -1392,12 +1441,19 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
 <!-- ==================== 第 7 章 ==================== -->
 <section class="chapter" id="ch7">
   <h1>第 7 章 · 驱动板硬件拓扑</h1>
+<div class="chap-intro">
+  <div class="ci-title">📖 本章导读</div>
+  <p class="ci-goal"><strong>定位</strong>：硬件视角：把驱动板拆成四块电路——逆变桥、自举驱动、电流采样、辅助电源。</p>
+  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#s-ch7-1">7.1 三相逆变桥主回路：电流的六条门与回家的路</a> <a href="#s-ch7-2">7.2 自举驱动电路：上管的栅极电源从哪来</a> <a href="#s-ch7-3">7.3 电流采样电路：毫伏级信号如何变成 ADC 读数</a> <a href="#s-ch7-4">7.4 辅助电源：母线高压如何变成芯片的口粮</a> <a href="#s-ch7-5">7.5 本章小结：新人读板路线图</a></div>
+  <p class="ci-howto"><strong>读法</strong>：按 7.1 主回路 → 7.2 自举 → 7.3 采样 → 7.4 辅助电源 的顺序读；7.5 给「拿到一块新板子先看什么」的路线。</p>
+</div>
+
   <p>前六章解决“算法怎么算、系统怎么跑”，本章解决“<strong>电到底是怎么流的</strong>”。控制算法算出的电压矢量，最终要靠驱动板上的功率电路一安培一安培地送到电机绕组里。本章用四张动画图，把驱动板上最容易看懵的四块拓扑拆开讲，<b>图中的流动亮点就是电流本身</b>，切换开关状态观察回路如何变化。先看整板的能量/信号链路：</p>
   <div class="callout">
     <b>整板链路一图流：</b>直流电源 $V_{bus}$ → 预充电/母线电容 → <strong>三相逆变桥</strong>（6 个 MOSFET）→ 电机；每相电流经<strong>采样电阻+运放</strong> → ADC → MCU；母线电压经 <strong>Buck 辅助电源</strong> → 12V（驱动 IC）/ 5V / 3.3V（MCU）；MCU 的 PWM 经<strong>栅极驱动</strong>（自举电路）放大后开关 MOSFET。抓住这条链，任何驱动板都能读懂七八成。
   </div>
 
-  <h2>7.1 三相逆变桥主回路：电流的六条门与回家的路</h2>
+  <h2 id="s-ch7-1">7.1 三相逆变桥主回路：电流的六条门与回家的路</h2>
   <p>逆变桥是驱动板的心脏：上下各三个 MOSFET 组成三个桥臂，每臂中点接一相电机绕组，母线电容横跨正负母线做能量缓冲。读懂它的关键只有一条：<strong>电机绕组是电感，电流不能突变，所以任何时刻每相电流都必须有一条完整的回家回路</strong> —— 要么走导通的 MOSFET，要么走 MOSFET 体内（或外并）的续流二极管。点击按钮切换三种典型状态，观察电流路径：</p>
 <div class="viz-block" id="viz-bridge">
     <canvas id="cv-hbridge" width="860" height="400"></canvas>
@@ -1426,7 +1482,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
     </div>
   </div>
 
-  <h2>7.2 自举驱动电路：上管的栅极电源从哪来</h2>
+  <h2 id="s-ch7-2">7.2 自举驱动电路：上管的栅极电源从哪来</h2>
   <p>MOSFET 导通靠栅源电压 $u_{GS}$。下管源极接地，栅极给个 12V 就完事；但<strong>上管源极接在桥臂中点，导通时会被抬到接近 $V_{bus}$</strong>，栅极电源必须“悬浮”且跟着中点一起浮动 —— 这就是自举电路要解决的问题：</p>
 <div class="viz-block" id="viz-bootstrap">
     <canvas id="cv-bootstrap" width="860" height="340"></canvas>
@@ -1453,7 +1509,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
     </div>
   </div>
 
-  <h2>7.3 电流采样电路：毫伏级信号如何变成 ADC 读数</h2>
+  <h2 id="s-ch7-3">7.3 电流采样电路：毫伏级信号如何变成 ADC 读数</h2>
   <p>FOC 的血液是电流反馈。采样链路固定三段式：<strong>采样电阻把电流变成电压 → 运放放大并抬偏置 → ADC 量化</strong>。电阻位置有几种流派，各有取舍：</p>
 <div class="viz-block" id="viz-shunt">
     <canvas id="cv-shunt" width="860" height="360"></canvas>
@@ -1483,7 +1539,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
     </div>
   </div>
 
-  <h2>7.4 辅助电源：母线高压如何变成芯片的口粮</h2>
+  <h2 id="s-ch7-4">7.4 辅助电源：母线高压如何变成芯片的口粮</h2>
   <p>电机吃的是几十伏的母线电，MCU 和驱动 IC 却只要 3.3V/12V —— 靠 <strong>Buck 降压</strong>完成转换。它是所有开关电源的入门拓扑，只有两个回路，动画里交替出现：</p>
 <div class="viz-block" id="viz-buck">
     <canvas id="cv-buck" width="860" height="340"></canvas>
@@ -1509,7 +1565,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
     </div>
   </div>
 
-  <h2>7.5 本章小结：新人读板路线图</h2>
+  <h2 id="s-ch7-5">7.5 本章小结：新人读板路线图</h2>
   <ul>
     <li>✅ 逆变桥：电感电流必有回路 —— MOSFET 导通或体二极管续流，同臂上下管互斥（死区）</li>
     <li>✅ 自举驱动：下管导通时给 Cb 充电，上管导通时 Cb 悬浮供电，不支持 100% 占空比</li>
@@ -1523,12 +1579,19 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
 <!-- ==================== 第 8 章 ==================== -->
 <section class="chapter" id="ch8">
   <h1>第 8 章 · STM32G4 外设实战：定时器、ADC 与三环调度</h1>
+<div class="chap-intro">
+  <div class="ci-title">📖 本章导读</div>
+  <p class="ci-goal"><strong>定位</strong>：在 STM32G4 上把算法真正跑起来：TIM1 中心对齐 + CH4 扳机 + 双 ADC 注入 + 三环调度。</p>
+  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#s-ch8-1">8.1 先定节拍：为什么电流环跑在 ADC 中断，而不是定时器中断</a> <a href="#s-ch8-2">8.2 高级定时器 TIM1：中心对齐、死区、RCR 与 CH4 扳机</a> <a href="#s-ch8-3">8.3 电流采集链路：从毫欧到安培</a> <a href="#s-ch8-4">8.4 三环调度：一个定时器，三个节拍</a> <a href="#s-ch8-5">8.5 角度从哪来：SPI 磁编码器</a> <a href="#s-ch8-6">8.6 CubeMX 配置清单（逐页对照）</a> <a href="#s-ch8-7">8.7 启动顺序：一个都不能错</a> <a href="#s-ch8-8">8.8 USB CDC：48 MHz 时钟这道题怎么解</a> <a href="#s-ch8-9">8.9 面试视角：外设与时序</a> <a href="#s-ch8-10">8.10 本章小结与调试清单</a></div>
+  <p class="ci-howto"><strong>读法</strong>：8.1 与 8.2 讲清最核心的问题——<strong>「什么时候采样」</strong>；8.9 给出完整参数表，可以直接照着配。</p>
+</div>
+
   <p>前七章讲的是「算法怎么算」。本章讲 <strong>MCU 怎么让这套算法每 50 µs 准点跑一次，并且在最干净的那一刻采到电流</strong>。这一章是第 5 章控制框图在 STM32G4 上的落地：谁触发谁、谁打断谁、采样点卡在哪里。理解了本章，再看任何一份 FOC 工程的 <code>tim.c</code> / <code>adc.c</code> 都不会陌生。</p>
   <div class="callout">
     <b>本章的主角只有三件事：</b>① <strong>TIM1</strong> 产生 20 kHz 中心对齐 PWM，并在三相下管同时导通的时刻"打一枪"；② <strong>ADC1+ADC2 双注入组</strong>被这一枪同时触发，在一个中断里拿到 3 路相电流和母线电压；③ <strong>电流环跑在这个 ADC 中断里</strong>，速度环/位置环靠软件分频挂在后面。整章所有配置都围绕这三点服务。
   </div>
 
-  <h2>8.1 先定节拍：为什么电流环跑在 ADC 中断，而不是定时器中断</h2>
+  <h2 id="s-ch8-1">8.1 先定节拍：为什么电流环跑在 ADC 中断，而不是定时器中断</h2>
   <p>直觉上「PWM 周期到了就跑一次电流环」，于是很多人把 FOC 塞进 <code>HAL_TIM_PeriodElapsedCallback()</code>。这在简单项目里能跑，但有硬伤：<strong>更新事件（UEV）的时刻与"电流已经稳定、可以采样"的时刻不是一回事</strong>。ADC 转换需要时间，触发点和中断点之间隔着固定的转换延迟；而 UEV 出现在计数器的边界，跟你的调制占空比无关，无法保证此刻采样窗口是干净的。</p>
   <p>正确做法是<strong>让 ADC 的转换完成中断（JEOC）成为电流环的心跳</strong>：TIM1 只负责在精确时刻触发采样，ADC 转完后回调里直接跑 Clarke → Park → PI → iPark → SVPWM，算完写 CCR，影子寄存器在下一个周期边界统一生效。这样<strong>「采样 → 计算 → 更新占空比」是一条闭环因果链</strong>，延迟恒定且可预测。</p>
   <p>工程里的原话（v2.0 与 v3.0 的 <code>fun.c</code> 注释完全一致）：</p>
@@ -1538,7 +1601,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
 // ADC 注入完成中断 freq 20KHz, 50us 一次中断</code></pre>
   <p>一句话总结：<strong>CH4 不接电机、不输出任何波形，它存在的唯一意义就是当"扳机"。</strong>这是本章最核心的一个设计，下面 8.2 拆开讲。</p>
 
-  <h2>8.2 高级定时器 TIM1：中心对齐、死区、RCR 与 CH4 扳机</h2>
+  <h2 id="s-ch8-2">8.2 高级定时器 TIM1：中心对齐、死区、RCR 与 CH4 扳机</h2>
   <p>TIM1 是 STM32 的<strong>高级控制定时器</strong>，相比 TIM2/TIM3 这类通用定时器，它多了四样 FOC 必需的东西：<strong>互补输出（CHxN）、可编程死区（DTG）、刹车输入（BKIN）、重复计数器（RCR）</strong>。前三样是给半桥功率级准备的，第四样用来调整更新事件频率。拖动下面的时间轴，观察一个完整的 PWM 周期：</p>
 
   <div class="viz-block" id="viz-tim1">
@@ -1706,7 +1769,7 @@ HAL_TIMEx_PWMN_Start(&amp;htim1, TIM_CHANNEL_1);  /* CH1N/2N/3N 互补输出 */<
   <p>四步环环相扣，<strong>没有任何一步是靠"猜时间"实现的</strong>：CNT 是硬件数的、CCR 是 SVPWM 算的、触发是硬件连的（TRGO → ADC 外部触发）、中断是转换完成自动来的。这也解释了为什么 FOC 工程里几乎见不到"在定时器中断里读 ADC"的写法 —— 那条路每一步都要软件对齐，抖动不可控。</p>
   <div class="callout"><b>一个常见的误解</b>：有人以为"上管导通时也能采到电流"。不行 —— 上管导通时该相被接到母线正，电流从母线来，不经过下桥臂的分流电阻，采样值是 0 或者上一相的续流残留。三电阻方案之所以比母线单电阻方案友好，正是因为它有<em>三个</em>独立的下桥臂电阻，只要各自下管导通就能读；但它依然要遵守"下管导通才有效"这条铁律，所以采样点仍然必须钉在顶点。</div>
 
-  <h2>8.3 电流采集链路：从毫欧到安培</h2>
+  <h2 id="s-ch8-3">8.3 电流采集链路：从毫欧到安培</h2>
   <p>TIM1 给了采样时刻，接下来是"采到的数字怎么变成安培"。整条链路有四段：<strong>分流电阻 → 仪表/差分运放 → 偏置 → ADC</strong>。拖动下面的电流滑块，看每一级的数值怎么变：</p>
 
   <div class="viz-block" id="viz-currchain">
@@ -1754,7 +1817,7 @@ moto-&gt;Ic = (moto-&gt;Ic_zero - (float)ADC1-&gt;JDR2) * 3.3f / 4095.0f / 30.0f
     <li>上电先做<strong>自校准</strong>：<code>HAL_ADCEx_Calibration_Start()</code> 消除 ADC 本身的偏移，之后再做电流零点校准（PWM 关闭、静止、500 次平均）。</li>
   </ul>
 
-  <h2>8.4 三环调度：一个定时器，三个节拍</h2>
+  <h2 id="s-ch8-4">8.4 三环调度：一个定时器，三个节拍</h2>
   <p>电流环 20 kHz 是硬性要求（由功率级和电流纹波决定），但速度环和位置环没必要跑这么快——<strong>它们的对象时间常数比电流环大一到两个数量级</strong>。工程上的做法是<strong>软件分频</strong>：在 20 kHz 的 ADC 中断里用计数器分频，不占用额外定时器。拖动下面的时间轴看三个环的节拍关系：</p>
 
   <div class="viz-block" id="viz-sched">
@@ -1786,7 +1849,7 @@ moto-&gt;Ic = (moto-&gt;Ic_zero - (float)ADC1-&gt;JDR2) * 3.3f / 4095.0f / 30.0f
 }</code></pre>
   <div class="callout"><b>PA4 那两行一定要留着。</b>它是整个 FOC 调试中最便宜也最有效的工具：示波器看 PA4 高电平宽度 = 电流环单次执行时间，看周期 = 20 kHz 是否稳定，看抖动 = 有没有被别的中断打断。<strong>PA4 周期不是 50 µs 或高电平超过 25 µs，就说明有问题。</strong></div>
 
-  <h2>8.5 角度从哪来：SPI 磁编码器</h2>
+  <h2 id="s-ch8-5">8.5 角度从哪来：SPI 磁编码器</h2>
   <p>Park / iPark 两个变换都需要电角度 $\theta_e$。本项目用 MT6701 这类 SPI 接口的磁编码器，14 bit 单圈绝对值，配置要点：</p>
   <ul>
     <li><strong>SPI 全双工主机、CPOL=Low/CPHA=1Edge（Mode 0）或按手册</strong>，8/16 位帧，波特率分频给到几 MHz 即可（编码器更新率才是瓶颈）。</li>
@@ -1796,7 +1859,7 @@ moto-&gt;Ic = (moto-&gt;Ic_zero - (float)ADC1-&gt;JDR2) * 3.3f / 4095.0f / 30.0f
     <li><strong>角度外插</strong>：编码器更新率通常低于 20 kHz，在两个采样点之间用 $\theta \mathrel{+}= \omega \cdot T_s$ 做一阶外插，能明显降低高速时的角度滞后。</li>
   </ul>
 
-  <h2>8.6 CubeMX 配置清单（逐页对照）</h2>
+  <h2 id="s-ch8-6">8.6 CubeMX 配置清单（逐页对照）</h2>
   <div class="sv-table">
     <table>
       <thead><tr><th>页面</th><th>外设</th><th>关键设置</th><th>备注</th></tr></thead>
@@ -1824,7 +1887,7 @@ moto-&gt;Ic = (moto-&gt;Ic_zero - (float)ADC1-&gt;JDR2) * 3.3f / 4095.0f / 30.0f
     </table>
   </div>
 
-  <h2>8.7 启动顺序：一个都不能错</h2>
+  <h2 id="s-ch8-7">8.7 启动顺序：一个都不能错</h2>
   <p>FOC 工程的上电顺序是有讲究的——<strong>先让测量链路准备好，再发波</strong>，否则第一拍就采到垃圾数据。两版工程的顺序完全一致：</p>
   <pre><code>/* 1. ADC 自校准 */
 HAL_ADCEx_Calibration_Start(&amp;hadc1, ADC_SINGLE_ENDED);
@@ -1849,7 +1912,7 @@ HAL_TIM_Base_Start(&amp;htim1);
 while (State == moto_Calib) { /* 阻塞等待零点标定完成 */ }</code></pre>
   <div class="callout"><b>关于第 3 步：</b>上电瞬间 GPIO 可能是浮空态，CCR 寄存器也可能有残留值。<strong>PWM 启动前把所有 CCR 清零</strong>，是防止"上电即满占空比炸管"最省事的一招。同理，<strong>换相/停机时也要先关输出再停定时器</strong>。</div>
 
-  <h2>8.8 USB CDC：48 MHz 时钟这道题怎么解</h2>
+  <h2 id="s-ch8-8">8.8 USB CDC：48 MHz 时钟这道题怎么解</h2>
   <p>G4 上 USB FS 的引脚是<strong>唯一</strong>的（PA11/PA12，无备用映射），FDCAN 改到 PB8/PB9（AF9）后两者互不冲突。真正的难点是时钟：USB 要求 48 MHz ±0.25%，而</p>
   $$HSE\ 24\,\text{MHz}\xrightarrow{/M=6}4\,\text{MHz}\xrightarrow{\times N=85}VCO=340\,\text{MHz}\xrightarrow{R=/2}SYSCLK=170\,\text{MHz}$$
   $$PLLQ=\frac{340}{48}=7.083\quad\Rightarrow\quad \frac{340}{7}=48.57\ \text{MHz}$$
@@ -1877,7 +1940,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
     <li><strong>发送</strong>：连续发送前必须查 <code>USBD_CDC_GetTxState()</code>，否则上一次没发完就被覆盖，直接丢包。</li>
   </ul>
 
-  <h2>8.9 面试视角：外设与时序</h2>
+  <h2 id="s-ch8-9">8.9 面试视角：外设与时序</h2>
   <div class="interview">
     <div class="qa">
       <div class="q">Q：FOC 的电流环为什么放在 ADC 中断，不放在定时器更新中断？</div>
@@ -1905,7 +1968,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
     </div>
   </div>
 
-  <h2>8.10 本章小结与调试清单</h2>
+  <h2 id="s-ch8-10">8.10 本章小结与调试清单</h2>
   <ul>
     <li>✅ <strong>节拍</strong>：TIM1 中心对齐 20 kHz（ARR=4249）→ CH4（Mode2, CCR4=ARR−3）在三角波顶点发窄脉冲 → OC4REF 上升沿触发双 ADC 注入 → JEOC 中断里跑电流环。</li>
     <li>✅ <strong>采样</strong>：顶点处三相下管全通，分流电阻电流 = 相电流；5 mΩ × 30 × 偏置 1.65 V → 5.37 mA/LSB，零点在校准时测定。</li>
@@ -1919,9 +1982,16 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
 <!-- ==================== 第 9 章 · 电机参数详解 ==================== -->
 <section class="chapter" id="ch9">
   <h1>第 9 章 · 电机参数详解：每个参数怎么读、怎么算、怎么影响性能</h1>
+<div class="chap-intro">
+  <div class="ci-title">📖 本章导读</div>
+  <p class="ci-goal"><strong>定位</strong>：把规格书上的每个参数讲透：它是什么、决定哪个公式、怎么影响性能——<strong>全部用你的 4310 规格书参数做算例</strong>。</p>
+  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#s-ch9-1">9.1 参数全景：一台 PMSM 的「身份证」</a> <a href="#s-ch9-2">9.2 视觉理解：反电动势与电压预算</a> <a href="#s-ch9-3">9.3 理论推导：扭矩公式——从功率到 $K_t$</a> <a href="#s-ch9-4">9.4 理论推导：反电动势公式与 $K_t \leftrightarrow K_e$ 换算</a> <a href="#s-ch9-5">9.5 底层分析：电压极限与最高转速</a> <a href="#s-ch9-6">9.6 底层分析：电阻与电感——热和快慢的两个守门员</a> <a href="#s-ch9-7">9.7 底层分析：机械侧——J 与 B，你想转多快就转多快吗</a> <a href="#s-ch9-8">9.8 参数 → 性能速查表</a> <a href="#s-ch9-9">9.9 没有数据手册：手测 / 估算每一个参数</a> <a href="#s-ch9-10">9.10 代码举例：参数自检脚本（C）</a> <a href="#s-ch9-11">9.11 面试视角：参数高频问答</a> <a href="#s-ch9-12">9.12 本章小结</a></div>
+  <p class="ci-howto"><strong>读法</strong>：9.1 参数全景表 → 9.4 的 Kt↔Ke 换算（<strong>口径陷阱最密集</strong>，两种常数不要混用）→ 9.5 电压极限（算你的电机到底能跑多快）→ 9.8「参数 → 性能」速查表最实用。</p>
+</div>
+
   <p class="lead">数据手册上的 $K_t$、$K_e$、$R_s$、$L_d$、$J$……不是一堆孤立的数，而是一台电机的「体检报告」。本章把每个参数讲透三件事：<strong>物理上它是什么</strong>、<strong>公式上它决定什么</strong>、<strong>工程上它怎么坑你</strong>。全部算例用同一台 24V 关节电机（p=14、Rs=5.35Ω、Ld=Lq=5.32mH、Kt=0.217 N·m/A（峰值口径；规格书写 0.30 是<strong>有效值</strong>口径））——建议学完第 1 章就读本章，也可以最后回来查。</p>
 
-  <h2>9.1 参数全景：一台 PMSM 的「身份证」</h2>
+  <h2 id="s-ch9-1">9.1 参数全景：一台 PMSM 的「身份证」</h2>
   <p>先把全部参数摆在一张桌上。注意最后一列——<strong>手册经常缺斤少两，缺的得自己测或自己算</strong>（方法见 9.9）。</p>
   <table class="sv-table">
     <thead>
@@ -1942,7 +2012,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
   </table>
   <div class="callout"><strong>先建立一个总纲：</strong>$\psi_f$（磁链）是一切的核心。它一边决定扭矩（$K_t = \tfrac{3}{2}p\psi_f$），一边决定反电动势（$K_e = p\psi_f$），一边决定电压极限和最高转速。<strong>扭矩密度和高速，天生就是一对矛盾</strong>——这一句话就是本章的主旋律。</div>
 
-  <h2>9.2 视觉理解：反电动势与电压预算</h2>
+  <h2 id="s-ch9-2">9.2 视觉理解：反电动势与电压预算</h2>
   <p>电机转起来就是一个发电机：转子磁钢扫过绕组，感应出反电动势，<strong>转得越快，电压越高，方向还跟你对着干</strong>。你的母线电压是硬天花板（相电压峰值最多用到 $U_{dc}/\sqrt{3}$，见第 4 章 SVPWM），而转速越高，反电动势 + 电阻电抗压降就越逼近天花板——<strong>顶到了，就再也快不上去了</strong>。拖动下面的滑块，亲眼看看 4310 的电压预算是怎么被吃掉的：</p>
   <div class="viz-block" id="viz-bemf">
     <div class="viz-canvas-row">
@@ -1958,7 +2028,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
     <div class="viz-caption">图 9-1：上——三相反电动势波形（黄虚线 = 可用电压天花板 $U_{dc}/\sqrt{3}$）；下——该状态下所需电压的构成条（青 = 反电动势 $\omega_e\psi_f$，橙 = 电阻+电抗压降）。<b>拖大转速或电流，看裕量被吃光的那一刻</b>；读数里还实时给出「此电流下最高转速」。以 4310 例机计算（p=14、Rs=5.35Ω、L=5.32mH、Kt=0.217）。波形按电角度滚动（示意速度，与实际转速无关）。</div>
   </div>
 
-  <h2>9.3 理论推导：扭矩公式——从功率到 $K_t$</h2>
+  <h2 id="s-ch9-3">9.3 理论推导：扭矩公式——从功率到 $K_t$</h2>
   <p>扭矩不是定义出来的，是从<strong>功率守恒</strong>里推出来的。三相正弦稳态下，只有与转子磁场垂直的电流分量（$i_q$）在做功，气隙电磁功率为：</p>
   $$P_\delta = \tfrac{3}{2}\, e_{pk}\, i_q = \tfrac{3}{2}\, \omega_e \psi_f\, i_q$$
   <p>机械功率 = 扭矩 × 机械角速度，代入 $\omega_e = p\,\omega_m$：</p>
@@ -1984,7 +2054,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
     例：$i_q$ = 1 A → 0.217 N·m；堵转限幅 2 A → 0.434 N·m。校核：0.217 N·m 在 522 rpm 输出 $P = 0.217 \times 54.6 = 11.9$ W，与 9550 公式反算一致 ✓。
   </div>
 
-  <h2>9.4 理论推导：反电动势公式与 $K_t \leftrightarrow K_e$ 换算</h2>
+  <h2 id="s-ch9-4">9.4 理论推导：反电动势公式与 $K_t \leftrightarrow K_e$ 换算</h2>
   <p>转子磁链 $\psi_f$ 扫过绕组，感应相电压峰值：</p>
   $$e_{pk} = \omega_e\, \psi_f = p\, \omega_m\, \psi_f \qquad K_e \equiv \frac{e_{pk}}{\omega_m} = p\, \psi_f$$
   <p>和 $K_t = \tfrac{3}{2}p\psi_f$ 摆在一起，<strong>同一个 $\psi_f$，只差一个系数</strong>：</p>
@@ -2011,7 +2081,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
     <strong>实战校核：规格书同时给了 Kt=0.3 和 KV=54 —— 这两个数正好能互相印证，说明 0.3 是<strong>有效值口径</strong>，不是矛盾。</strong><br><br><strong>路径①（KV 反推）</strong>：$K_e[\text{V/krpm, LL,rms}] = 1000/KV = 1000/54 = 18.5$ V/krpm → $K_{t,pk} = 18.5/85.5 = \mathbf{0.217}$ N·m/A，而 $K_{t,rms} = \sqrt2 \times 0.217 = 0.306 \approx$ 手册的 0.3 ✓（恒等式 $KV \times K_{t,rms} = 54 \times 0.306 = 16.5$，理论值 16.54 ✓）<br><strong>路径②（BEMF 上限）</strong>：若把 0.3 当<strong>峰值</strong>用 → $K_e = 85.5 \times 0.3 = 25.6$ V/krpm → 1000 rpm 需 25.6 V > 24 V 母线，物理不可能 ✗ <strong>——这正说明 0.3 不能是峰值口径</strong>。<br><strong>路径③（电压极限）</strong>：用峰值 0.217 算，SVPWM 线性区空载最高 <strong>916 rpm</strong>；若用六步方波（基波 LL 峰值可达 $2\sqrt3 U_{dc}/\pi = 26.5$ V）则 ≈ <strong>1000 rpm</strong> ✓ 与手册「空载最大转速 1000 rpm」吻合。<br><br><strong>结论：手册自洽，之前看着像「矛盾」纯粹是口径没对齐。</strong>一台电机的参数必须互相咬合——对不上时，先怀疑口径，再怀疑物理。
   </div>
 
-  <h2>9.5 底层分析：电压极限与最高转速</h2>
+  <h2 id="s-ch9-5">9.5 底层分析：电压极限与最高转速</h2>
   <p>稳态下 dq 轴电压方程（电动机惯例）：</p>
   $$u_d = R_s i_d - \omega_e L_q i_q \qquad u_q = R_s i_q + \omega_e (L_d i_d + \psi_f)$$
   <p>而 SVPWM 线性区能给出的相电压峰值上限是 $U_{s,\max} = U_{dc}/\sqrt{3}$（第 4 章的结论）。所以「能跑多快」就是解这个不等式：</p>
@@ -2045,7 +2115,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
   </div>
   <p>电压顶死之后还有招吗？有——<strong>弱磁</strong>：给 $i_d &lt; 0$ 主动削弱 $\psi_d = \psi_f + L_d i_d$，反电动势变小，电压预算腾出来给速度。代价：电流圆被 $i_d$ 占用、同电流扭矩下降、铜损上升，深弱磁还有不可逆退磁风险。图 9-2 的黄色虚线就是它的收益边界。</p>
 
-  <h2>9.6 底层分析：电阻与电感——热和快慢的两个守门员</h2>
+  <h2 id="s-ch9-6">9.6 底层分析：电阻与电感——热和快慢的两个守门员</h2>
   <p><strong>电阻的三笔账：</strong></p>
   <ul>
     <li><strong>铜损</strong>：$P_{cu} = 3 R_s i_{rms}^2 = \tfrac{3}{2} R_s i_{pk}^2$。4310 在 1 A 时 8.0 W，2 A 时 <strong>32 W——平方律！</strong>这就是为什么堵转容易烧电机：扭矩只翻倍，发热翻四倍。</li>
@@ -2069,7 +2139,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
   </div>
   <p><strong>凸极率</strong> $\rho = L_q/L_d$：4310 的 $\rho = 1$ → 纯 SPM，$i_d = 0$ 即最优；$\rho &gt; 1$（IPM）→ 用 MTPA 把电流角往 $-45°$ 偏，磁阻扭矩白送一份。同一套 FOC 框架，改的只是电流分配策略。</p>
 
-  <h2>9.7 底层分析：机械侧——J 与 B，你想转多快就转多快吗</h2>
+  <h2 id="s-ch9-7">9.7 底层分析：机械侧——J 与 B，你想转多快就转多快吗</h2>
   <p>电学参数管「出多少力」，机械参数管「力给出去之后发生什么」。转子的牛顿第二定律：</p>
   $$J\, \dot{\omega}_m = T_e - T_{load} - B\,\omega_m \qquad\Rightarrow\qquad \alpha_{\max} = \frac{T_{stall}}{J}$$
   <ul>
@@ -2078,7 +2148,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
     <li><strong>$J$ 的实测</strong>（比手册靠谱）：① <strong>加减速法</strong>——恒扭矩加速，$J = (K_t i - T_{fric})\,\Delta t / \Delta\omega$；② 单摆法/落体法——小电机尤其好用。</li>
   </ul>
 
-  <h2>9.8 参数 → 性能速查表</h2>
+  <h2 id="s-ch9-8">9.8 参数 → 性能速查表</h2>
   <p>一页看全「动哪个参数，动的是哪根神经」：</p>
   <table class="sv-table">
     <thead>
@@ -2095,7 +2165,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
     </tbody>
   </table>
 
-  <h2>9.9 没有数据手册：手测 / 估算每一个参数</h2>
+  <h2 id="s-ch9-9">9.9 没有数据手册：手测 / 估算每一个参数</h2>
   <p>廉价电机（尤其拆机的）手册残缺是常态。这套流程一下午能测完一台：</p>
   <table class="sv-table">
     <thead>
@@ -2113,7 +2183,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
     </tbody>
   </table>
 
-  <h2>9.10 代码举例：参数自检脚本（C）</h2>
+  <h2 id="s-ch9-10">9.10 代码举例：参数自检脚本（C）</h2>
   <p>把本章公式固化成一台电机的「体检程序」——输入手册参数，输出自洽性检查：</p>
   <pre><code class="language-c">#include &lt;math.h&gt;
 #include &lt;stdio.h&gt;
@@ -2162,7 +2232,7 @@ int main(void) {
 }</code></pre>
   <p>把 <code>Kt</code> 改成 0.30（规格书上那个数）<strong>直接当峰值</strong>用会怎样？Ke 算出 25.6 V/krpm——<strong>1000 rpm 就需要 25.6 V，早已越过 24 V 母线，物理上不可能</strong>。参数自检的价值就在这：<strong>口径不统一，矛盾自己会跳出来</strong>。正确姿势是先做 $K_{t,pk} = K_{t,rms}/\sqrt2 = 0.217$ 的换算，再填进去。</p>
 
-  <h2>9.11 面试视角：参数高频问答</h2>
+  <h2 id="s-ch9-11">9.11 面试视角：参数高频问答</h2>
   <div class="interview">
     <div class="qa">
       <div class="q">Q：Kt 和 Ke 数值上有什么关系？为什么能互算？</div>
@@ -2190,7 +2260,7 @@ int main(void) {
     </div>
   </div>
 
-  <h2>9.12 本章小结</h2>
+  <h2 id="s-ch9-12">9.12 本章小结</h2>
   <div class="callout">
     <strong>一条主线记全章：</strong>ψf 是核心 → $K_t = \tfrac{3}{2}p\psi_f$ 管扭矩，$K_e = p\psi_f$ 管反电动势 → 反电动势 + 电阻电抗压降 vs $U_{dc}/\sqrt{3}$ 管最高转速；$R_s$ 管发热（平方律！），$L$ 管电流环快慢（$\tau = L/R$），$J$ 管加速度和带宽（$\alpha = T/J$）。<br><br>
     <strong>4310 全家福（按规格书 + 本章推算）：</strong>线电阻 10.7 Ω→相电阻 5.35 Ω ｜ 24N28P→p=14 ｜ L=5.32 mH ｜ KV=54 rpm/V ｜ Kt = 0.30（有效值）= <strong>0.217</strong>（峰值）｜ ψf = 10.3 mWb ｜ Ke = 18.5 V/krpm(LL,rms) ｜ 空载最高 916 rpm（SVPWM；六步方波 ≈1000）｜ 1A 带载 522 rpm ｜ 堵转 0.43 N·m ｜ 铜损 8 W @1A(峰值) / 32 W @2A ｜ τe ≈ 1.0 ms。<br><br>
@@ -2201,6 +2271,13 @@ int main(void) {
 <!-- ==================== 第 10 章 · 从有感到无感（手册） ==================== -->
 <section class="chapter" id="ch10">
   <h1>从有感到无感：完整推导与工程实现手册</h1>
+<div class="chap-intro">
+  <div class="ci-title">📖 本章导读</div>
+  <p class="ci-goal"><strong>定位</strong>：从有感（编码器）走向无感的完整推导 + 工程实现手册，含专门针对 4310 + STSPIN32G4 的一章。</p>
+  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#ch10-目录">目录</a> <a href="#ch10-第-0-章">第 0 章 全局图景：有感与无感的本质差异</a> <a href="#ch10-第-1-章">第 1 章 预备：PMSM 数学模型与符号约定</a> <a href="#ch10-第-2-章">第 2 章 从"已知 θ"到"未知 θ"：信息缺口在哪</a> <a href="#ch10-第-3-章">第 3 章 反电动势观测器的统一理论与逐项推导</a> <a href="#ch10-第-4-章">第 4 章 角度与转速提取：atan2 / PLL / CORDIC 完整对比</a> <a href="#ch10-第-5-章">第 5 章 低速与零速：为什么必须换信息源</a> <a href="#ch10-第-6-章">第 6 章 从有感平滑过渡到无感的实现细节</a> <a href="#ch10-第-7-章">第 7 章 六个"杀手"：让无感失效的物理原因与对策</a> <a href="#ch10-第-8-章">第 8 章 工程实现：手写 C 代码框架</a> <a href="#ch10-第-9-章">第 9 章 调试方法论：每一步看什么波形</a> <a href="#ch10-第-10-章">第 10 章 针对你的 4310 关节 + STSPIN32G4 的专章</a> <a href="#ch10-附录-a-常用公式速查">附录 A：常用公式速查</a> <a href="#ch10-附录-b-无感方案选型决策树">附录 B：无感方案选型决策树</a></div>
+  <p class="ci-howto"><strong>读法</strong>：第 3 章（BEMF 观测器统一理论）和第 5 章（低速与零速为什么必须换信息源）是核心；第 6 章讲平滑过渡，第 7 章讲「六个杀手」，第 10 章是 4310 专章。<br>正文数值算例用的是<strong>简化教学参数</strong>，「以你的电机为例」的算例已按规格书重算——开头有口径说明。</p>
+</div>
+
 <div class="callout">承接《FOC 无感进阶与工业级仿真路线》，本文把从编码器闭环到无感运行的每一步<strong>数学推导、代码实现、调试方法</strong>全部展开。<br>目标读者：已完成 FOC 三环闭环、熟悉 Clarke/Park/SVPWM，想真正搞懂观测器为什么收敛、为什么失效的人。<br><br><strong>⚠️ 参数口径说明：</strong>你的 4310 规格书参数是 —— 线电阻 10.7 Ω（Y 接 → 相电阻 5.35 Ω）、L_s = 5.32 mH、p = 14（24N28P）、KV = 54 rpm/V、Kt = 0.3 N·m/A（相电流有效值口径）= 0.217 N·m/A（峰值口径）、ψ_f = 10.3 mWb、V_dc = 24 V。<br>本文正文的数值算例为便于演示，用的是<strong>简化的教学参数集</strong>（ψ_f = 5.0 mWb、R_s = 1.0 Ω、L_s = 0.5 mH、p = 4）；<strong>把示例数字套到你的电机上之前，请按第 9 章换算口径</strong>（ψ_f 差约 2.06 倍、R_s 差 5.35 倍，会显著改变低速可用区）。</div>
 <hr>
 <h2 id="ch10-目录">目录</h2>
@@ -3535,6 +3612,13 @@ R_s(T) = R_s20·(1 + 0.00393·(T−20))</code></pre>
 <!-- ==================== 第 11 章 · 无感公式推导手册 ==================== -->
 <section class="chapter" id="ch11">
   <h1>FOC 无感控制公式推导手册（含完整符号含义）</h1>
+<div class="chap-intro">
+  <div class="ci-title">📖 本章导读</div>
+  <p class="ci-goal"><strong>定位</strong>：无感控制的公式推导手册：每个公式后面都配符号表、推导步骤、物理意义、单位与典型值。</p>
+  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#ch11-第一部分-坐标变换推导">第一部分：坐标变换推导</a> <a href="#ch11-第二部分-pmsm-数学模型推导">第二部分：PMSM 数学模型推导</a> <a href="#ch11-第三部分-观测器推导">第三部分：观测器推导</a> <a href="#ch11-第四部分-低速方案推导">第四部分：低速方案推导</a> <a href="#ch11-第五部分-误差传播与补偿公式">第五部分：误差传播与补偿公式</a> <a href="#ch11-第六部分-参数辨识公式">第六部分：参数辨识公式</a> <a href="#ch11-附录-a-符号约定冲突对照表">附录 A：符号约定冲突对照表</a> <a href="#ch11-附录-b-公式速查卡">附录 B：公式速查卡</a></div>
+  <p class="ci-howto"><strong>读法</strong>：当工具书用，不必顺序读。最常用的是<strong>第三部分（观测器：龙伯格 / 滑模 / PLL / MRAS / 磁链）</strong>与<strong>第五部分（误差传播与补偿：延迟 / 死区 / R_s 温漂）</strong>。</p>
+</div>
+
 <div class="callout">配套《FOC 从有感到无感-完整推导与实现手册》。<br>本文特点：<strong>每个公式后面都有符号表、推导步骤、物理意义、单位、典型值</strong>。<br><strong>⚠️ 参数口径说明：</strong>你的 4310 规格书参数是 —— 线电阻 10.7 Ω（Y 接 → 相电阻 5.35 Ω）、L_s = 5.32 mH、p = 14（24N28P）、KV = 54 rpm/V、Kt = 0.3 N·m/A（相电流有效值口径）= 0.217 N·m/A（峰值口径）、ψ_f = 10.3 mWb、V_dc = 24 V。<br>本文正文的数值算例为便于演示，用的是<strong>简化的教学参数集</strong>（ψ_f = 5.0 mWb、R_s = 1.0 Ω、L_s = 0.5 mH、p = 4）；把示例数字套到你的电机上之前，请按第 9 章换算口径（ψ_f 差约 2.06 倍、R_s 差 5.35 倍）。</div>
 <hr>
 <h3 id="ch11-符号总表-先看这一页-后面反复用">符号总表（先看这一页，后面反复用）</h3>
@@ -4876,6 +4960,13 @@ K_t = 1.5 p ψ_f</code></pre>
 <!-- ==================== 第 12 章 · 无感符号总表 ==================== -->
 <section class="chapter" id="ch12">
   <h1>FOC 无感控制符号总表</h1>
+<div class="chap-intro">
+  <div class="ci-title">📖 本章导读</div>
+  <p class="ci-goal"><strong>定位</strong>：符号总表（建议打印放在工作台旁边）：符号、单位、典型值、易混淆对照、单位换算。</p>
+  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#ch12-一-下标与上标">一、下标与上标</a> <a href="#ch12-二-电气量">二、电气量</a> <a href="#ch12-三-机械与磁学量">三、机械与磁学量</a> <a href="#ch12-四-控制与时间量">四、控制与时间量</a> <a href="#ch12-五-观测器专用">五、观测器专用</a> <a href="#ch12-六-hfi-专用">六、HFI 专用</a> <a href="#ch12-七-易混淆符号对照">七、易混淆符号对照 ⚠️</a> <a href="#ch12-八-单位换算速查">八、单位换算速查</a> <a href="#ch12-九-典型数值参考-4310-关节-stspin32g4">九、典型数值参考（4310 关节 + STSPIN32G4）</a></div>
+  <p class="ci-howto"><strong>读法</strong>：读第 10 / 11 章时随手对照第七节「易混淆符号对照」与第九节「典型数值参考」（已按 4310 规格书更新）。</p>
+</div>
+
 <div class="callout">配套《FOC 无感控制公式推导手册-含符号含义》使用。<br>建议打印放在工作台旁边。</div>
 <hr>
 <h2 id="ch12-一-下标与上标">一、下标与上标</h2>
@@ -4949,8 +5040,9 @@ PWM 频率          20 kHz（T_pwm = 50 µs，本站第 8 章工程设置；手�
   <div id="lightbox-hint">点击任意处或按 Esc 关闭</div>
 </div>
 
-<script src="js/main.js?v=20260914c"></script>
-<script src="js/params.js?v=20260914c"></script>
-<script src="js/wugan.js?v=20260914c"></script>
+<script src="js/main.js?v=20260914d"></script>
+<script src="js/params.js?v=20260914d"></script>
+<script src="js/wugan.js?v=20260914d"></script>
+<script src="js/toc.js?v=20260914d"></script>
 </body>
 </html>

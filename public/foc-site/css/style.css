@@ -463,3 +463,46 @@ p code, li code {
   }
   .readout, .viz-controls label { white-space: normal; overflow-wrap: break-word; }
 }
+
+/* ---------- 章节导读（每章 h1 后的「本章导读」卡片） ---------- */
+.chap-intro {
+  margin: 20px 0 28px; padding: 16px 20px;
+  background: var(--panel); border: 1px solid var(--border);
+  border-left: 4px solid var(--accent); border-radius: 10px;
+  font-size: 14.5px; line-height: 1.75;
+}
+.chap-intro .ci-title { font-weight: 700; color: var(--accent); font-size: 15px; margin-bottom: 8px; }
+.chap-intro .ci-goal { margin: 6px 0; }
+.chap-intro .ci-howto { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+.chap-intro .ci-map { margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: baseline; }
+.chap-intro .ci-label { font-size: 12.5px; color: var(--muted); flex: 0 0 auto; }
+.chap-intro .ci-map a {
+  display: inline-block; padding: 3px 10px; border-radius: 14px;
+  background: var(--accent-soft); color: var(--accent); text-decoration: none;
+  font-size: 12.5px; border: 1px solid var(--border); white-space: nowrap;
+}
+.chap-intro .ci-map a:hover { border-color: var(--accent); }
+
+/* ---------- 侧栏二级目录（可以展开到每个 h2） ---------- */
+#toc > li { position: relative; }
+#toc .toc-caret {
+  position: absolute; right: 8px; top: 3px; width: 26px; height: 28px;
+  border: 0; background: none; color: var(--muted); cursor: pointer;
+  font-size: 11px; line-height: 28px; text-align: center;
+  border-radius: 5px; transition: transform .15s, background .15s;
+}
+#toc .toc-caret:hover { background: var(--hover-bg); color: var(--text); }
+#toc > li.open > .toc-caret { transform: rotate(90deg); }
+#toc > li.has-sub > a { padding-right: 40px; }
+#toc .toc-sub { list-style: none; margin: 0; padding: 0 0 6px; display: none; }
+#toc > li.open > .toc-sub { display: block; }
+#toc .toc-sub a {
+  display: block; padding: 5px 16px 5px 34px; font-size: 12.8px; line-height: 1.5;
+  color: var(--muted); text-decoration: none; border-left: 3px solid transparent;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#toc .toc-sub a:hover { color: var(--text); background: var(--hover-bg); }
+#toc li.active .toc-sub a { color: var(--muted); background: none; border-left-color: transparent; }
+#toc .toc-sub li.cur > a {
+  color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft);
+}
