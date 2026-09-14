@@ -2377,7 +2377,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
 <!-- ==================== 第 9 章 · 电机参数详解 ==================== -->
 <section class="chapter" id="ch9">
   <h1>第 9 章 · 电机参数详解：每个参数怎么读、怎么算、怎么影响性能</h1>
-  <p class="lead">数据手册上的 $K_t$、$K_e$、$R_s$、$L_d$、$J$……不是一堆孤立的数，而是一台电机的「体检报告」。本章把每个参数讲透三件事：<strong>物理上它是什么</strong>、<strong>公式上它决定什么</strong>、<strong>工程上它怎么坑你</strong>。全部算例用同一台 24V 关节电机（p=14、Rs=5.35Ω、Ld=Lq=5.32mH、Kt=0.20 N·m/A）——建议学完第 1 章就读本章，也可以最后回来查。</p>
+  <p class="lead">数据手册上的 $K_t$、$K_e$、$R_s$、$L_d$、$J$……不是一堆孤立的数，而是一台电机的「体检报告」。本章把每个参数讲透三件事：<strong>物理上它是什么</strong>、<strong>公式上它决定什么</strong>、<strong>工程上它怎么坑你</strong>。全部算例用同一台 24V 关节电机（p=14、Rs=5.35Ω、Ld=Lq=5.32mH、Kt=0.217 N·m/A（峰值口径；规格书写 0.30 是<strong>有效值</strong>口径））——建议学完第 1 章就读本章，也可以最后回来查。</p>
 
   <h2>9.1 参数全景：一台 PMSM 的「身份证」</h2>
   <p>先把全部参数摆在一张桌上。注意最后一列——<strong>手册经常缺斤少两，缺的得自己测或自己算</strong>（方法见 9.9）。</p>
@@ -2386,15 +2386,15 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
       <tr><th>参数</th><th>符号 / 单位</th><th>人话解释</th><th>4310 例</th></tr>
     </thead>
     <tbody>
-      <tr><td><strong>极对数</strong></td><td>$p$ / 无量纲</td><td>转子转一圈，电角度走 $p \times 360°$。电频率 = $p$ × 机械频率</td><td>14（电角度分辨率是机械角的 1/14）</td></tr>
-      <tr><td><strong>相电阻</strong></td><td>$R_s$ / Ω</td><td>铜线的「过路费」：发热 + 压降，两头都由它买单</td><td>5.35 Ω（很大！云台/关节电机特征）</td></tr>
+      <tr><td><strong>极对数</strong></td><td>$p$ / 无量纲</td><td>转子转一圈，电角度走 $p \times 360°$。电频率 = $p$ × 机械频率</td><td>14（规格书 24N28P：28 极 ÷ 2；电角度分辨率是机械角的 1/14）</td></tr>
+      <tr><td><strong>相电阻</strong></td><td>$R_s$ / Ω</td><td>铜线的「过路费」：发热 + 压降，两头都由它买单</td><td>5.35 Ω（规格书线电阻 10.7 Ω ÷ 2；很大！云台/关节电机特征）</td></tr>
       <tr><td><strong>轴电感</strong></td><td>$L_d, L_q$ / H</td><td>电流的「惯性」。$L_d = L_q$ → 隐极（SPM）；$L_q &gt; L_d$ → 凸极（IPM）</td><td>5.32 mH = 5.32 mH（纯 SPM 特性）</td></tr>
-      <tr><td><strong>转子磁链</strong></td><td>$\psi_f$ / Wb</td><td>磁钢的「本钱」。手册经常不给——由 $K_t$ 反推：$\psi_f = K_t/(1.5p)$</td><td>9.52 mWb</td></tr>
-      <tr><td><strong>扭矩常数</strong></td><td>$K_t$ / N·m/A</td><td>1 A 电流出多少 N·m。<strong>必须先问口径：峰值还是有效值？</strong></td><td>0.20 N·m/A（相电流峰值口径）</td></tr>
-      <tr><td><strong>反电动势常数</strong></td><td>$K_e$ / V·s/rad 或 V/krpm</td><td>转多快「发多少电」。和 $K_t$ 是同一枚硬币的两面（9.4）</td><td>17.1 V/krpm（线-线有效值口径）</td></tr>
+      <tr><td><strong>转子磁链</strong></td><td>$\psi_f$ / Wb</td><td>磁钢的「本钱」。手册经常不给——由 $K_t$ 反推：$\psi_f = K_t/(1.5p)$</td><td>10.3 mWb</td></tr>
+      <tr><td><strong>扭矩常数</strong></td><td>$K_t$ / N·m/A</td><td>1 A 电流出多少 N·m。<strong>必须先问口径：峰值还是有效值？</strong></td><td>0.30 N·m/A（有效值口径，规格书值）= <strong>0.217 N·m/A</strong>（峰值口径）</td></tr>
+      <tr><td><strong>反电动势常数</strong></td><td>$K_e$ / V·s/rad 或 V/krpm</td><td>转多快「发多少电」。和 $K_t$ 是同一枚硬币的两面（9.4）</td><td>18.5 V/krpm（线-线有效值）｜ KV = <strong>54 rpm/V</strong>（规格书值）</td></tr>
       <tr><td><strong>转动惯量</strong></td><td>$J$ / kg·m²</td><td>转子的「懒」：想加速就得用扭矩喂它</td><td>未实测（测量方法见 9.7）</td></tr>
       <tr><td><strong>粘滞摩擦</strong></td><td>$B$ / N·m·s/rad</td><td>空载损耗的主要来源（轴承 + 风阻）</td><td>很小，空载电流几个百分点</td></tr>
-      <tr><td><strong>额定 / 堵转电流</strong></td><td>A</td><td>额定是<strong>热</strong>定的（长期不烧）；堵转是<strong>电流环限幅</strong>定的（不是电机属性！）</td><td>1 A / 2 A</td></tr>
+      <tr><td><strong>额定 / 堵转电流</strong></td><td>A</td><td>额定是<strong>热</strong>定的（长期不烧）；堵转是<strong>电流环限幅</strong>定的（不是电机属性！）</td><td>1 A / 2 A@24V（工作电压 7–24 V）</td></tr>
       <tr><td><strong>母线电压</strong></td><td>$U_{dc}$ / V</td><td>决定电压预算 → 决定最高转速（9.5）</td><td>24 V</td></tr>
     </tbody>
   </table>
@@ -2413,7 +2413,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
       <label>母线电压 <input type="range" id="bemf-udc" min="12" max="30" value="24"></label>
       <span id="bemf-readout" class="readout"></span>
     </div>
-    <div class="viz-caption">图 9-1：上——三相反电动势波形（黄虚线 = 可用电压天花板 $U_{dc}/\sqrt{3}$）；下——该状态下所需电压的构成条（青 = 反电动势 $\omega_e\psi_f$，橙 = 电阻+电抗压降）。<b>拖大转速或电流，看裕量被吃光的那一刻</b>；读数里还实时给出「此电流下最高转速」。以 4310 例机计算（p=14、Rs=5.35Ω、L=5.32mH、Kt=0.20）。波形按电角度滚动（示意速度，与实际转速无关）。</div>
+    <div class="viz-caption">图 9-1：上——三相反电动势波形（黄虚线 = 可用电压天花板 $U_{dc}/\sqrt{3}$）；下——该状态下所需电压的构成条（青 = 反电动势 $\omega_e\psi_f$，橙 = 电阻+电抗压降）。<b>拖大转速或电流，看裕量被吃光的那一刻</b>；读数里还实时给出「此电流下最高转速」。以 4310 例机计算（p=14、Rs=5.35Ω、L=5.32mH、Kt=0.217）。波形按电角度滚动（示意速度，与实际转速无关）。</div>
   </div>
 
   <h2>9.3 理论推导：扭矩公式——从功率到 $K_t$</h2>
@@ -2423,7 +2423,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
   $$T_e = \frac{P_\delta}{\omega_m} = \tfrac{3}{2}\, p\, \psi_f\, i_q$$
   <p>把常数打包成<strong>扭矩常数</strong>：</p>
   $$\boxed{\,T_e = K_t\, i_q\,}\qquad K_t \equiv \tfrac{3}{2}\, p\, \psi_f$$
-  <p>这就是「$K_t$ = 0.20 N·m/A」的全部含义：$i_q$ 每给 1 A（相电流峰值口径），出 0.20 N·m。<strong>注意它只对 $i_q$ 生效</strong>——这就是第 3 章说的「d 轴电流不产生永磁扭矩」的定量版本。</p>
+  <p>这就是「$K_t$ = 0.217 N·m/A」的全部含义：$i_q$ 每给 1 A（相电流峰值口径），出 0.217 N·m。<strong>注意它只对 $i_q$ 生效</strong>——这就是第 3 章说的「d 轴电流不产生永磁扭矩」的定量版本。</p>
   <p>如果电机是内嵌式（IPM，$L_q &gt; L_d$），磁路不对称还会白送一份<strong>磁阻扭矩</strong>：</p>
   $$T_e = \tfrac{3}{2}\, p \left[\, \psi_f\, i_q + (L_d - L_q)\, i_d\, i_q \,\right]$$
   <p>第二项在 $i_d &lt; 0$、$L_q &gt; L_d$ 时为正——把电流偏一点到 d 负方向，同电流下扭矩更大，这就是 <strong>MTPA</strong>（最大转矩电流比）。纯磁阻扭矩在电流角 −45° 时最大。而<strong>表贴式（$L_d = L_q$，如 4310）磁阻项严格为零，$i_d = 0$ 就是最优</strong>——不用纠结。</p>
@@ -2434,12 +2434,12 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
     <table class="sv-table" style="margin-top:6px">
       <thead><tr><th>口径</th><th>公式</th><th>4310 数值</th></tr></thead>
       <tbody>
-        <tr><td>$K_t$，相电流<strong>峰值</strong>（dq 幅值不变，本站口径）</td><td>$\tfrac{3}{2}p\psi_f$</td><td>0.200 N·m/A</td></tr>
-        <tr><td>$K_t$，相电流<strong>有效值</strong></td><td>$\sqrt{2}\,K_t^{(pk)}$</td><td>0.283 N·m/A</td></tr>
+        <tr><td>$K_t$，相电流<strong>峰值</strong>（dq 幅值不变，本站口径）</td><td>$\tfrac{3}{2}p\psi_f$</td><td>0.217 N·m/A</td></tr>
+        <tr><td>$K_t$，相电流<strong>有效值</strong></td><td>$\sqrt{2}\,K_t^{(pk)}$</td><td>0.306 N·m/A（= 规格书上写的 0.3）</td></tr>
         <tr><td>同一台电机，两个口径差 41%！</td><td>—</td><td>先问口径，再谈对不对</td></tr>
       </tbody>
     </table>
-    例：$i_q$ = 1 A → 0.20 N·m；堵转限幅 2 A → 0.40 N·m。校核：0.2 N·m 在 559 rpm 输出 $P = 0.2 \times 58.5 = 11.7$ W，与 9550 公式反算一致 ✓。
+    例：$i_q$ = 1 A → 0.217 N·m；堵转限幅 2 A → 0.434 N·m。校核：0.217 N·m 在 522 rpm 输出 $P = 0.217 \times 54.6 = 11.9$ W，与 9550 公式反算一致 ✓。
   </div>
 
   <h2>9.4 理论推导：反电动势公式与 $K_t \leftrightarrow K_e$ 换算</h2>
@@ -2453,22 +2453,18 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
       <tr><th>口径</th><th>换算</th><th>4310 数值</th></tr>
     </thead>
     <tbody>
-      <tr><td>磁链 $\psi_f$</td><td>$K_t / (1.5p)$</td><td>9.52 mWb</td></tr>
-      <tr><td>$K_e$ 相峰值，每机械 rad/s</td><td>$p\psi_f$</td><td>0.133 V·s/rad</td></tr>
-      <tr><td>$K_e$ 相峰值，每 krpm</td><td>$\times\, 104.7$</td><td>13.96 V/krpm</td></tr>
-      <tr><td>$K_e$ 相<strong>有效值</strong>，每 krpm</td><td>$\div \sqrt{2}$</td><td>9.87 V/krpm</td></tr>
-      <tr><td>$K_e$ <strong>线-线有效值</strong>，每 krpm（手册最常见）</td><td>$\times \sqrt{3}$</td><td>17.10 V/krpm</td></tr>
+      <tr><td>磁链 $\psi_f$</td><td>$K_t / (1.5p)$</td><td>10.3 mWb</td></tr>
+      <tr><td>$K_e$ 相峰值，每机械 rad/s</td><td>$p\psi_f$</td><td>0.1445 V·s/rad</td></tr>
+      <tr><td>$K_e$ 相峰值，每 krpm</td><td>$\times\, 104.7$</td><td>15.13 V/krpm</td></tr>
+      <tr><td>$K_e$ 相<strong>有效值</strong>，每 krpm</td><td>$\div \sqrt{2}$</td><td>10.70 V/krpm</td></tr>
+      <tr><td>$K_e$ <strong>线-线有效值</strong>，每 krpm（手册最常见）</td><td>$\times \sqrt{3}$</td><td>18.53 V/krpm（÷54 反推 = 1000 rpm ✓）</td></tr>
     </tbody>
   </table>
   <p>由此得到一个好用的速算法则（线-线有效值口径）：</p>
   $$K_e\,[\text{V/krpm}] \approx 85.5 \times K_t\,[\text{N·m/A}_{pk}] \qquad\Longleftrightarrow\qquad K_t \approx \frac{K_e}{85.5}$$
   <p><strong>反电动势的三重身份</strong>：① <strong>限速</strong>——吃掉电压预算，决定最高转速（9.5）；② <strong>制动泵升</strong>——减速时电机变发电机，能量灌回母线，电容电压抬升，没有泄放路径就过压；③ <strong>无感观测的信号源</strong>——滑模/磁链观测器全靠它（见 6.3）。</p>
   <div class="callout">
-    <strong>实战校核：4310 手册上的 Kt 到底是 0.3 还是 0.2？三条独立路径：</strong><br><br>
-    <strong>路径①（BEMF 上限）</strong>：若 $K_t=0.3$ → $\psi_f = 0.3/(1.5\times14) = 14.3$ mWb → 1000 rpm 时线-线有效值 $= 85.5 \times 0.3 = 25.6$ V。<strong>比 24 V 母线还高——物理上不可能</strong>。<br>
-    <strong>路径②（裕量自洽）</strong>：$K_t=0.20$ → 17.1 V @1000 rpm，给电阻电抗压降和控制留 29% 裕量 → 合理 ✓<br>
-    <strong>路径③（电压极限公式）</strong>：用 9.5 的公式算空载最高转速 = 992 rpm ≈ 手册「1000 rpm @ 24 V」→ 自洽 ✓<br><br>
-    <strong>结论：0.3 是口径错误（很可能是把某种有效值/含减速器的值当成了相峰值扭矩常数），自洽值是 0.20。</strong>一台电机的参数必须互相咬合——对不上时，错的往往是口径，不是物理。
+    <strong>实战校核：规格书同时给了 Kt=0.3 和 KV=54 —— 这两个数正好能互相印证，说明 0.3 是<strong>有效值口径</strong>，不是矛盾。</strong><br><br><strong>路径①（KV 反推）</strong>：$K_e[\text{V/krpm, LL,rms}] = 1000/KV = 1000/54 = 18.5$ V/krpm → $K_{t,pk} = 18.5/85.5 = \mathbf{0.217}$ N·m/A，而 $K_{t,rms} = \sqrt2 \times 0.217 = 0.306 \approx$ 手册的 0.3 ✓（恒等式 $KV \times K_{t,rms} = 54 \times 0.306 = 16.5$，理论值 16.54 ✓）<br><strong>路径②（BEMF 上限）</strong>：若把 0.3 当<strong>峰值</strong>用 → $K_e = 85.5 \times 0.3 = 25.6$ V/krpm → 1000 rpm 需 25.6 V > 24 V 母线，物理不可能 ✗ <strong>——这正说明 0.3 不能是峰值口径</strong>。<br><strong>路径③（电压极限）</strong>：用峰值 0.217 算，SVPWM 线性区空载最高 <strong>916 rpm</strong>；若用六步方波（基波 LL 峰值可达 $2\sqrt3 U_{dc}/\pi = 26.5$ V）则 ≈ <strong>1000 rpm</strong> ✓ 与手册「空载最大转速 1000 rpm」吻合。<br><br><strong>结论：手册自洽，之前看着像「矛盾」纯粹是口径没对齐。</strong>一台电机的参数必须互相咬合——对不上时，先怀疑口径，再怀疑物理。
   </div>
 
   <h2>9.5 底层分析：电压极限与最高转速</h2>
@@ -2484,12 +2480,12 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
       <tr><th>工况</th><th>计算</th><th>最高转速</th></tr>
     </thead>
     <tbody>
-      <tr><td>空载</td><td>$\omega_e = 13.86/0.00952 = 1455$ rad/s(电) → ÷14 = 103.9 rad/s(机)</td><td><strong>≈ 992 rpm</strong></td></tr>
-      <tr><td>$i_q = 0.5$ A</td><td>解二次方程 → $\omega_e = 1139$ rad/s(电)</td><td>≈ 777 rpm</td></tr>
-      <tr><td>$i_q = 1$ A（额定）</td><td>解二次方程 → $\omega_e = 819$ rad/s(电)</td><td><strong>≈ 559 rpm</strong></td></tr>
+      <tr><td>空载</td><td>$\omega_e = 13.86/0.01032 = 1343$ rad/s(电) → ÷14 = 95.9 rad/s(机)</td><td><strong>≈ 916 rpm</strong>（六步方波 ≈1000）</td></tr>
+      <tr><td>$i_q = 0.5$ A</td><td>解二次方程 → $\omega_e = 1139$ rad/s(电)</td><td>≈ 720 rpm</td></tr>
+      <tr><td>$i_q = 1$ A（额定）</td><td>解二次方程 → $\omega_e = 765$ rad/s(电)</td><td><strong>≈ 522 rpm</strong></td></tr>
     </tbody>
   </table>
-  <p><strong>空载 992 rpm、带额定负载只剩 559 rpm</strong>——为什么掉这么多？拆开电压预算看：$i_q=1$ A 时电阻压降 $R_s i_q = 5.35$ V，<strong>一口吃掉 13.86 V 预算的 39%</strong>。这就是大电阻云台/关节电机的宿命，也是「空载数据好看、带载原形毕露」的数学根源。拖动图 9-2 的滑块，把这条曲线玩明白：</p>
+  <p><strong>空载 916 rpm（SVPWM）、带额定负载只剩 522 rpm</strong>——为什么掉这么多？拆开电压预算看：$i_q=1$ A 时电阻压降 $R_s i_q = 5.35$ V，<strong>一口吃掉 13.86 V 预算的 39%</strong>。这就是大电阻云台/关节电机的宿命，也是「空载数据好看、带载原形毕露」的数学根源。拖动图 9-2 的滑块，把这条曲线玩明白：</p>
   <div class="viz-block" id="viz-tn">
     <div class="viz-canvas-row">
       <canvas id="cv-tn" width="880" height="380"></canvas>
@@ -2533,7 +2529,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
   <p>电学参数管「出多少力」，机械参数管「力给出去之后发生什么」。转子的牛顿第二定律：</p>
   $$J\, \dot{\omega}_m = T_e - T_{load} - B\,\omega_m \qquad\Rightarrow\qquad \alpha_{\max} = \frac{T_{stall}}{J}$$
   <ul>
-    <li><strong>$J$（惯量）</strong>：加速度的天花板。堵转扭矩 0.4 N·m 的 4310，若 $J = 2\times10^{-5}$ kg·m²（假设值，须实测），极限角加速度 $\alpha = 0.4/2\times10^{-5} = 2\times10^4$ rad/s²——听着很大，但位置环带宽还有一层更硬的约束：<strong>$\omega_{bw} \lesssim \sqrt{K_t I_{\max} / J}$</strong>（先有加速度才有带宽）。$J$ 大一倍，速度环/位置环的可用带宽直接打折。</li>
+    <li><strong>$J$（惯量）</strong>：加速度的天花板。堵转扭矩 0.43 N·m 的 4310，若 $J = 2\times10^{-5}$ kg·m²（假设值，须实测），极限角加速度 $\alpha = 0.43/2\times10^{-5} = 2.2\times10^4$ rad/s²——听着很大，但位置环带宽还有一层更硬的约束：<strong>$\omega_{bw} \lesssim \sqrt{K_t I_{\max} / J}$</strong>（先有加速度才有带宽）。$J$ 大一倍，速度环/位置环的可用带宽直接打折。</li>
     <li><strong>$B$（粘滞摩擦）</strong>：决定空载电流。$i_{no-load} \approx B\omega_m / K_t$——云台电机 $B$ 很小，空载电流只有额定的几个百分点；风阻在高速时按平方增长，高速电机不能忽略。</li>
     <li><strong>$J$ 的实测</strong>（比手册靠谱）：① <strong>加减速法</strong>——恒扭矩加速，$J = (K_t i - T_{fric})\,\Delta t / \Delta\omega$；② 单摆法/落体法——小电机尤其好用。</li>
   </ul>
@@ -2604,8 +2600,9 @@ float we_max(const motor_t* m, float iq, float psi) {
 }
 
 int main(void) {
-    /* 4310：Kt 用自洽值 0.20。换成 0.30 试试——校核会立刻报警 */
-    motor_t m = { 14, 5.35f, 5.32e-3f, 5.32e-3f, 0.20f, 24.0f };
+    /* 4310：Kt 填"峰值口径"0.217（= 规格书 0.30 有效值口径 ÷ √2）。
+       若把规格书的 0.30 直接当峰值填进来，下面的校核会立刻报警 */
+    motor_t m = { 14, 5.35f, 5.32e-3f, 5.32e-3f, 0.217f, 24.0f };
     float psi = psi_from_kt(&amp;m);
     float ke_ll_krpm = 1.2247f * (m.p * psi) * (1000.0f * RPM2RAD); /* 线-线有效值 V/krpm */
 
@@ -2619,13 +2616,13 @@ int main(void) {
     printf("tau_e = L/R  = %.2f ms\n", m.Ld / m.Rs * 1000.0f);
     return 0;
 }</code></pre>
-  <p>把 <code>Kt</code> 改成 0.30 再跑一次：Ke 会算出 25.6 V/krpm——<strong>空载最高转速 1400+ rpm 看似「更好」，但 BEMF 在 1000 rpm 就已越过 24 V 母线，两个输出互相矛盾</strong>。参数自检的价值就在这：矛盾自己会跳出来。</p>
+  <p>把 <code>Kt</code> 改成 0.30（规格书上那个数）<strong>直接当峰值</strong>用会怎样？Ke 算出 25.6 V/krpm——<strong>1000 rpm 就需要 25.6 V，早已越过 24 V 母线，物理上不可能</strong>。参数自检的价值就在这：<strong>口径不统一，矛盾自己会跳出来</strong>。正确姿势是先做 $K_{t,pk} = K_{t,rms}/\sqrt2 = 0.217$ 的换算，再填进去。</p>
 
   <h2>9.11 面试视角：参数高频问答</h2>
   <div class="interview">
     <div class="qa">
       <div class="q">Q：Kt 和 Ke 数值上有什么关系？为什么能互算？</div>
-      <div class="a">因为它们都来自同一个转子磁链：Kt = 1.5pψf，Ke = pψf（SI、相峰值口径），所以 Kt = 1.5Ke。常用手册口径（V/krpm、线-线有效值）下 Ke ≈ 85.5×Kt。互算的前提是<strong>统一口径</strong>——峰值/有效值、相/线-线，弄错一个就差 41% 或 73%。</div>
+      <div class="a">因为它们都来自同一个转子磁链：Kt = 1.5pψf，Ke = pψf（SI、相峰值口径），所以 Kt = 1.5Ke。常用手册口径（V/krpm、线-线有效值）下 Ke ≈ 85.5×Kt；换成 KV 口径则是 KV[rpm/V] ≈ 11.7/Kt（峰值）——规格书 KV=54 正好对应 Kt=0.217。互算的前提是<strong>统一口径</strong>——峰值/有效值、相/线-线，弄错一个就差 41% 或 73%。</div>
     </div>
     <div class="qa">
       <div class="q">Q：Kt 是不是越大越好？</div>
@@ -2637,7 +2634,7 @@ int main(void) {
     </div>
     <div class="qa">
       <div class="q">Q：为什么云台/关节电机电阻都特别大？</div>
-      <div class="a">细线多匝、低 KV 设计，追求低压下的扭矩密度。代价是铜损大、电阻压降占电压预算比例高——本例 1A 就吃掉 39% 的电压预算，带载最高转速从空载 992 rpm 掉到 559 rpm。「空载转速好看、带载原形毕露」就是它。</div>
+      <div class="a">细线多匝、低 KV 设计，追求低压下的扭矩密度。代价是铜损大、电阻压降占电压预算比例高——本例 1A 就吃掉 39% 的电压预算，带载最高转速从空载 916 rpm 掉到 522 rpm。「空载转速好看、带载原形毕露」就是它。</div>
     </div>
     <div class="qa">
       <div class="q">Q：弱磁为什么能提速？代价是什么？</div>
@@ -2652,7 +2649,7 @@ int main(void) {
   <h2>9.12 本章小结</h2>
   <div class="callout">
     <strong>一条主线记全章：</strong>ψf 是核心 → $K_t = \tfrac{3}{2}p\psi_f$ 管扭矩，$K_e = p\psi_f$ 管反电动势 → 反电动势 + 电阻电抗压降 vs $U_{dc}/\sqrt{3}$ 管最高转速；$R_s$ 管发热（平方律！），$L$ 管电流环快慢（$\tau = L/R$），$J$ 管加速度和带宽（$\alpha = T/J$）。<br><br>
-    <strong>4310 全家福（本章实测/推算）：</strong>ψf = 9.52 mWb ｜ Ke = 17.1 V/krpm（线-线有效值）｜ 空载最高 992 rpm ｜ 1A 带载 559 rpm ｜ 堵转 0.4 N·m ｜ 铜损 8 W @1A / 32 W @2A ｜ τe ≈ 1.0 ms。<br><br>
+    <strong>4310 全家福（按规格书 + 本章推算）：</strong>线电阻 10.7 Ω→相电阻 5.35 Ω ｜ 24N28P→p=14 ｜ L=5.32 mH ｜ KV=54 rpm/V ｜ Kt = 0.30（有效值）= <strong>0.217</strong>（峰值）｜ ψf = 10.3 mWb ｜ Ke = 18.5 V/krpm(LL,rms) ｜ 空载最高 916 rpm（SVPWM；六步方波 ≈1000）｜ 1A 带载 522 rpm ｜ 堵转 0.43 N·m ｜ 铜损 8 W @1A(峰值) / 32 W @2A ｜ τe ≈ 1.0 ms。<br><br>
     <strong>最重要的一个习惯：</strong>拿到任何参数，先用第二条独立路径校核一遍（85.5 法则、电压极限、9550 换算）。参数必须互相咬合——对不上时，先怀疑口径，再怀疑物理。
   </div>
 </section>
@@ -3115,7 +3112,7 @@ z_β = k·sign(ĩ_β)</code></pre>
       <label>PWM 频率 <input type="range" id="ls-f" min="10000" max="40000" step="10000" value="10000"></label>
       <span id="ls-readout" class="readout"></span>
     </div>
-    <div class="viz-caption">图 10-3：<b>低速为什么必然失效</b>。角度误差 Δθ ≈ ΔV/E，而 E = ωe·ψf 随转速线性下降 → 同样的电压扰动在低速被放大成灾难。两条曲线分别是「手册参数」与「4310 实测参数」。注意<b>不能只看 Rs</b>：单看 Rs 误差项，实测要差 2.75 倍（ΔRs·i 大 5.35 倍，而 E 只大 1.9 倍）；但固定的死区+器件压降（≈0.94 V）在手册那台「小 E」电机上占比更大，两项部分抵消 —— 所以总 Δθ 两者量级相当（实测略优约 7%）。红色区 = Δθ &gt; 90°，观测器失效。拖死区时间 / PWM 频率看死区误差的贡献（注意本站第 8 章工程用的是 20 kHz）。</div>
+    <div class="viz-caption">图 10-3：<b>低速为什么必然失效</b>。角度误差 Δθ ≈ ΔV/E，而 E = ωe·ψf 随转速线性下降 → 同样的电压扰动在低速被放大成灾难。两条曲线分别是「<strong>旧占位参数</strong>」与「<strong>4310 规格书参数</strong>」（规格书：线电阻 10.7 Ω→相电阻 5.35 Ω、KV=54→Kt=0.217 峰值、ψf=10.3 mWb）。注意<b>不能只看 Rs</b>：单看 Rs 误差项，4310 要差 2.6 倍（ΔRs·i 大 5.35 倍，而 E 只大 2.06 倍）；但固定的死区+器件压降（≈0.94 V）在旧占位那台「小 E」电机上占比更大，两项部分抵消 —— 所以总 Δθ 两者量级相当（<strong>4310 规格书口径反而略优约 15%</strong>）。红色区 = Δθ &gt; 90°，观测器失效。拖死区时间 / PWM 频率看死区误差的贡献（注意本站第 8 章工程用的是 20 kHz）。</div>
   </div>
 
 <h3 id="ch10-51">5.1 为什么反电动势法在低速必然失效（定量）</h3>
@@ -8978,9 +8975,9 @@ function segSwitch(ids, cb) {
     Rs: 5.35,       // 相电阻 Ω（25°C）
     Ld: 5.32e-3,    // d 轴电感 H
     Lq: 5.32e-3,    // q 轴电感 H
-    Kt: 0.20        // 扭矩常数 N·m/A（相电流峰值、dq 幅值不变口径）
+    Kt: 0.217       // 扭矩常数 N·m/A（峰值口径；4310 规格书写 0.30 是有效值口径）
   };
-  MOTOR.psi = MOTOR.Kt / (1.5 * MOTOR.p);   // 磁链 ψf = Kt/(1.5p) ≈ 9.52 mWb
+  MOTOR.psi = MOTOR.Kt / (1.5 * MOTOR.p);   // 磁链 ψf = Kt/(1.5p) ≈ 10.3 mWb
 
   const RPM2RAD = Math.PI / 30;             // rpm → rad/s（机械）
   const U_CEIL = (udc) => udc / Math.sqrt(3); // SVPWM 线性区：相电压峰值上限
@@ -9639,9 +9636,9 @@ function segSwitch(ids, cb) {
     const W = viz.s.w, H = viz.s.h;
 
     const SETS = [
-      { name: '手册参数 ψf=5.0mWb, Rs=1.0Ω', psi: 0.005, Rs: 1.0, col: P.c,
+      { name: '旧占位参数 ψf=5.0mWb, Rs=1.0Ω', psi: 0.005, Rs: 1.0, col: P.c,
         rsErr: 0.20 * 1.0 },                       // ΔRs·i = 0.2 V
-      { name: '4310 实测 ψf=9.52mWb, Rs=5.35Ω', psi: 0.00952, Rs: 5.35, col: P.warn,
+      { name: '4310 规格书 ψf=10.3mWb, Rs=5.35Ω', psi: 0.01032, Rs: 5.35, col: P.warn,
         rsErr: 0.20 * 5.35 }                       // ΔRs·i = 1.07 V
     ];
     const DEV = 0.7;                                // 器件压降（MOSFET/二极管）
@@ -9723,7 +9720,7 @@ function segSwitch(ids, cb) {
       const d1 = dth(SETS[0], n, td, f, false), d2 = dth(SETS[1], n, td, f, false);
       ro.textContent = 'n=' + n + 'rpm  t_dead=' + td.toFixed(1) + 'µs  PWM=' + (f / 1000).toFixed(0) +
         'kHz  死区误差=' + (td * 1e-6 * f * 24).toFixed(2) + 'V+器件0.7V  ' +
-        'Δθ(手册)=' + d1.toFixed(1) + '°  Δθ(实测)=' + d2.toFixed(1) + '°  ' +
+        'Δθ(旧占位)=' + d1.toFixed(1) + '°  Δθ(规格书)=' + d2.toFixed(1) + '°  ' +
         (d2 < 30 ? '低速仍可用' : d2 < 90 ? '⚠ 已劣化' : '✗ 失效');
     };
     [nSl, tdSl, fSl].forEach(function (el) { if (el) el.addEventListener('input', function () {}); });

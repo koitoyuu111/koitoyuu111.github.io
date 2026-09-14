@@ -14,9 +14,9 @@
     Rs: 5.35,       // 相电阻 Ω（25°C）
     Ld: 5.32e-3,    // d 轴电感 H
     Lq: 5.32e-3,    // q 轴电感 H
-    Kt: 0.20        // 扭矩常数 N·m/A（相电流峰值、dq 幅值不变口径）
+    Kt: 0.217       // 扭矩常数 N·m/A（峰值口径；4310 规格书写 0.30 是有效值口径）
   };
-  MOTOR.psi = MOTOR.Kt / (1.5 * MOTOR.p);   // 磁链 ψf = Kt/(1.5p) ≈ 9.52 mWb
+  MOTOR.psi = MOTOR.Kt / (1.5 * MOTOR.p);   // 磁链 ψf = Kt/(1.5p) ≈ 10.3 mWb
 
   const RPM2RAD = Math.PI / 30;             // rpm → rad/s（机械）
   const U_CEIL = (udc) => udc / Math.sqrt(3); // SVPWM 线性区：相电压峰值上限

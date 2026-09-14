@@ -271,9 +271,9 @@
     const W = viz.s.w, H = viz.s.h;
 
     const SETS = [
-      { name: '手册参数 ψf=5.0mWb, Rs=1.0Ω', psi: 0.005, Rs: 1.0, col: P.c,
+      { name: '旧占位参数 ψf=5.0mWb, Rs=1.0Ω', psi: 0.005, Rs: 1.0, col: P.c,
         rsErr: 0.20 * 1.0 },                       // ΔRs·i = 0.2 V
-      { name: '4310 实测 ψf=9.52mWb, Rs=5.35Ω', psi: 0.00952, Rs: 5.35, col: P.warn,
+      { name: '4310 规格书 ψf=10.3mWb, Rs=5.35Ω', psi: 0.01032, Rs: 5.35, col: P.warn,
         rsErr: 0.20 * 5.35 }                       // ΔRs·i = 1.07 V
     ];
     const DEV = 0.7;                                // 器件压降（MOSFET/二极管）
@@ -355,7 +355,7 @@
       const d1 = dth(SETS[0], n, td, f, false), d2 = dth(SETS[1], n, td, f, false);
       ro.textContent = 'n=' + n + 'rpm  t_dead=' + td.toFixed(1) + 'µs  PWM=' + (f / 1000).toFixed(0) +
         'kHz  死区误差=' + (td * 1e-6 * f * 24).toFixed(2) + 'V+器件0.7V  ' +
-        'Δθ(手册)=' + d1.toFixed(1) + '°  Δθ(实测)=' + d2.toFixed(1) + '°  ' +
+        'Δθ(旧占位)=' + d1.toFixed(1) + '°  Δθ(规格书)=' + d2.toFixed(1) + '°  ' +
         (d2 < 30 ? '低速仍可用' : d2 < 90 ? '⚠ 已劣化' : '✗ 失效');
     };
     [nSl, tdSl, fSl].forEach(function (el) { if (el) el.addEventListener('input', function () {}); });
