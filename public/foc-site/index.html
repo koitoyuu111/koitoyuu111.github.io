@@ -8,16 +8,16 @@
      （:root:root / [data-theme][data-theme]）保证不受后面 style.css 的加载顺序影响。
      放在这里而不是 CSS 之后，是因为下面那个 jsdelivr 的 KaTeX 样式表会阻塞解析，
      放后面会让「揭晓」被拖慢好几秒。 -->
-<script src="js/blog-theme.js?v=20260914b"></script>
+<script src="js/blog-theme.js?v=20260914c"></script>
 <title>FOC 学习站 v2.5 — 磁场定向控制：从直觉到实战</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
-<link rel="stylesheet" href="css/style.css?v=20260914b">
+<link rel="stylesheet" href="css/style.css?v=20260914c">
 <!-- 博客集成工具层：搜索定位 / 网页缩放 / 宽表格滚动（放在最后以便覆盖） -->
-<link rel="stylesheet" href="css/foc-tools.css?v=20260914b">
-<script defer src="js/foc-tools.js?v=20260914b"></script>
+<link rel="stylesheet" href="css/foc-tools.css?v=20260914c">
+<script defer src="js/foc-tools.js?v=20260914c"></script>
 </head>
 <body>
 
@@ -2004,7 +2004,9 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
   </table>
   <p>由此得到一个好用的速算法则（线-线有效值口径）：</p>
   $$K_e\,[\text{V/krpm}] \approx 85.5 \times K_t\,[\text{N·m/A}_{pk}] \qquad\Longleftrightarrow\qquad K_t \approx \frac{K_e}{85.5}$$
-  <p><strong>反电动势的三重身份</strong>：① <strong>限速</strong>——吃掉电压预算，决定最高转速（9.5）；② <strong>制动泵升</strong>——减速时电机变发电机，能量灌回母线，电容电压抬升，没有泄放路径就过压；③ <strong>无感观测的信号源</strong>——滑模/磁链观测器全靠它（见 6.3）。</p>
+  <p><strong>⚠️ 还有一个更容易踩的坑：$K_t$ ↔ $K_V$ 的常数不止一个。</strong>手册/论坛里常见的 $K_t = 9.549/K_V$（$K_V$ 按「空载转速 ÷ <strong>母线电压</strong>」定义）是<strong>直流/方波口径</strong>；而本文这条 $K_e = 85.5\,K_t$（$K_V \approx 11.7/K_t$）是<strong>线-线有效值口径</strong>（发电机口径）。拿 4310 验证：按前者得 $K_t = 9.549/41.7 = 0.229$，按后者得 $K_t^{rms} = 16.54/54 = 0.306$ —— <strong>规格书写的 0.3 只跟后者吻合</strong>。两套常数混用就是"手册对不上"最常见的成因——<strong>换算式必须连着口径一起说</strong>。</p>
+
+<p><strong>反电动势的三重身份</strong>：① <strong>限速</strong>——吃掉电压预算，决定最高转速（9.5）；② <strong>制动泵升</strong>——减速时电机变发电机，能量灌回母线，电容电压抬升，没有泄放路径就过压；③ <strong>无感观测的信号源</strong>——滑模/磁链观测器全靠它（见 6.3）。</p>
   <div class="callout">
     <strong>实战校核：规格书同时给了 Kt=0.3 和 KV=54 —— 这两个数正好能互相印证，说明 0.3 是<strong>有效值口径</strong>，不是矛盾。</strong><br><br><strong>路径①（KV 反推）</strong>：$K_e[\text{V/krpm, LL,rms}] = 1000/KV = 1000/54 = 18.5$ V/krpm → $K_{t,pk} = 18.5/85.5 = \mathbf{0.217}$ N·m/A，而 $K_{t,rms} = \sqrt2 \times 0.217 = 0.306 \approx$ 手册的 0.3 ✓（恒等式 $KV \times K_{t,rms} = 54 \times 0.306 = 16.5$，理论值 16.54 ✓）<br><strong>路径②（BEMF 上限）</strong>：若把 0.3 当<strong>峰值</strong>用 → $K_e = 85.5 \times 0.3 = 25.6$ V/krpm → 1000 rpm 需 25.6 V > 24 V 母线，物理不可能 ✗ <strong>——这正说明 0.3 不能是峰值口径</strong>。<br><strong>路径③（电压极限）</strong>：用峰值 0.217 算，SVPWM 线性区空载最高 <strong>916 rpm</strong>；若用六步方波（基波 LL 峰值可达 $2\sqrt3 U_{dc}/\pi = 26.5$ V）则 ≈ <strong>1000 rpm</strong> ✓ 与手册「空载最大转速 1000 rpm」吻合。<br><br><strong>结论：手册自洽，之前看着像「矛盾」纯粹是口径没对齐。</strong>一台电机的参数必须互相咬合——对不上时，先怀疑口径，再怀疑物理。
   </div>
@@ -2199,7 +2201,7 @@ int main(void) {
 <!-- ==================== 第 10 章 · 从有感到无感（手册） ==================== -->
 <section class="chapter" id="ch10">
   <h1>从有感到无感：完整推导与工程实现手册</h1>
-<div class="callout">承接《FOC 无感进阶与工业级仿真路线》，本文把从编码器闭环到无感运行的每一步<strong>数学推导、代码实现、调试方法</strong>全部展开。<br>目标读者：已完成 FOC 三环闭环、熟悉 Clarke/Park/SVPWM，想真正搞懂观测器为什么收敛、为什么失效的人。</div>
+<div class="callout">承接《FOC 无感进阶与工业级仿真路线》，本文把从编码器闭环到无感运行的每一步<strong>数学推导、代码实现、调试方法</strong>全部展开。<br>目标读者：已完成 FOC 三环闭环、熟悉 Clarke/Park/SVPWM，想真正搞懂观测器为什么收敛、为什么失效的人。<br><br><strong>⚠️ 参数口径说明：</strong>你的 4310 规格书参数是 —— 线电阻 10.7 Ω（Y 接 → 相电阻 5.35 Ω）、L_s = 5.32 mH、p = 14（24N28P）、KV = 54 rpm/V、Kt = 0.3 N·m/A（相电流有效值口径）= 0.217 N·m/A（峰值口径）、ψ_f = 10.3 mWb、V_dc = 24 V。<br>本文正文的数值算例为便于演示，用的是<strong>简化的教学参数集</strong>（ψ_f = 5.0 mWb、R_s = 1.0 Ω、L_s = 0.5 mH、p = 4）；<strong>把示例数字套到你的电机上之前，请按第 9 章换算口径</strong>（ψ_f 差约 2.06 倍、R_s 差 5.35 倍，会显著改变低速可用区）。</div>
 <hr>
 <h2 id="ch10-目录">目录</h2>
 <ul><li><a href="#ch10-第-0-章">第 0 章 全局图景：有感与无感的本质差异</a></li><li><a href="#ch10-第-1-章">第 1 章 预备：PMSM 数学模型与符号约定</a></li><li><a href="#ch10-第-2-章">第 2 章 从"已知 θ"到"未知 θ"：信息缺口在哪</a></li><li><a href="#ch10-第-3-章">第 3 章 反电动势观测器的统一理论与逐项推导</a></li><ul><li><a href="#ch10-31">3.1 扩张状态形式（一切的起点）</a></li><li><a href="#ch10-32">3.2 龙伯格观测器（含极点配置完整推导）</a></li><li><a href="#ch10-33">3.3 滑模观测器 SMO（含 Lyapunov 稳定性证明）</a></li><li><a href="#ch10-34">3.4 ST 的 STO 与 MCSDK 实现细节</a></li><li><a href="#ch10-35">3.5 MRAS 模型参考自适应</a></li><li><a href="#ch10-36">3.6 磁链观测器</a></li></ul><li><a href="#ch10-第-4-章">第 4 章 角度与转速提取：atan2 / PLL / CORDIC 完整对比</a></li><li><a href="#ch10-第-5-章">第 5 章 低速与零速：为什么必须换信息源</a></li><ul><li><a href="#ch10-51">5.1 I/F 开环启动到闭环的完整状态机</a></li><li><a href="#ch10-52">5.2 高频注入 HFI 完整推导</a></li><li><a href="#ch10-53">5.3 其他低速方案</a></li></ul><li><a href="#ch10-第-6-章">第 6 章 从有感平滑过渡到无感的实现细节</a></li><li><a href="#ch10-第-7-章">第 7 章 六个"杀手"：让无感失效的物理原因与对策</a></li><li><a href="#ch10-第-8-章">第 8 章 工程实现：手写 C 代码框架</a></li><li><a href="#ch10-第-9-章">第 9 章 调试方法论：每一步看什么波形</a></li><li><a href="#ch10-第-10-章">第 10 章 针对你的 4310 关节 + STSPIN32G4 的专章</a></li></ul>
@@ -2355,7 +2357,7 @@ e_β = u_β − R_s·i_β − L_s·di_β/dt
 │ ė_α │   │    0        0         0      0      │ │ e_α │   └            ┘
 └ ė_β ┘   └    0        0         0      0      ┘ └ e_β ┘</code></pre>
 <p><strong>关键假设</strong>：<code>ė_α = ė_β = 0</code>，即<strong>反电动势在一拍内视为常数</strong>（"扩张状态"的来源）。</p>
-<div class="callout">这个假设合理吗？反电动势是正弦，真实导数是 <code>ė = ω_e·E·cos(...)</code>。<br>在 1 个 PWM 周期（100 µs）内，4 对极 3000 rpm 时电频率 200 Hz，相位变化 200×2π×100e−6 = <strong>0.126 rad = 7.2°</strong>，幅值变化 sin 曲线在这个区间的变化约 cos(θ)·0.126 ≈ 12% 峰值。<br><strong>结论</strong>：单拍内近似常数是合理的，但这也意味着观测器带宽必须够高，否则跟不上反电动势的变化 → 这就是"观测器带宽"的物理意义。</div>
+<div class="callout">这个假设合理吗？反电动势是正弦，真实导数是 <code>ė = ω_e·E·cos(...)</code>。<br>在 1 个 PWM 周期内（你的板子是 20 kHz → 50 µs），你的 4310（p = 14）：<br>3000 rpm 时电频率 f_e = 3000/60×14 = <strong>700 Hz</strong>，相位变化 700×2π×50e−6 = <strong>0.22 rad = 12.6°</strong>，幅值在一个周期内变化约 <strong>22% 峰值</strong>；1000 rpm 时降到 4.2° / 7%。<br><strong>结论</strong>：单拍内近似常数是个近似 —— 极对数越高（p = 14），这个近似越勉强，观测器带宽必须显著高于电频率才跟得上。这正是<strong>高极对数电机无感更难</strong>（数字延迟也更致命）的物理根源。</div>
 <p><strong>Step 2：能观性分析（能否从 i 反推 e？）</strong></p>
 <p>能观性矩阵：</p>
 <pre><code>     ┌ C     ┐   ┌ 1  0   0    0  ┐
@@ -2426,11 +2428,11 @@ dt└ẽ┘   └       k2             0   ┘ └ẽ┘
 <p>低速时 <code>E = ω_e·ψ_f → 0</code>，而 <code>ΔR_s·i</code> 不变，所以<strong>低速时相对误差爆炸</strong>：</p>
 <pre><code>角度误差近似（小误差）：Δθ ≈ e_err/E = ΔR_s·i/(ω_e·ψ_f)
 
-举例：R_s = 1 Ω，ΔR_s = 20%（0.2 Ω），i = 1 A，ψ_f = 0.005 Wb，ω_e = 314 rad/s（1500 rpm 电角速度）
-      Δθ ≈ 0.2/(314×0.005) = 0.127 rad = 7.3°   ← 已经不小了
+举例（你的 4310：R_s = 5.35 Ω，ΔR_s = 20% = 1.07 Ω，i = 1 A，ψ_f = 10.3 mWb），ω_e = 314 rad/s（≈1500 rpm 电角速度）
+      Δθ ≈ 1.07/(314×0.0103) = 0.331 rad = 19.0°   ← 已经不小了
 
-同一电机降到 150 rpm 电角速度：
-      Δθ ≈ 0.2/(31.4×0.005) = 1.27 rad = 73°    ← 完全失效</code></pre>
+同一电机电角速度降到 1/10（ω_e = 31.4 rad/s）：
+      E 只剩 0.32 V，Δθ 理论值 3.31 rad = 190° → 早已超出线性近似范围，完全失效</code></pre>
 <div class="callout"><strong>这就是"低速无感不行"最本质的数学原因。</strong> 教科书上一句"低速反电动势小"远不如这个公式有说服力。</div>
 <p><strong>Step 6：改进 —— 加积分修正（PI 型观测器）</strong></p>
 <p>把 <code>dê/dt = −k2·ĩ</code> 改成：</p>
@@ -2663,8 +2665,8 @@ z_β = k·sign(ĩ_β)</code></pre>
 角度误差：          Δθ ≈ e_err / E = e_err / (ω_e·ψ_f)</code></pre>
 <p>把各类误差源代入，得到<strong>各误差源在什么转速下造成多大角度误差</strong>：</p>
 <table class="sv-table"><thead><tr><th>误差源</th><th>幅值</th><th>在 1500 rpm（f_e=200Hz, ω_e=1257）</th><th>在 150 rpm（ω_e=126）</th><th>在 15 rpm（ω_e=12.6）</th></tr></thead><tbody><tr><td>ADC 噪声（等效 e 噪声 2 mV）</td><td>2 mV</td><td>1.6 mrad (0.09°)</td><td>16 mrad (0.9°)</td><td>159 mrad (9.1°)</td></tr><tr><td>死区（等效 e 误差 30 mV）</td><td>30 mV</td><td>24 mrad (1.4°)</td><td>238 mrad (13.6°)</td><td><strong>2.38 rad (136°) 失效</strong></td></tr><tr><td>R_s 误差 20%（i=1A, R=1Ω）</td><td>200 mV</td><td>159 mrad (9.1°)</td><td><strong>1.59 rad (91°) 失效</strong></td><td>失效</td></tr><tr><td>ψ_f 误差 10%</td><td>—</td><td>0.1 rad (5.7°)（比例误差）</td><td>同</td><td>同</td></tr></tbody></table>
-<p>假设条件：ψ_f = 0.005 Wb，极对数 4，1500 rpm 机械 → 6000 rpm 电… 等等，重新算。</p>
-<div class="callout">修正：ψ_f = 0.005 Wb，1500 rpm 机械 = 157 rad/s 机械，4 对极 → ω_e = 628 rad/s → E = 3.14 V ✓（合理，24 V 母线的电机）<br>150 rpm 机械 → ω_e = 62.8 rad/s → E = 0.314 V<br>15 rpm → ω_e = 6.28 → E = 31 mV</div>
+<p>假设条件（按你的 4310 规格书）：ψ_f = 10.3 mWb，p = 14。</p>
+<div class="callout">1500 rpm 机械 = 157 rad/s 机械，p = 14 → ω_e = 157×14 = 2199 rad/s → E = 2199×0.0103 = <strong>22.7 V</strong> —— <strong>已超过 24 V 母线能给出的相电压上限（13.86 V）</strong>，说明 1500 rpm 早在无感可用区之外（空载上限 ≈916 rpm）。<br>150 rpm 机械 → ω_e = 220 rad/s → E = 2.27 V<br>15 rpm → ω_e = 22 rad/s → E = 0.23 V<br>（对比：若按旧占位参数 ψ_f=0.005、p=4，1500 rpm 只对应 ω_e = 628 rad/s、E = 3.14 V —— 那根本是另一台电机。）</div>
 <table class="sv-table"><thead><tr><th>误差源</th><th>等效 e 误差</th><th>1500 rpm (E=3.14V)</th><th>150 rpm (E=0.314V)</th><th>15 rpm (E=31mV)</th></tr></thead><tbody><tr><td>ADC 噪声</td><td>2 mV</td><td>0.04°</td><td>0.36°</td><td>3.7°</td></tr><tr><td>死区</td><td>30 mV</td><td>0.55°</td><td>5.5°</td><td><strong>44° 差</strong></td></tr><tr><td>R_s 误差 20% @ 1A</td><td>200 mV</td><td>3.6°</td><td><strong>36.5° 失效</strong></td><td>失效</td></tr></tbody></table>
 <p><strong>结论：R_s 误差是最致命的，其次是死区。所以"无感想做好，先做参数辨识和死区补偿"。</strong></p>
 <h3 id="ch10-52">5.2 I/F 开环启动到闭环的完整状态机</h3>
@@ -2895,13 +2897,15 @@ t0+T_pwm: 新占空比**在下一个周期才生效**（若更新时机是周期
 <p><strong>总延迟 ≈ 1.0 ~ 1.5 个 PWM 周期</strong>（具体看你是"周期开始更新"还是"周期中间更新"）。</p>
 <pre><code>角度误差：Δθ_delay = ω_e · t_delay
 
-例（你的电机：4 对极，3000 rpm → f_e = 200 Hz，ω_e = 1257 rad/s）
+例（你的 4310：p = 14，3000 rpm → f_e = 700 Hz，ω_e = 4398 rad/s）
   10 kHz PWM（T = 100 µs），1.5 拍延迟 = 150 µs
-  Δθ = 1257 × 150e−6 = 0.189 rad = 10.8° 电角度
+  Δθ = 4398 × 150e−6 = 0.660 rad = 37.8° 电角度   ⚠️ 严重
+  20 kHz PWM（T = 50 µs，第 8 章的工程设置），1.5 拍 = 75 µs
+  Δθ = 4398 × 75e−6 = 0.330 rad = 18.9°          ← 提高 PWM 频率直接减半
 
 后果：
-  - 电流环在 dq 坐标里有 10.8° 的"旋转偏差" → i_d/i_q 交叉耦合
-  - 转矩效率损失 ≈ cos(10.8°) = 98.2%（单看还好）
+  - 电流环在 dq 坐标里有 37.8°（20 kHz 时 18.9°）的"旋转偏差" → i_d/i_q 交叉耦合
+  - 转矩效率损失 ≈ cos(37.8°) = 79%（20 kHz 时 cos(18.9°) = 94.6%）
   - 但 dq 解耦完全失效 → 动态响应变差，PI 参数整定困难
   - 无感观测器：观测器用当前 θ̂ 算电压，控制用延迟后的 θ → 观测器误差</code></pre>
 <p><strong>补偿（必须做）</strong>：</p>
@@ -2946,12 +2950,11 @@ if (fabsf(i_a) &lt; I_DEADZONE) {
 <pre><code>铜电阻温度系数 α_Cu = 0.00393 /K
 温升 80 K → R_s 变化 +31.4%
 
-R_s 从 20°C 的 1.0 Ω → 100°C 时 1.31 Ω</code></pre>
+R_s 从 20°C 的 5.35 Ω → 100°C 时 7.03 Ω</code></pre>
 <p><strong>对无感的量化影响</strong>（用 5.1 的表）：</p>
-<pre><code>R_s 误差 31% → 等效 e 误差 = 0.31 × i
-在 i = 1 A 时 = 310 mV
-在 1500 rpm（E = 3.14 V）：Δθ = 5.7°
-在 150 rpm（E = 0.314 V）：Δθ = 57°    ← 失效</code></pre>
+<pre><code>R_s 误差 31% → 等效 e 误差 = ΔR_s·i = 1.66 Ω × 1 A = 1.66 V
+在 1500 rpm（E = 22.7 V）：Δθ = 4.2°     ← 高速不受影响
+在 150 rpm（E = 2.27 V）：Δθ = 42°       ← 已经不可用</code></pre>
 <p><strong>对策（三种，可组合）</strong>：</p>
 <table class="sv-table"><thead><tr><th>方法</th><th>实现</th><th>精度</th><th>复杂度</th></tr></thead><tbody><tr><td><strong>NTC 测温 + 查表</strong></td><td>PCB 上贴 NTC 在功率级附近，<code>R_s(T) = R_20·(1+α·(T−20))</code></td><td>±10%</td><td>低（推荐起步）</td></tr><tr><td><strong>在线辨识（RLS）</strong></td><td>递推最小二乘，用电流/电压数据估 <code>R_s</code></td><td>±3%</td><td>中</td></tr><tr><td><strong>观测器内扩张状态</strong></td><td>把 R_s 误差也作为一个状态观出来</td><td>±5%</td><td>中</td></tr></tbody></table>
 <p><strong>RLS 实现骨架</strong>（低速注入直流偏置的方式，最简单）：</p>
@@ -3372,9 +3375,9 @@ void foc_isr(void) {
 <hr>
 <h2 id="ch10-第-10-章">第 10 章 针对你的 4310 关节 + STSPIN32G4 的专章</h2>
 <h3 id="ch10-101">10.1 你的系统参数复盘</h3>
-<table class="sv-table"><thead><tr><th>项</th><th>值</th><th>无感相关影响</th></tr></thead><tbody><tr><td>MCU</td><td>STSPIN32G4（STM32G4 内核 170 MHz + 三相驱动）</td><td>有<strong>硬件 CORDIC</strong> → 角度提取用 CORDIC 优先</td></tr><tr><td>母线电压</td><td>24 V</td><td>死区误差占比：t_dead=1µs, T=100µs → 0.24 V + 0.7 V 管压降 = <strong>0.94 V（放在 24 V 上占 3.9%）</strong></td></tr><tr><td>MOSFET</td><td>AON7544（30 V/30 A）</td><td>30 V 器件在 24 V 母线上裕度偏紧（注意 24 V 是"标称"，实际上 6S 锂电满电 25.2 V 甚至瞬态 30 V+）→ <strong>建议确认是否需要 40 V 器件</strong></td></tr><tr><td>工作电流</td><td>~1 A</td><td>小电流 → 信噪比是主要矛盾</td></tr><tr><td>堵转电流</td><td>~1.5 A</td><td>采样电阻不宜过大（避免压降/功耗）</td></tr><tr><td>编码器</td><td>MT6701 磁编码器</td><td>14 bit 分辨率，作为无感验证的"真值"足够好</td></tr><tr><td>极对数</td><td>（待确认，4310 电机通常 11 或 14）</td><td><strong>极对数大 → 电频率高 → 数字延迟更致命！</strong></td></tr><tr><td>供电链</td><td>24 V → Buck 12 V → Buck 5 V</td><td>24 V 总线无电流采样，注意观测器用的 u 是"指令值"</td></tr></tbody></table>
+<table class="sv-table"><thead><tr><th>项</th><th>值</th><th>无感相关影响</th></tr></thead><tbody><tr><td>MCU</td><td>STSPIN32G4（STM32G4 内核 170 MHz + 三相驱动）</td><td>有<strong>硬件 CORDIC</strong> → 角度提取用 CORDIC 优先</td></tr><tr><td>母线电压</td><td>24 V（规格书工作范围 7–24 V）</td><td>死区误差：t_dead=1µs, T=50µs（20 kHz）→ 0.48 V + 0.7 V 管压降 = <strong>1.18 V（占 24 V 的 4.9%）</strong>；若用 10 kHz 则 0.94 V</td></tr><tr><td>MOSFET</td><td>AON7544（30 V/30 A）</td><td>30 V 器件在 24 V 母线上裕度偏紧（注意 24 V 是"标称"，实际上 6S 锂电满电 25.2 V 甚至瞬态 30 V+）→ <strong>建议确认是否需要 40 V 器件</strong></td></tr><tr><td>工作电流</td><td>~1 A</td><td>小电流 → 信噪比是主要矛盾</td></tr><tr><td>堵转电流</td><td>2 A @24V（规格书）</td><td>采样电阻不宜过大（避免压降/功耗）</td></tr><tr><td>编码器</td><td>MT6701 磁编码器</td><td>14 bit 分辨率，作为无感验证的"真值"足够好</td></tr><tr><td>极对数</td><td>14（规格书 24N28P：28 极 ÷ 2）✓</td><td><strong>极对数大 → 电频率高 → 数字延迟更致命！</strong></td></tr><tr><td><strong>电机参数</strong></td><td>线电阻 10.7 Ω（→相 5.35 Ω）、L=5.32 mH、KV=54、Kt=0.3(有效值)=0.217(峰值)、ψf=10.3 mWb</td><td><strong>无感算例请一律用这套参数</strong>（规格书）</td></tr><tr><td>供电链</td><td>24 V → Buck 12 V → Buck 5 V</td><td>24 V 总线无电流采样，注意观测器用的 u 是"指令值"</td></tr></tbody></table>
 <h3 id="ch10-102">10.2 ⚠️ 极对数对你的无感影响（重要）</h3>
-<p>4310 系列（如 4310 无刷关节电机）通常 <strong>极对数 p = 11 或 14</strong>（不是常见的 4）。</p>
+<p>你的 4310 规格书已确认 <strong>极对数 p = 14</strong>（24N28P：28 极 ÷ 2）——不是常见的 4。</p>
 <pre><code>若 p = 11，转速 1000 rpm → f_e = 1000/60 × 11 = 183 Hz → ω_e = 1152 rad/s
 若 p = 14，转速 1000 rpm → f_e = 233 Hz → ω_e = 1466 rad/s
 
@@ -3532,13 +3535,13 @@ R_s(T) = R_s20·(1 + 0.00393·(T−20))</code></pre>
 <!-- ==================== 第 11 章 · 无感公式推导手册 ==================== -->
 <section class="chapter" id="ch11">
   <h1>FOC 无感控制公式推导手册（含完整符号含义）</h1>
-<div class="callout">配套《FOC 从有感到无感-完整推导与实现手册》。<br>本文特点：<strong>每个公式后面都有符号表、推导步骤、物理意义、单位、典型值</strong>。<br>所有数值例子基于 4310 关节电机（ψ_f = 0.005 Wb，p = 14，R_s = 1.0 Ω，L_s = 0.5 mH，24 V 母线）。</div>
+<div class="callout">配套《FOC 从有感到无感-完整推导与实现手册》。<br>本文特点：<strong>每个公式后面都有符号表、推导步骤、物理意义、单位、典型值</strong>。<br><strong>⚠️ 参数口径说明：</strong>你的 4310 规格书参数是 —— 线电阻 10.7 Ω（Y 接 → 相电阻 5.35 Ω）、L_s = 5.32 mH、p = 14（24N28P）、KV = 54 rpm/V、Kt = 0.3 N·m/A（相电流有效值口径）= 0.217 N·m/A（峰值口径）、ψ_f = 10.3 mWb、V_dc = 24 V。<br>本文正文的数值算例为便于演示，用的是<strong>简化的教学参数集</strong>（ψ_f = 5.0 mWb、R_s = 1.0 Ω、L_s = 0.5 mH、p = 4）；把示例数字套到你的电机上之前，请按第 9 章换算口径（ψ_f 差约 2.06 倍、R_s 差 5.35 倍）。</div>
 <hr>
 <h3 id="ch11-符号总表-先看这一页-后面反复用">符号总表（先看这一页，后面反复用）</h3>
 <h4 id="ch11-下标与上标约定">下标与上标约定</h4>
 <table class="sv-table"><thead><tr><th>记号</th><th>含义</th></tr></thead><tbody><tr><td>下划线 a,b,c</td><td>三相自然坐标系（abc）</td></tr><tr><td>下划线 α,β</td><td>两相静止坐标系（αβ）</td></tr><tr><td>下划线 d,q</td><td>两相旋转坐标系（dq，随转子磁场同步旋转）</td></tr><tr><td>下划线 d̂,q̂</td><td><strong>估计</strong>的旋转坐标系（与真实 dq 相差 Δθ）</td></tr><tr><td>上标 ^</td><td>估计值（观测器输出）</td></tr><tr><td>上标 ~</td><td>误差值（真实 − 估计）</td></tr><tr><td>上标 *</td><td>指令值（参考值）</td></tr><tr><td>上划线</td><td>平均/稳态值</td></tr></tbody></table>
 <h4 id="ch11-物理量符号表">物理量符号表</h4>
-<table class="sv-table"><thead><tr><th>符号</th><th>名称</th><th>单位</th><th>说明</th><th>典型值（你的电机）</th></tr></thead><tbody><tr><td><strong>电学量</strong></td><td></td><td></td><td></td><td></td></tr><tr><td>u_a, u_b, u_c</td><td>三相相电压</td><td>V</td><td>相对中性点</td><td>0~14 V</td></tr><tr><td>u_α, u_β</td><td>αβ 轴电压</td><td>V</td><td>Clarke 变换后</td><td>幅值 ≤ V_dc/√3</td></tr><tr><td>u_d, u_q</td><td>dq 轴电压</td><td>V</td><td>Park 变换后</td><td></td></tr><tr><td>V_dc</td><td>直流母线电压</td><td>V</td><td></td><td>24 V</td></tr><tr><td>i_a, i_b, i_c</td><td>三相相电流</td><td>A</td><td></td><td>±1.5 A</td></tr><tr><td>i_α, i_β</td><td>αβ 轴电流</td><td>A</td><td></td><td></td></tr><tr><td>i_d, i_q</td><td>dq 轴电流</td><td>A</td><td>i_d 控磁、i_q 控转矩</td><td>i_q ≈ 1 A</td></tr><tr><td>e_α, e_β</td><td>αβ 轴反电动势</td><td>V</td><td>由转子永磁体旋转产生</td><td>幅值 E = ω_e·ψ_f</td></tr><tr><td>ψ_α, ψ_β</td><td>αβ 轴磁链</td><td>Wb</td><td>定子总磁链</td><td></td></tr><tr><td>ψ_d, ψ_q</td><td>dq 轴磁链</td><td>Wb</td><td></td><td></td></tr><tr><td>ψ_f</td><td><strong>永磁体磁链（转子磁链幅值）</strong></td><td>Wb (V·s/rad)</td><td>常数，由磁体决定</td><td>≈ 0.005 Wb</td></tr><tr><td><strong>R_s</strong></td><td><strong>定子相电阻</strong></td><td>Ω</td><td>相绕组电阻</td><td>≈ 1.0 Ω @20°C</td></tr><tr><td><strong>L_d</strong></td><td><strong>d 轴电感</strong></td><td>H</td><td>直轴（磁体方向）电感</td><td></td></tr><tr><td><strong>L_q</strong></td><td><strong>q 轴电感</strong></td><td>H</td><td>交轴电感</td><td>L_q ≥ L_d（IPM）</td></tr><tr><td><strong>L_s</strong></td><td><strong>定子同步电感</strong></td><td>H</td><td>SPM 时 L_s = L_d = L_q</td><td>≈ 0.5 mH</td></tr><tr><td>ΔL</td><td>凸极差</td><td>H</td><td>ΔL = (L_q − L_d)/2</td><td></td></tr><tr><td>L_avg</td><td>平均电感</td><td>H</td><td>L_avg = (L_d + L_q)/2</td><td></td></tr><tr><td>ξ</td><td>凸极比</td><td>—</td><td>ξ = L_q/L_d</td><td>1.0(SPM)~3.0(IPM)</td></tr><tr><td><strong>机械与磁学量</strong></td><td></td><td></td><td></td><td></td></tr><tr><td><strong>θ_e</strong></td><td><strong>电角度（转子位置）</strong></td><td>rad</td><td>电气角，θ_e = p·θ_m</td><td>0~2π</td></tr><tr><td>θ_m</td><td>机械角度</td><td>rad</td><td>转子机械角</td><td>0~2π</td></tr><tr><td><strong>ω_e</strong></td><td><strong>电角速度</strong></td><td>rad/s</td><td>ω_e = p·ω_m = 2π·f_e</td><td></td></tr><tr><td>ω_m</td><td>机械角速度</td><td>rad/s</td><td>ω_m = 2π·n/60</td><td></td></tr><tr><td>n</td><td>机械转速</td><td>rpm</td><td></td><td>0~3000 rpm</td></tr><tr><td>p</td><td><strong>极对数</strong></td><td>—</td><td>磁极对数（不是极数！）</td><td>11~14</td></tr><tr><td>f_e</td><td>电频率</td><td>Hz</td><td>f_e = ω_e/2π = p·n/60</td><td></td></tr><tr><td>λ_m</td><td>永磁磁链</td><td>Wb</td><td>与 ψ_f 同义（本文统一用 ψ_f）</td><td></td></tr><tr><td>K_e</td><td>反电动势常数</td><td>V·s/rad 或 V/krpm</td><td>K_e = ψ_f（单位 V·s/rad 时）</td><td></td></tr><tr><td>K_t</td><td>转矩常数</td><td>N·m/A</td><td>K_t = 1.5·p·ψ_f</td><td></td></tr><tr><td><strong>T_e</strong></td><td>电磁转矩</td><td>N·m</td><td></td><td></td></tr><tr><td><strong>T_L</strong></td><td>负载转矩</td><td>N·m</td><td>扰动</td><td></td></tr><tr><td>J</td><td>转动惯量</td><td>kg·m²</td><td>含负载折算</td><td>难测，常差 2~3 倍</td></tr><tr><td>B</td><td>粘性摩擦系数</td><td>N·m·s/rad</td><td></td><td></td></tr><tr><td><strong>控制与时间量</strong></td><td></td><td></td><td></td><td></td></tr><tr><td>T_pwm</td><td>PWM 周期</td><td>s</td><td>10 kHz → 100 µs</td><td>100 µs</td></tr><tr><td>T_s</td><td>采样周期</td><td>s</td><td>通常 = T_pwm</td><td>100 µs</td></tr><tr><td>T_delay</td><td>控制延迟</td><td>s</td><td>≈ 1.0~1.5·T_pwm</td><td>150 µs</td></tr><tr><td>f_s</td><td>采样频率</td><td>Hz</td><td>= 1/T_s</td><td>10 kHz</td></tr><tr><td>ω_n</td><td>自然频率</td><td>rad/s</td><td>控制器带宽指标</td><td></td></tr><tr><td>ζ</td><td>阻尼比</td><td>—</td><td>最佳 0.707</td><td>0.707</td></tr><tr><td>a</td><td>观测器极点</td><td>rad/s</td><td>二重极点位置</td><td></td></tr><tr><td>k</td><td>滑模增益</td><td>V/s</td><td>SMO 切换幅值</td><td></td></tr><tr><td><strong>其他</strong></td><td></td><td></td><td></td><td></td></tr><tr><td>Δθ</td><td>角度误差</td><td>rad</td><td>Δθ = θ_e − θ̂_e</td><td></td></tr><tr><td>sign(x)</td><td>符号函数</td><td>—</td><td>x&gt;0→1, x&lt;0→−1</td><td></td></tr><tr><td>sat(x)</td><td>饱和函数</td><td>—</td><td>限幅在 [−1,1]</td><td></td></tr><tr><td>h</td><td>高频注入相关下标</td><td>—</td><td>如 f_h、V_h、ω_h</td><td></td></tr></tbody></table>
+<table class="sv-table"><thead><tr><th>符号</th><th>名称</th><th>单位</th><th>说明</th><th>典型值（你的电机）</th></tr></thead><tbody><tr><td><strong>电学量</strong></td><td></td><td></td><td></td><td></td></tr><tr><td>u_a, u_b, u_c</td><td>三相相电压</td><td>V</td><td>相对中性点</td><td>0~14 V</td></tr><tr><td>u_α, u_β</td><td>αβ 轴电压</td><td>V</td><td>Clarke 变换后</td><td>幅值 ≤ V_dc/√3</td></tr><tr><td>u_d, u_q</td><td>dq 轴电压</td><td>V</td><td>Park 变换后</td><td></td></tr><tr><td>V_dc</td><td>直流母线电压</td><td>V</td><td></td><td>24 V</td></tr><tr><td>i_a, i_b, i_c</td><td>三相相电流</td><td>A</td><td></td><td>±2 A（堵转限幅）</td></tr><tr><td>i_α, i_β</td><td>αβ 轴电流</td><td>A</td><td></td><td></td></tr><tr><td>i_d, i_q</td><td>dq 轴电流</td><td>A</td><td>i_d 控磁、i_q 控转矩</td><td>i_q ≈ 1 A</td></tr><tr><td>e_α, e_β</td><td>αβ 轴反电动势</td><td>V</td><td>由转子永磁体旋转产生</td><td>幅值 E = ω_e·ψ_f</td></tr><tr><td>ψ_α, ψ_β</td><td>αβ 轴磁链</td><td>Wb</td><td>定子总磁链</td><td></td></tr><tr><td>ψ_d, ψ_q</td><td>dq 轴磁链</td><td>Wb</td><td></td><td></td></tr><tr><td>ψ_f</td><td><strong>永磁体磁链（转子磁链幅值）</strong></td><td>Wb (V·s/rad)</td><td>常数，由磁体决定</td><td>10.3 mWb（KV=54 反推）</td></tr><tr><td><strong>R_s</strong></td><td><strong>定子相电阻</strong></td><td>Ω</td><td>相绕组电阻</td><td>5.35 Ω @20°C（线电阻 10.7 Ω ÷ 2）</td></tr><tr><td><strong>L_d</strong></td><td><strong>d 轴电感</strong></td><td>H</td><td>直轴（磁体方向）电感</td><td></td></tr><tr><td><strong>L_q</strong></td><td><strong>q 轴电感</strong></td><td>H</td><td>交轴电感</td><td>L_q ≥ L_d（IPM）</td></tr><tr><td><strong>L_s</strong></td><td><strong>定子同步电感</strong></td><td>H</td><td>SPM 时 L_s = L_d = L_q</td><td>5.32 mH</td></tr><tr><td>ΔL</td><td>凸极差</td><td>H</td><td>ΔL = (L_q − L_d)/2</td><td></td></tr><tr><td>L_avg</td><td>平均电感</td><td>H</td><td>L_avg = (L_d + L_q)/2</td><td></td></tr><tr><td>ξ</td><td>凸极比</td><td>—</td><td>ξ = L_q/L_d</td><td>1.0(SPM)~3.0(IPM)</td></tr><tr><td><strong>机械与磁学量</strong></td><td></td><td></td><td></td><td></td></tr><tr><td><strong>θ_e</strong></td><td><strong>电角度（转子位置）</strong></td><td>rad</td><td>电气角，θ_e = p·θ_m</td><td>0~2π</td></tr><tr><td>θ_m</td><td>机械角度</td><td>rad</td><td>转子机械角</td><td>0~2π</td></tr><tr><td><strong>ω_e</strong></td><td><strong>电角速度</strong></td><td>rad/s</td><td>ω_e = p·ω_m = 2π·f_e</td><td></td></tr><tr><td>ω_m</td><td>机械角速度</td><td>rad/s</td><td>ω_m = 2π·n/60</td><td></td></tr><tr><td>n</td><td>机械转速</td><td>rpm</td><td></td><td>空载 ≈916 rpm（SVPWM）/≈1000（六步）</td></tr><tr><td>p</td><td><strong>极对数</strong></td><td>—</td><td>磁极对数（不是极数！）</td><td>14（24N28P）</td></tr><tr><td>f_e</td><td>电频率</td><td>Hz</td><td>f_e = ω_e/2π = p·n/60</td><td></td></tr><tr><td>λ_m</td><td>永磁磁链</td><td>Wb</td><td>与 ψ_f 同义（本文统一用 ψ_f）</td><td></td></tr><tr><td>K_e</td><td>反电动势常数</td><td>V·s/rad 或 V/krpm</td><td>K_e = ψ_f（单位 V·s/rad 时）</td><td></td></tr><tr><td>K_t</td><td>转矩常数</td><td>N·m/A</td><td>K_t = 1.5·p·ψ_f</td><td></td></tr><tr><td><strong>T_e</strong></td><td>电磁转矩</td><td>N·m</td><td></td><td></td></tr><tr><td><strong>T_L</strong></td><td>负载转矩</td><td>N·m</td><td>扰动</td><td></td></tr><tr><td>J</td><td>转动惯量</td><td>kg·m²</td><td>含负载折算</td><td>难测，常差 2~3 倍</td></tr><tr><td>B</td><td>粘性摩擦系数</td><td>N·m·s/rad</td><td></td><td></td></tr><tr><td><strong>控制与时间量</strong></td><td></td><td></td><td></td><td></td></tr><tr><td>T_pwm</td><td>PWM 周期</td><td>s</td><td>10 kHz → 100 µs</td><td>100 µs</td></tr><tr><td>T_s</td><td>采样周期</td><td>s</td><td>通常 = T_pwm</td><td>100 µs</td></tr><tr><td>T_delay</td><td>控制延迟</td><td>s</td><td>≈ 1.0~1.5·T_pwm</td><td>150 µs</td></tr><tr><td>f_s</td><td>采样频率</td><td>Hz</td><td>= 1/T_s</td><td>10 kHz</td></tr><tr><td>ω_n</td><td>自然频率</td><td>rad/s</td><td>控制器带宽指标</td><td></td></tr><tr><td>ζ</td><td>阻尼比</td><td>—</td><td>最佳 0.707</td><td>0.707</td></tr><tr><td>a</td><td>观测器极点</td><td>rad/s</td><td>二重极点位置</td><td></td></tr><tr><td>k</td><td>滑模增益</td><td>V/s</td><td>SMO 切换幅值</td><td></td></tr><tr><td><strong>其他</strong></td><td></td><td></td><td></td><td></td></tr><tr><td>Δθ</td><td>角度误差</td><td>rad</td><td>Δθ = θ_e − θ̂_e</td><td></td></tr><tr><td>sign(x)</td><td>符号函数</td><td>—</td><td>x&gt;0→1, x&lt;0→−1</td><td></td></tr><tr><td>sat(x)</td><td>饱和函数</td><td>—</td><td>限幅在 [−1,1]</td><td></td></tr><tr><td>h</td><td>高频注入相关下标</td><td>—</td><td>如 f_h、V_h、ω_h</td><td></td></tr></tbody></table>
 <hr>
 <h2 id="ch11-第一部分-坐标变换推导">第一部分：坐标变换推导</h2>
 <h3 id="ch11-11">1.1 Clarke 变换（abc → αβ）</h3>
@@ -3923,16 +3926,16 @@ g₂/L_s = a²            →   └ g₂ = a²·L_s       ┘</code></pre>
 <h4 id="ch11-325">3.2.5 参数 a 的选取（工程核心）</h4>
 <table class="sv-table"><thead><tr><th>选取方法</th><th>公式</th><th>说明</th><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td><strong>带宽法</strong>（推荐）</td><td><code>a = 2π·f_obs</code></td><td>f_obs 为观测器带宽</td><td>直观</td><td>需要选 f_obs</td></tr><tr><td>时间常数法</td><td><code>a·L_s/R_s = 5~10</code> 即 <code>a = (5~10)·R_s/L_s</code></td><td>与电机时间常数挂钩</td><td>自动适配电机</td><td>忽略转速因素</td></tr><tr><td>相对电流环</td><td><code>f_obs = (5~10)·f_current</code></td><td>保证分离原理</td><td>系统级最优</td><td></td></tr><tr><td><strong>自适应</strong>（全速域）</td><td>`a = a₀ + k·</td><td>ω̂_e</td><td>`</td><td>高速时带宽加宽</td><td>全速域表现好</td><td>需调试</td></tr></tbody></table>
 <p><strong>数值例（你的电机）</strong>：</p>
-<pre><code>R_s = 1.0 Ω, L_s = 0.5 mH  →  R_s/L_s = 2000 rad/s  (= 318 Hz)
+<pre><code>R_s = 5.35 Ω, L_s = 5.32 mH  →  R_s/L_s = 1006 rad/s  (= 160 Hz)
 
-用"时间常数法"：a = 5 × 2000 = 10000 rad/s = 1592 Hz
+用"时间常数法"：a = 5 × 1006 = 5028 rad/s = 800 Hz
 用"带宽法"（电流环 1 kHz）：f_obs = 8 kHz → a = 50265 rad/s
 
 取 a = 2π×5000 = 31416 rad/s（折中）
 
 则：
-  g₁ = 2a − R_s/L_s = 62832 − 2000 = 60832      [1/s]
-  g₂ = a²·L_s = (31416)² × 0.5e−3 = 4.93e5      [V/(A·s)]</code></pre>
+  g₁ = 2a − R_s/L_s = 62832 − 1006 = 61826      [1/s]
+  g₂ = a²·L_s = (31416)² × 5.32e−3 = 5.25e6     [V/(A·s)]</code></pre>
 <h4 id="ch11-326">3.2.6 稳态误差推导（关键结论）</h4>
 <p><strong>问题</strong>：当 R_s 估计不准时，观测器稳态误差是多少？</p>
 <p><strong>Step 1：设真实电阻 R_s，观测器用 R̂_s，误差 ΔR_s = R̂_s − R_s</strong></p>
@@ -3971,17 +3974,17 @@ g₂/L_s = a²            →   └ g₂ = a²·L_s       ┘</code></pre>
 │                                                            │
 │  结论：误差与电流成正比，与转速成反比 → 低速失效              │
 └───────────────────────────────────────────────────────────┘</code></pre>
-<h4 id="ch11-数值代入-你的电机-ψ_f-0-005-wb-p-14">数值代入（你的电机，ψ_f = 0.005 Wb，p = 14）</h4>
-<pre><code>工况 A：R_s 误差 20%（0.2 Ω），i = 1 A
-  ε_e,ss = 0.2 V
+<h4 id="ch11-数值代入-你的电机-ψ_f-0-005-wb-p-14">数值代入（你的 4310 规格书：ψ_f = 10.3 mWb，R_s = 5.35 Ω，p = 14）</h4>
+<pre><code>工况 A：R_s 误差 20%（5.35 Ω 的 20% = 1.07 Ω），i = 1 A
+  ε_e,ss = 1.07 V
 
-  @1000 rpm 机械（ω_e = 1466 rad/s）：E = 7.33 V → Δθ = 0.2/7.33 = 0.0273 rad = 1.6°
-  @300 rpm  （ω_e = 440 rad/s）：    E = 2.2 V  → Δθ = 0.2/2.2  = 0.0909 rad = 5.2°
-  @100 rpm  （ω_e = 146.6 rad/s）：  E = 0.733 V → Δθ = 0.2/0.733 = 0.273 rad = 15.6°  ⚠️
-  @30 rpm   （ω_e = 44 rad/s）：     E = 0.22 V → Δθ = 0.2/0.22 = 0.909 rad = 52°    ✗
+  @1000 rpm 机械（ω_e = 1466 rad/s）：E = 15.1 V → Δθ = 1.07/15.1 = 0.071 rad = 4.1°
+  @300 rpm  （ω_e = 440 rad/s）：    E = 4.54 V → Δθ = 1.07/4.54 = 0.236 rad = 13.5°  ⚠️
+  @100 rpm  （ω_e = 146.6 rad/s）：  E = 1.51 V → Δθ = 1.07/1.51 = 0.708 rad = 40.5°  ✗
+  @30 rpm   （ω_e = 44 rad/s）：     E = 0.45 V → Δθ = 1.07/0.45 = 2.36 rad = 135°   ✗✗
 
-工况 B：温升 80 K 后（R_s ×1.31，ΔR_s = 0.31 Ω）
-  角度误差再放大约 1.55 倍 → 100 rpm 时超过 24°（不可用）</code></pre>
+工况 B：温升 80 K 后（R_s ×1.314 = 7.03 Ω，ΔR_s = 1.41 V）
+  角度误差再放大约 1.31 倍 → 100 rpm 时达到 53°（完全不可用）</code></pre>
 <h4 id="ch11-327">3.2.7 改进方案：PI 型观测器</h4>
 <p>把反电动势更新律从纯积分改成 PI：</p>
 <pre><code>dê/dt = −k_a·ε_i − k_b·∫ε_i dt</code></pre>
@@ -4045,15 +4048,15 @@ g₂/L_s = a²            →   └ g₂ = a²·L_s       ┘</code></pre>
 │  完整形式： k &gt; ω_e,max · ψ_f / L_s                        │
 └───────────────────────────────────────────────────────────┘</code></pre>
 <h4 id="ch11-step-4-符号含义与数值例">Step 4：符号含义与数值例</h4>
-<table class="sv-table"><thead><tr><th>符号</th><th>含义</th><th>单位</th><th>你的数值</th></tr></thead><tbody><tr><td>k</td><td>滑模增益（下限）</td><td>V/s</td><td>见下</td></tr><tr><td>ω_e,max</td><td>最高电角速度</td><td>rad/s</td><td>3000 rpm @ p=14 → 4398 rad/s</td></tr><tr><td>ψ_f</td><td>永磁磁链</td><td>Wb</td><td>0.005</td></tr><tr><td>L_s</td><td>定子电感</td><td>H</td><td>0.5 mH</td></tr></tbody></table>
-<pre><code>k &gt; 4398 × 0.005 / 0.5e−3 = 21.99 / 0.5e−3 = 43980  [V/s]</code></pre>
-<p><strong>取 1.5 倍裕度：k = 66 kV/s</strong></p>
+<table class="sv-table"><thead><tr><th>符号</th><th>含义</th><th>单位</th><th>你的数值</th></tr></thead><tbody><tr><td>k</td><td>滑模增益（下限）</td><td>V/s</td><td>见下</td></tr><tr><td>ω_e,max</td><td>最高电角速度</td><td>rad/s</td><td>3000 rpm @ p=14 → 4398 rad/s</td></tr><tr><td>ψ_f</td><td>永磁磁链</td><td>Wb</td><td>10.3 mWb</td></tr><tr><td>L_s</td><td>定子电感</td><td>H</td><td>5.32 mH</td></tr></tbody></table>
+<pre><code>k &gt; 4398 × 0.0103 / 5.32e−3 = 45.3 / 5.32e−3 = 8515  [V/s]</code></pre>
+<p><strong>取 1.5 倍裕度：k = 12.8 kV/s</strong></p>
 <h4 id="ch11-334">3.3.4 k 的工程取值困境与自适应</h4>
 <p><strong>困境分析</strong>：</p>
-<pre><code>k 必须满足最高转速 → k ≥ 43980 [V/s]
+<pre><code>k 必须满足最高转速 → k ≥ 8515 [V/s]
 但这个 k 在低速时极度"过剩"：
-  低速 ω_e = 44 rad/s（30 rpm）时，|e|_max/L_s = 44×0.005/0.5e−3 = 440
-  k/需求 = 43980/440 = 100 倍
+  低速 ω_e = 44 rad/s（30 rpm）时，|e|_max/L_s = 44×0.0103/5.32e−3 = 85.2
+  k/需求 = 8515/85.2 = 100 倍
 
 后果：切换项的幅值远大于反电动势 → 抖振剧烈 → 需要重滤波 → 相位滞后大</code></pre>
 <p><strong>自适应方案</strong>：</p>
@@ -4067,11 +4070,11 @@ g₂/L_s = a²            →   └ g₂ = a²·L_s       ┘</code></pre>
 └───────────────────────────────────────────────────┘</code></pre>
 <p><strong>数值例</strong>：</p>
 <pre><code>k_min = 5000 [V/s]
-k₁ = 1.5 × ψ_f/L_s = 1.5 × 0.005/0.5e−3 = 15 [V/s per rad/s]
+k₁ = 1.5 × ψ_f/L_s = 1.5 × 0.0103/5.32e−3 = 2.90 [V/s per rad/s]
 
-@30 rpm（ω_e=44）：    k = 5000 + 15×44 = 5660
-@1000 rpm（ω_e=1466）：k = 5000 + 15×1466 = 26990
-@3000 rpm（ω_e=4398）：k = 5000 + 15×4398 = 70970  ✓ 大于需求 43980</code></pre>
+@30 rpm（ω_e=44）：    k = 5000 + 2.90×44 = 5128
+@1000 rpm（ω_e=1466）：k = 5000 + 2.90×1466 = 9251
+@3000 rpm（ω_e=4398）：k = 5000 + 2.90×4398 = 17754  ✓ 大于需求 8515</code></pre>
 <h4 id="ch11-335">3.3.5 等效控制与反电动势提取</h4>
 <p><strong>Step 1：滑模面（ε = 0）上的等效控制</strong></p>
 <p>在滑模面上，ε = 0 且 dε/dt = 0。由 <code>dε/dt = e/L_s − z</code>：</p>
@@ -4279,7 +4282,7 @@ theta_hat += omega_hat * Ts;                // 积分得角度</code></pre>
 <pre><code>ψ_α(t) = ∫(u_α − R_s·i_α)dt ≈ U_off·t + (正常项)
 
 当 t → ∞：ψ_α → ∞  散开！</code></pre>
-<p><strong>数值例</strong>：U_off = 10 mV = 0.01 V，10 秒后 <code>ψ_α</code> 累积 0.1 Wb —— <strong>而正常磁链只有 0.005 Wb，误差 20 倍！</strong></p>
+<p><strong>数值例</strong>：U_off = 10 mV = 0.01 V，10 秒后 <code>ψ_α</code> 累积 0.1 Wb —— <strong>而你的 4310 正常磁链是 10.3 mWb，误差约 9.7 倍！</strong></p>
 <p><strong>问题 2：积分初值未知</strong></p>
 <p><code>∫</code> 的初值不对 → 有固定的直流分量 → 角度有固定偏差。</p>
 <h4 id="ch11-363">3.6.3 解决方案：电压-电流模型互补</h4>
@@ -4333,13 +4336,13 @@ i_q = 0
 <p><strong>Step 3：失步条件</strong></p>
 <pre><code>若 T_L &gt; 1.5·p·ψ_f·I_start  →  无论 δ 多大都无法平衡 → 失步（电机不转，嗡嗡响）</code></pre>
 <p><strong>数值例（你的电机）</strong>：</p>
-<pre><code>ψ_f = 0.005 Wb, p = 14
+<pre><code>ψ_f = 10.3 mWb, p = 14
 设 I_start = 1.0 A
-T_e,max = 1.5 × 14 × 0.005 × 1.0 = 0.105 N·m
+T_e,max = 1.5 × 14 × 0.0103 × 1.0 = 0.216 N·m
 
-这个转矩对你的关节（经 10:1 减速后输出 1.05 N·m）够不够？
+这个转矩对你的关节（经 10:1 减速后输出 2.16 N·m）够不够？
 → 空载/轻载够，重载（如机器人手臂自重）可能不够
-→ 建议 I_start 取 1.2~1.5 A（接近堵转电流）</code></pre>
+→ 建议 I_start 取 1.4~2.0 A（接近规格书堵转电流 2 A）</code></pre>
 <p><strong>Step 4：加速斜率约束</strong></p>
 <p>为保证不失步，加速时还要留出"加速转矩"：</p>
 <pre><code>J·dω_m/dt = T_e − T_L − B·ω_m ≤ T_e,max − T_L
@@ -4472,14 +4475,20 @@ i_q̂_h = [ V_h·ΔL·sin(2Δθ) / (ω_h·L_d·L_q) ] · sin(ω_h·t)</code></pr
 <h4 id="ch11-424">4.2.4 符号含义表（HFI 专表）</h4>
 <table class="sv-table"><thead><tr><th>符号</th><th>含义</th><th>单位</th><th>典型值</th></tr></thead><tbody><tr><td>V_h</td><td>注入电压幅值</td><td>V</td><td>母线 5~20%（你的系统：1.2~4.8 V）</td></tr><tr><td>ω_h</td><td>注入角频率</td><td>rad/s</td><td>2π×(500~1000) = 3142~6283</td></tr><tr><td>f_h</td><td>注入频率</td><td>Hz</td><td>500~1000（PWM 10 kHz 的 1/10 ~ 1/20）</td></tr><tr><td>ΔL</td><td>半凸极差 = (L_d−L_q)/2</td><td>H</td><td>0（SPM）~ −0.2 mH（IPM）</td></tr><tr><td>L_d, L_q</td><td>dq 轴电感</td><td>H</td><td></td></tr><tr><td>Δθ</td><td>估计角误差 = θ_e − θ̂_e</td><td>rad</td><td></td></tr><tr><td>ε_hfi</td><td>解调后的误差信号</td><td>A</td><td></td></tr><tr><td>K_hfi</td><td>HFI 等效增益</td><td>A/rad</td><td></td></tr><tr><td>i_q̂_h</td><td>q̂ 轴高频电流</td><td>A</td><td>通常几十 mA</td></tr><tr><td>ω_c,LPF</td><td>解调低通截止</td><td>rad/s</td><td>ω_h/10</td></tr></tbody></table>
 <h4 id="ch11-425">4.2.5 关键数值评估（判断 HFI 在你的电机上是否可行）</h4>
-<pre><code>信号幅值估算：
-  V_h = 3 V, ω_h = 2π×800 = 5027 rad/s, L_d = 0.5 mH, L_q = 0.6 mH
-  ΔL = (0.5−0.6)/2 = −0.05 mH = −5e−5 H
-  L_d·L_q = 3e−7
+<pre><code>信号幅值估算（先算你的 4310：L_d = L_q = 5.32 mH，SPM 无凸极）：
+  ΔL = (L_d − L_q)/2 = 0
+  I_q,env(Δθ) = V_h·|ΔL|·sin(2Δθ)/(ω_h·L_d·L_q) = 0
+
+  ⚠️ 结论：SPM 电机（L_d = L_q）**没有凸极信号** → 正弦高频注入在这里没有信号源！
+  你的 4310 属于这一类 → 低速只能靠 I/F 开环拖动 + 观测器接管，
+  或靠"电流饱和造成的动态凸极"（见 4.3 节，信号很弱）。
+
+  下面是**凸极电机**（IPM，如 L_d = 0.5 mH、L_q = 0.6 mH）的对照，看信号有多小：
+  V_h = 3 V, ω_h = 2π×800 = 5027 rad/s
+  ΔL = (0.5−0.6)/2 = −0.05 mH = −5e−5 H,  L_d·L_q = 3e−7
 
   I_q,env(Δθ) = V_h·|ΔL|·sin(2Δθ)/(ω_h·L_d·L_q)
               = 3 × 5e−5 × sin(2Δθ) / (5027 × 3e−7)
-              = 1.5e−4 × sin(2Δθ) / 1.508e−3
               = 0.0995 × sin(2Δθ)   [A]
 
   Δθ = 10° → 2Δθ = 20° → sin = 0.342 → I_q,env = 34 mA
@@ -4512,15 +4521,16 @@ i_q̂_h = [ V_h·ΔL·sin(2Δθ) / (ω_h·L_d·L_q) ] · sin(ω_h·t)</code></pr
 <p><strong>Step 4：工程注意事项</strong></p>
 <table class="sv-table"><thead><tr><th>问题</th><th>说明</th><th>对策</th></tr></thead><tbody><tr><td>脉冲产生转矩冲击</td><td>脉冲不在纯 d 轴（若 θ̂ 有误差）→ 有 q 轴分量 → 转矩</td><td>幅值小（30~50% 额定）、时间短（1~5 ms）</td></tr><tr><td>信噪比不足</td><td>电感差异只有几个百分点</td><td>多次重复取平均</td></tr><tr><td>残余磁化</td><td>前一个脉冲的剩磁影响后一个</td><td>间隔足够长 + 反向去磁脉冲</td></tr><tr><td>负载影响</td><td>有负载时转子可能被拖动</td><td>在抱闸状态下做，或用足够大的脉冲</td></tr></tbody></table>
 <p><strong>数值例</strong>：</p>
-<pre><code>假设饱和导致 L_d(+i) = 0.5 mH，L_d(−i) = 0.52 mH（差 4%）
+<pre><code>假设饱和导致 L_d(+i) = 5.32 mH，L_d(−i) = 5.53 mH（差 4%）
 V_pulse = 5 V，τ = 2 ms
 
-Δi₁ = 5 × 2e−3 / 0.5e−3 = 20 A  ← 太大！会过流
+Δi₁ = 5 × 2e−3 / 5.32e−3 = 1.88 A  ← 太大！会过流（额定才 1 A）
 → 必须减小：V_pulse = 1 V, τ = 0.5 ms
-Δi₁ = 1 × 0.5e−3/0.5e−3 = 1 A
-Δi₂ = 1 × 0.5e−3/0.52e−3 = 0.96 A
-差异 = 40 mA  →  相对 1 A 是 4%，需要 ADC 分辨率优于 1% 才能可靠判别
-→ 结论：需要多次平均（如 10 次 → 等效信噪比提高 √10 ≈ 3.2 倍）</code></pre>
+Δi₁ = 1 × 0.5e−3/5.32e−3 = 94 mA
+Δi₂ = 1 × 0.5e−3/5.53e−3 = 90.4 mA
+差异 = 3.6 mA ≈ 2.2 个 ADC LSB（LSB = 1.6 mA）→ 信噪比偏紧
+→ 加大到 V_pulse = 2 V, τ = 0.5 ms：Δi ≈ 188 mA，差异 7.2 mA ≈ 4.6 LSB ✓
+→ 再配 10 次平均（等效信噪比 ×√10 ≈ 3.2 倍）</code></pre>
 <hr>
 <h2 id="ch11-第五部分-误差传播与补偿公式">第五部分：误差传播与补偿公式</h2>
 <h3 id="ch11-51">5.1 延迟补偿</h3>
@@ -4609,7 +4619,7 @@ t₀ + T_pwm    : 新占空比在下一周期生效   （若在周期边界更�
 │  ΔV_err ≈ −sign(i)·V_err,   V_err = (t_dead/T_pwm)·V_dc + V_D      │
 └─────────────────────────────────────────────────────────────────┘</code></pre>
 <h4 id="ch11-522">5.2.2 符号含义与数值</h4>
-<table class="sv-table"><thead><tr><th>符号</th><th>含义</th><th>单位</th><th>你的数值</th></tr></thead><tbody><tr><td>t_dead</td><td>死区时间</td><td>s</td><td>0.5~2 µs（设 1 µs）</td></tr><tr><td>T_pwm</td><td>PWM 周期</td><td>s</td><td>100 µs</td></tr><tr><td>V_dc</td><td>母线电压</td><td>V</td><td>24 V</td></tr><tr><td>V_D</td><td>二极管/体二极管压降</td><td>V</td><td>~0.7 V（AON7544 体二极管）</td></tr><tr><td>i</td><td>相电流</td><td>A</td><td>±1.5 A</td></tr><tr><td>R_ds(on)</td><td>导通电阻</td><td>Ω</td><td>AON7544 约 5~8 mΩ</td></tr><tr><td>V_err</td><td><strong>等效恒定电压误差</strong></td><td>V</td><td><strong>见下</strong></td></tr></tbody></table>
+<table class="sv-table"><thead><tr><th>符号</th><th>含义</th><th>单位</th><th>你的数值</th></tr></thead><tbody><tr><td>t_dead</td><td>死区时间</td><td>s</td><td>0.5~2 µs（设 1 µs）</td></tr><tr><td>T_pwm</td><td>PWM 周期</td><td>s</td><td>100 µs</td></tr><tr><td>V_dc</td><td>母线电压</td><td>V</td><td>24 V</td></tr><tr><td>V_D</td><td>二极管/体二极管压降</td><td>V</td><td>~0.7 V（AON7544 体二极管）</td></tr><tr><td>i</td><td>相电流</td><td>A</td><td>±2 A</td></tr><tr><td>R_ds(on)</td><td>导通电阻</td><td>Ω</td><td>AON7544 约 5~8 mΩ</td></tr><tr><td>V_err</td><td><strong>等效恒定电压误差</strong></td><td>V</td><td><strong>见下</strong></td></tr></tbody></table>
 <p><strong>数值计算</strong>：</p>
 <pre><code>(t_dead/T_pwm)·V_dc = (1/100)×24 = 0.24 V
 V_D = 0.7 V
@@ -4676,14 +4686,14 @@ float v_err_lut(float i) {
 │  α_Cu = 0.00393 /K   （铜的电阻温度系数）    │
 └───────────────────────────────────────────┘</code></pre>
 <h4 id="ch11-532">5.3.2 数值表</h4>
-<table class="sv-table"><thead><tr><th>温度</th><th>R_s 倍数</th><th>R_s（若 20°C 时 1.0 Ω）</th><th>对无感的影响</th></tr></thead><tbody><tr><td>20°C</td><td>1.000</td><td>1.00 Ω</td><td>基准</td></tr><tr><td>40°C</td><td>1.079</td><td>1.08 Ω</td><td>误差 8%</td></tr><tr><td>60°C</td><td>1.157</td><td>1.16 Ω</td><td>误差 16%</td></tr><tr><td>80°C</td><td>1.236</td><td>1.24 Ω</td><td>误差 24%</td></tr><tr><td>100°C</td><td>1.314</td><td>1.31 Ω</td><td>误差 <strong>31%</strong></td></tr><tr><td>120°C</td><td>1.393</td><td>1.39 Ω</td><td>误差 39%</td></tr></tbody></table>
+<table class="sv-table"><thead><tr><th>温度</th><th>R_s 倍数</th><th>R_s（20°C 时 5.35 Ω）</th><th>对无感的影响</th></tr></thead><tbody><tr><td>20°C</td><td>1.000</td><td>5.35 Ω</td><td>基准</td></tr><tr><td>40°C</td><td>1.079</td><td>5.77 Ω</td><td>误差 8%</td></tr><tr><td>60°C</td><td>1.157</td><td>6.19 Ω</td><td>误差 16%</td></tr><tr><td>80°C</td><td>1.236</td><td>6.61 Ω</td><td>误差 24%</td></tr><tr><td>100°C</td><td>1.314</td><td>7.03 Ω</td><td>误差 <strong>31%</strong></td></tr><tr><td>120°C</td><td>1.393</td><td>7.45 Ω</td><td>误差 39%</td></tr></tbody></table>
 <h4 id="ch11-533">5.3.3 对角度误差的影响（结合 3.2.6 的公式）</h4>
 <pre><code>Δθ = ΔR_s·|i| / (ω_e·ψ_f)
 
 ΔR_s = R_s,20·α_Cu·(T−20)     单位 Ω</code></pre>
-<p><strong>数值例（R_s,20 = 1.0 Ω，i = 1 A，ψ_f = 0.005 Wb，p = 14）</strong>：</p>
-<table class="sv-table"><thead><tr><th>温度</th><th>ΔR_s</th><th>ε_e,ss = ΔR_s·i</th><th>@300 rpm 的 Δθ</th><th>@1000 rpm 的 Δθ</th></tr></thead><tbody><tr><td>20°C</td><td>0</td><td>0</td><td>0°</td><td>0°</td></tr><tr><td>60°C</td><td>0.157 Ω</td><td>0.157 V</td><td>4.1°</td><td>1.2°</td></tr><tr><td>100°C</td><td>0.314 Ω</td><td>0.314 V</td><td><strong>8.2°</strong></td><td>2.5°</td></tr><tr><td>130°C</td><td>0.432 Ω</td><td>0.432 V</td><td><strong>11.3°</strong></td><td>3.4°</td></tr></tbody></table>
-<p>（计算示例 @100°C, 300 rpm：ω_e = 440 rad/s，E = 2.2 V，Δθ = 0.314/2.2 = 0.143 rad = 8.2°）</p>
+<p><strong>数值例（R_s,20 = 5.35 Ω，i = 1 A，ψ_f = 10.3 mWb，p = 14）</strong>：</p>
+<table class="sv-table"><thead><tr><th>温度</th><th>ΔR_s</th><th>ε_e,ss = ΔR_s·i</th><th>@300 rpm 的 Δθ</th><th>@1000 rpm 的 Δθ</th></tr></thead><tbody><tr><td>20°C</td><td>0</td><td>0</td><td>0°</td><td>0°</td></tr><tr><td>60°C</td><td>0.840 Ω</td><td>0.840 V</td><td>10.6°</td><td>3.2°</td></tr><tr><td>100°C</td><td>1.680 Ω</td><td>1.680 V</td><td><strong>21.2°</strong></td><td>6.4°</td></tr><tr><td>130°C</td><td>2.311 Ω</td><td>2.311 V</td><td><strong>29.2°</strong></td><td>8.8°</td></tr></tbody></table>
+<p>（计算示例 @100°C, 300 rpm：ω_e = 440 rad/s，E = ω_e·ψ_f = 4.54 V，Δθ = 1.680/4.54 = 0.370 rad = 21.2°）</p>
 <h4 id="ch11-534">5.3.4 补偿方案对比</h4>
 <table class="sv-table"><thead><tr><th>方案</th><th>公式/实现</th><th>精度</th><th>成本</th><th>适用</th></tr></thead><tbody><tr><td><strong>NTC 测温 + 查表</strong></td><td><code>R̂_s = R_20·(1+α·(T_ntc−20))</code></td><td>±10%</td><td>低（1 个 NTC + 1 路 ADC）</td><td>推荐起步</td></tr><tr><td><strong>热模型</strong></td><td><code>T = T_amb + P_loss·R_th·(1−e^{−t/τ})</code></td><td>±15%</td><td>无（纯软件）</td><td>无 NTC 时的替代</td></tr><tr><td><strong>在线辨识 RLS</strong></td><td>见下</td><td>±3%</td><td>中</td><td>高精度场合</td></tr><tr><td><strong>观测器扩张状态</strong></td><td>把 ΔR_s 作为第 5 个状态</td><td>±5%</td><td>中</td><td>与观测器融合</td></tr><tr><td><strong>注入直流 + 计算</strong></td><td><code>R_s = u_d/i_d</code>（低速静止时）</td><td>±5%</td><td>低</td><td>定期校准</td></tr></tbody></table>
 <p><strong>在线辨识（低速直流注入法）推导</strong>：</p>
@@ -4772,11 +4782,11 @@ float v_err_lut(float i) {
 <p><strong>数值例（你的电机）</strong>：</p>
 <pre><code>反拖到 n = 1000 rpm，p = 14
 ω_e = 2π×1000/60×14 = 1466 rad/s
-测得线电压峰峰值 V_pp = 18 V
-→ E = 18/(2×1.732) = 5.20 V
-→ ψ_f = 5.20/1466 = 0.00355 Wb
+测得线电压峰峰值 V_pp ≈ 52 V（对应规格书 KV = 54 rpm/V 的线-线有效值 18.5 V）
+→ E = 52/(2×1.732) = 15.0 V（相峰值）
+→ ψ_f = 15.0/1466 = 0.0102 Wb ≈ 10.2 mWb
 
-与假设的 0.005 Wb 有差异 → 必须实测！</code></pre>
+与规格书反推值 10.3 mWb 一致 ✓ —— 这就是「用实测校核手册」的正确姿势</code></pre>
 <h3 id="ch11-64">6.4 转动惯量 J</h3>
 <p><strong>方法 1：加速法（最常用）</strong></p>
 <pre><code>① 空载，施加恒定 i_q（产生恒定转矩 T_e = 1.5·p·ψ_f·i_q）
@@ -4872,7 +4882,7 @@ K_t = 1.5 p ψ_f</code></pre>
 <table class="sv-table"><thead><tr><th>记号</th><th>含义</th><th>示例</th></tr></thead><tbody><tr><td>a,b,c</td><td>三相自然坐标系</td><td>i_a, u_a</td></tr><tr><td>α,β</td><td>两相静止坐标系</td><td>i_α, e_β</td></tr><tr><td>d,q</td><td>两相旋转坐标系（随转子同步）</td><td>i_d, u_q</td></tr><tr><td>d̂,q̂</td><td><strong>估计</strong>的旋转坐标系</td><td>i_d̂, u_q̂</td></tr><tr><td>0</td><td>零序分量（星形连接时为 0）</td><td>i_0 = 0</td></tr><tr><td><code>^</code></td><td>估计值（观测器输出）</td><td>î_α, θ̂_e, ω̂_e</td></tr><tr><td><code>~</code></td><td>误差量（真实 − 估计）</td><td>ĩ_α, ẽ_α</td></tr><tr><td><code>*</code></td><td>指令值/参考值</td><td>i_q*, ω_m*</td></tr><tr><td><code>_max</code></td><td>最大值/上限</td><td>ω_e,max</td></tr><tr><td><code>_ss</code></td><td>稳态（steady state）</td><td>Δθ_ss</td></tr><tr><td><code>_h</code></td><td>高频注入相关</td><td>f_h, V_h, ω_h</td></tr><tr><td><code>_ref</code></td><td>参考量</td><td>i_d,ref</td></tr><tr><td><code>_comp</code></td><td>补偿后</td><td>θ_comp</td></tr><tr><td><code>_env</code></td><td>包络（envelope）</td><td>I_q,env</td></tr></tbody></table>
 <hr>
 <h2 id="ch12-二-电气量">二、电气量</h2>
-<table class="sv-table"><thead><tr><th>符号</th><th>名称</th><th>单位</th><th>典型值（4310 关节）</th><th>备注</th></tr></thead><tbody><tr><td>u_a,b,c</td><td>三相相电压</td><td>V</td><td>0~14</td><td>相对中性点</td></tr><tr><td>u_α,β</td><td>αβ 轴电压</td><td>V</td><td>≤ V_dc/√3</td><td>Clarke 后</td></tr><tr><td>u_d,q</td><td>dq 轴电压</td><td>V</td><td></td><td>Park 后</td></tr><tr><td>V_dc</td><td>直流母线电压</td><td>V</td><td>24</td><td></td></tr><tr><td>i_a,b,c</td><td>三相相电流</td><td>A</td><td>±1.5</td><td>峰值</td></tr><tr><td>i_α,β</td><td>αβ 轴电流</td><td>A</td><td></td><td>幅值不变变换：与峰值相等</td></tr><tr><td>i_d</td><td>d 轴电流（励磁分量）</td><td>A</td><td>通常 0 或略负</td><td>不产生转矩（SPM）</td></tr><tr><td>i_q</td><td>q 轴电流（转矩分量）</td><td>A</td><td>≈ 1</td><td></td></tr><tr><td>I_s</td><td>电流矢量幅值</td><td>A</td><td>= √(i_d²+i_q²)</td><td></td></tr><tr><td>β_i</td><td>电流角</td><td>rad</td><td>= atan2(i_q, i_d)</td><td>SPM 最优 π/2</td></tr><tr><td>e_α,β</td><td>αβ 轴反电动势</td><td>V</td><td>幅值 E = ω_e ψ_f</td><td></td></tr><tr><td>E</td><td>反电动势幅值</td><td>V</td><td></td><td>E = ω_e ψ_f</td></tr><tr><td>ψ_α,β</td><td>αβ 轴定子磁链</td><td>Wb</td><td></td><td></td></tr><tr><td>ψ_d,q</td><td>dq 轴定子磁链</td><td>Wb</td><td></td><td>ψ_d = L_d i_d + ψ_f</td></tr><tr><td><strong>ψ_f</strong></td><td><strong>永磁体磁链</strong></td><td>Wb</td><td>~0.0035</td><td><strong>核心参数</strong></td></tr><tr><td>R_s</td><td>定子相电阻</td><td>Ω</td><td>~1.0</td><td>随温度变化</td></tr><tr><td>L_d</td><td>d 轴电感</td><td>H</td><td></td><td>直轴（磁体方向）</td></tr><tr><td>L_q</td><td>q 轴电感</td><td>H</td><td></td><td>交轴</td></tr><tr><td>L_s</td><td>定子同步电感</td><td>H</td><td>~0.5 m</td><td>SPM 时 L_s = L_d = L_q</td></tr><tr><td>L_avg</td><td>平均电感</td><td>H</td><td>(L_d+L_q)/2</td><td></td></tr><tr><td>ΔL</td><td>半凸极差</td><td>H</td><td>(L_d−L_q)/2</td><td><strong>HFI 的关键量</strong></td></tr><tr><td>ξ</td><td>凸极比</td><td>—</td><td>L_q/L_d，1.0~3.0</td><td>&lt; 1.1 则 HFI 不可行</td></tr><tr><td>ΔV_err</td><td>死区等效电压误差</td><td>V</td><td>~0.94</td><td></td></tr><tr><td>V_err</td><td>单个桥臂误差电压</td><td>V</td><td></td><td></td></tr></tbody></table>
+<table class="sv-table"><thead><tr><th>符号</th><th>名称</th><th>单位</th><th>典型值（4310 关节）</th><th>备注</th></tr></thead><tbody><tr><td>u_a,b,c</td><td>三相相电压</td><td>V</td><td>0~14</td><td>相对中性点</td></tr><tr><td>u_α,β</td><td>αβ 轴电压</td><td>V</td><td>≤ V_dc/√3</td><td>Clarke 后</td></tr><tr><td>u_d,q</td><td>dq 轴电压</td><td>V</td><td></td><td>Park 后</td></tr><tr><td>V_dc</td><td>直流母线电压</td><td>V</td><td>24</td><td></td></tr><tr><td>i_a,b,c</td><td>三相相电流</td><td>A</td><td>±2</td><td>峰值</td></tr><tr><td>i_α,β</td><td>αβ 轴电流</td><td>A</td><td></td><td>幅值不变变换：与峰值相等</td></tr><tr><td>i_d</td><td>d 轴电流（励磁分量）</td><td>A</td><td>通常 0 或略负</td><td>不产生转矩（SPM）</td></tr><tr><td>i_q</td><td>q 轴电流（转矩分量）</td><td>A</td><td>≈ 1</td><td></td></tr><tr><td>I_s</td><td>电流矢量幅值</td><td>A</td><td>= √(i_d²+i_q²)</td><td></td></tr><tr><td>β_i</td><td>电流角</td><td>rad</td><td>= atan2(i_q, i_d)</td><td>SPM 最优 π/2</td></tr><tr><td>e_α,β</td><td>αβ 轴反电动势</td><td>V</td><td>幅值 E = ω_e ψ_f</td><td></td></tr><tr><td>E</td><td>反电动势幅值</td><td>V</td><td></td><td>E = ω_e ψ_f</td></tr><tr><td>ψ_α,β</td><td>αβ 轴定子磁链</td><td>Wb</td><td></td><td></td></tr><tr><td>ψ_d,q</td><td>dq 轴定子磁链</td><td>Wb</td><td></td><td>ψ_d = L_d i_d + ψ_f</td></tr><tr><td><strong>ψ_f</strong></td><td><strong>永磁体磁链</strong></td><td>Wb</td><td>10.3 mWb</td><td><strong>核心参数</strong></td></tr><tr><td>R_s</td><td>定子相电阻</td><td>Ω</td><td>5.35（线 10.7 ÷ 2）</td><td>随温度变化</td></tr><tr><td>L_d</td><td>d 轴电感</td><td>H</td><td></td><td>直轴（磁体方向）</td></tr><tr><td>L_q</td><td>q 轴电感</td><td>H</td><td></td><td>交轴</td></tr><tr><td>L_s</td><td>定子同步电感</td><td>H</td><td>5.32 mH</td><td>SPM 时 L_s = L_d = L_q</td></tr><tr><td>L_avg</td><td>平均电感</td><td>H</td><td>(L_d+L_q)/2</td><td></td></tr><tr><td>ΔL</td><td>半凸极差</td><td>H</td><td>(L_d−L_q)/2</td><td><strong>HFI 的关键量</strong></td></tr><tr><td>ξ</td><td>凸极比</td><td>—</td><td>L_q/L_d，1.0~3.0</td><td>&lt; 1.1 则 HFI 不可行</td></tr><tr><td>ΔV_err</td><td>死区等效电压误差</td><td>V</td><td>≈1.18（20 kHz；10 kHz 时 0.94）</td><td></td></tr><tr><td>V_err</td><td>单个桥臂误差电压</td><td>V</td><td></td><td></td></tr></tbody></table>
 <hr>
 <h2 id="ch12-三-机械与磁学量">三、机械与磁学量</h2>
 <table class="sv-table"><thead><tr><th>符号</th><th>名称</th><th>单位</th><th>典型值</th><th>备注</th></tr></thead><tbody><tr><td>θ_e</td><td><strong>电角度</strong></td><td>rad</td><td>0~2π</td><td>转子位置（电）</td></tr><tr><td>θ_m</td><td>机械角度</td><td>rad</td><td>0~2π</td><td>转子位置（机械）</td></tr><tr><td>ω_e</td><td><strong>电角速度</strong></td><td>rad/s</td><td></td><td>ω_e = p ω_m</td></tr><tr><td>ω_m</td><td>机械角速度</td><td>rad/s</td><td></td><td>= 2πn/60</td></tr><tr><td>n</td><td>机械转速</td><td>rpm</td><td>0~3000</td><td></td></tr><tr><td><strong>p</strong></td><td><strong>极对数</strong></td><td>—</td><td>11~14</td><td>⚠️ 不是极数！</td></tr><tr><td>f_e</td><td>电频率</td><td>Hz</td><td></td><td>f_e = p n/60</td></tr><tr><td>α_e</td><td>电角加速度</td><td>rad/s²</td><td></td><td></td></tr><tr><td>ψ_f</td><td>永磁磁链</td><td>Wb</td><td></td><td>同 λ_m</td></tr><tr><td>K_e</td><td>反电动势常数</td><td>V·s/rad</td><td>= ψ_f</td><td>注意单位换算</td></tr><tr><td>K_t</td><td>转矩常数</td><td>N·m/A</td><td>= 1.5 p ψ_f</td><td>⚠️ 系数 1.5</td></tr><tr><td>T_e</td><td>电磁转矩</td><td>N·m</td><td></td><td></td></tr><tr><td>T_L</td><td>负载转矩</td><td>N·m</td><td></td><td>扰动</td></tr><tr><td>T_max</td><td>最大可用转矩</td><td>N·m</td><td>1.5 p ψ_f I_max</td><td></td></tr><tr><td>δ</td><td>负载角（I/F 时）</td><td>rad</td><td>&lt; 90°</td><td>超过则失步</td></tr><tr><td>J</td><td>转动惯量</td><td>kg·m²</td><td>~5e−6</td><td>难测，误差 2~3 倍</td></tr><tr><td>B</td><td>粘性摩擦系数</td><td>N·m·s/rad</td><td></td><td></td></tr><tr><td>T_f</td><td>库仑摩擦</td><td>N·m</td><td></td><td>非线性项</td></tr><tr><td>i_g</td><td>减速比</td><td>—</td><td>关节 ≈ 10</td><td>惯量折算用 i_g²</td></tr></tbody></table>
@@ -4901,30 +4911,34 @@ K_t = 1.5 p ψ_f</code></pre>
 时间：  T_s = 1/f_s           ω_n × T_s &lt; 0.1（离散化要求）</code></pre>
 <hr>
 <h2 id="ch12-九-典型数值参考-4310-关节-stspin32g4">九、典型数值参考（4310 关节 + STSPIN32G4）</h2>
-<pre><code>母线电压          V_dc = 24 V
-极对数            p = 14（**待实测确认**）
-永磁磁链          ψ_f ≈ 0.0035 Wb（**待实测**）
-定子电阻          R_s ≈ 1.0 Ω @20°C
-定子电感          L_s ≈ 0.5 mH
+<pre><code>母线电压          V_dc = 24 V（规格书工作范围 7–24 V）
+极对数            p = 14（规格书 24N28P：28 极 ÷ 2）✓ 已确认
+永磁磁链          ψ_f = 10.3 mWb（由 KV=54 反推：Ke = 1000/54 = 18.5 V/krpm → Kt_pk = 18.5/85.5 = 0.217）
+定子电阻          R_s = 5.35 Ω @20°C（线电阻 10.7 Ω ÷ 2，Y 接）
+定子电感          L_s = 5.32 mH
+转矩常数          K_t = 0.217 N·m/A（峰值口径）= 0.3 N·m/A（有效值口径，规格书值）
+KV 值             54 rpm/V（线-线有效值口径）
 额定电流          i_q ≈ 1.0 A
-堵转电流          ≈ 1.5 A
-最高转速          3000 rpm
-PWM 频率          10 kHz  (T_pwm = 100 µs)
-控制延迟          T_delay ≈ 150 µs
+堵转电流          2 A @24V（规格书）
+最高转速          空载 ≈916 rpm（SVPWM 正弦 FOC）/ ≈1000 rpm（六步方波，规格书口径）
+PWM 频率          20 kHz（T_pwm = 50 µs，本站第 8 章工程设置；手册正文按 10 kHz 演示）
+控制延迟          T_delay ≈ 75 µs（1.5 拍 @20 kHz）
 死区时间          t_dead ≈ 1 µs
-死区电压误差      V_err ≈ 0.94 V
-@3000 rpm:  ω_e = 4398 rad/s,  f_e = 700 Hz,  E = 15.4 V
-@1000 rpm:  ω_e = 1466 rad/s,  f_e = 233 Hz,  E = 5.13 V
-@100 rpm:   ω_e = 146.6 rad/s, f_e = 23 Hz,   E = 0.51 V
+死区电压误差      V_err ≈ 0.48 V（20 kHz）+ 管压降 0.7 V = 1.18 V
+@1000 rpm:  ω_e = 1466 rad/s, f_e = 233 Hz, E = 15.1 V  ⚠️ 已超过 13.86 V 的相电压上限
+@300 rpm:   ω_e = 440 rad/s,  f_e = 73 Hz,  E = 4.54 V
+@100 rpm:   ω_e = 146.6 rad/s,f_e = 23 Hz,  E = 1.51 V
+@30 rpm:    ω_e = 44 rad/s,   f_e = 7 Hz,   E = 0.45 V
 
-延迟角度误差 @3000 rpm: 37.8°   ⚠️ 必须补偿</code></pre>
+延迟角度误差 @1000 rpm: 6.3°（20 kHz）/ 12.6°（10 kHz）  ⚠️ 必须补偿
+（注：4310 空载上限 ≈916 rpm，更高转速已在无感可用区之外，仅作对比）</code></pre>
 <hr>
 <p>*本表与《FOC 无感控制公式推导手册》配套。遇到符号不确定时，先查第七节"易混淆符号对照"。*</p>
 </section>
 
 <footer class="site-footer">
   <p><b>v2.5</b> · FOC 学习站 · 用视觉、推导与代码理解磁场定向控制 · 建议使用 Chrome/Edge 浏览</p>
-  <p class="ver-note">本版更新：<b>新增第 10~12 章「无感控制」系列</b>（从有感到无感手册 / 公式推导手册 / 符号总表）；新增第 9 章「电机参数详解」（Kt/Ke/扭矩/反电动势公式 + 3 个交互动画）；4.3.1 扇区法与 4.9 节浮点边界修正如前<b>新增第 9 章「电机参数详解」</b>（Kt/Ke/扭矩/反电动势公式、电压预算、3 个交互动画、参数自检 C 脚本）；4.3.1 扇区法与 4.9 节浮点边界修正同 v2.5</p>
+  <p class="ver-note">本版更新：<b>新增第 10~12 章「无感控制」系列</b>（从有感到无感手册 / 公式推导手册 / 符号总表，各含交互动画）；<b>新增第 9 章「电机参数详解」</b>（Kt/Ke/扭矩/反电动势公式、电压预算、3 个交互动画、参数自检 C 脚本）；<b>全站 4310 算例已按规格书统一口径</b>（线电阻 10.7 Ω→相 5.35 Ω、KV=54 → Kt 峰值 0.217 N·m/A、ψ_f=10.3 mWb、p=14）；4.3.1 扇区法与 4.9 节浮点边界修正同前</p>
 </footer>
 
 </main>
@@ -4935,8 +4949,8 @@ PWM 频率          10 kHz  (T_pwm = 100 µs)
   <div id="lightbox-hint">点击任意处或按 Esc 关闭</div>
 </div>
 
-<script src="js/main.js?v=20260914b"></script>
-<script src="js/params.js?v=20260914b"></script>
-<script src="js/wugan.js?v=20260914b"></script>
+<script src="js/main.js?v=20260914c"></script>
+<script src="js/params.js?v=20260914c"></script>
+<script src="js/wugan.js?v=20260914c"></script>
 </body>
 </html>
