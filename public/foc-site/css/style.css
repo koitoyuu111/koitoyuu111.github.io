@@ -428,3 +428,38 @@ p code, li code {
   padding: 5px 16px;
   pointer-events: none;
 }
+
+/* ---------- 无感控制手册（第 10~12 章）：更深的标题层级 + ASCII 公式块 ---------- */
+#ch10 h3, #ch11 h3, #ch12 h3 {
+  font-size: 16.5px; color: var(--text); margin: 22px 0 9px;
+}
+#ch10 h4, #ch11 h4, #ch12 h4 {
+  font-size: 14.5px; color: var(--accent); margin: 16px 0 7px;
+}
+/* 手册里的公式是 ASCII 排版，字号压小一点、行距收紧，少出横向滚动条 */
+#ch10 pre code, #ch11 pre code, #ch12 pre code {
+  font-size: 12px; line-height: 1.45;
+}
+#ch10 pre, #ch11 pre, #ch12 pre { padding: 12px 14px; }
+#ch10 table.sv-table, #ch11 table.sv-table, #ch12 table.sv-table { font-size: 13px; }
+#ch10 table.sv-table th, #ch11 table.sv-table th, #ch12 table.sv-table th,
+#ch10 table.sv-table td, #ch11 table.sv-table td, #ch12 table.sv-table td {
+  padding: 5px 9px; vertical-align: top;
+  /* 手册表格里是整句话，站内的 white-space:nowrap 会把表撑到 1600px+ → 整页横向溢出 */
+  white-space: normal; overflow-wrap: break-word; word-break: break-word;
+}
+
+/* 第 8 章里有几张没加 class 的宽表（最多 10 列），会把整页撑出横向滚动条。
+   不重排它们的视觉，只让它们各自横向滚动。 */
+.chapter table:not(.sv-table) {
+  display: block; overflow-x: auto; max-width: 100%;
+}
+
+/* 窄屏（≤1200px）：所有数据表允许换行，否则 nowrap 的长内容会把整页撑出横向滚动条。
+   宽屏保持 nowrap 的紧凑观感不变。 */
+@media (max-width: 1200px) {
+  .sv-table th, .sv-table td {
+    white-space: normal; overflow-wrap: break-word; word-break: break-word;
+  }
+  .readout, .viz-controls label { white-space: normal; overflow-wrap: break-word; }
+}
