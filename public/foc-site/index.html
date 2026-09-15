@@ -8,16 +8,16 @@
      （:root:root / [data-theme][data-theme]）保证不受后面 style.css 的加载顺序影响。
      放在这里而不是 CSS 之后，是因为下面那个 jsdelivr 的 KaTeX 样式表会阻塞解析，
      放后面会让「揭晓」被拖慢好几秒。 -->
-<script src="js/blog-theme.js?v=20260914d"></script>
+<script src="js/blog-theme.js?v=20260914e"></script>
 <title>FOC 学习站 v2.5 — 磁场定向控制：从直觉到实战</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
-<link rel="stylesheet" href="css/style.css?v=20260914d">
+<link rel="stylesheet" href="css/style.css?v=20260914e">
 <!-- 博客集成工具层：搜索定位 / 网页缩放 / 宽表格滚动（放在最后以便覆盖） -->
-<link rel="stylesheet" href="css/foc-tools.css?v=20260914d">
-<script defer src="js/foc-tools.js?v=20260914d"></script>
+<link rel="stylesheet" href="css/foc-tools.css?v=20260914e">
+<script defer src="js/foc-tools.js?v=20260914e"></script>
 </head>
 <body>
 
@@ -2040,18 +2040,52 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
   $$T_e = \tfrac{3}{2}\, p \left[\, \psi_f\, i_q + (L_d - L_q)\, i_d\, i_q \,\right]$$
   <p>第二项在 $i_d &lt; 0$、$L_q &gt; L_d$ 时为正——把电流偏一点到 d 负方向，同电流下扭矩更大，这就是 <strong>MTPA</strong>（最大转矩电流比）。纯磁阻扭矩在电流角 −45° 时最大。而<strong>表贴式（$L_d = L_q$，如 4310）磁阻项严格为零，$i_d = 0$ 就是最优</strong>——不用纠结。</p>
   <p>工程上还有个天天用的功率-扭矩换算（把 $\omega_m = 2\pi n/60$ 代入 $T = P/\omega_m$）：</p>
-  $$T\,[\text{N·m}] = \frac{P\,[\text{W}]}{2\pi n/60} \approx 9550\,\frac{P\,[\text{kW}]}{n\,[\text{rpm}]}$$
+  $$T\,[\text{N}\cdot\text{m}] = \frac{P\,[\text{W}]}{2\pi n/60} \approx 9550\,\frac{P\,[\text{kW}]}{n\,[\text{rpm}]}$$
   <div class="callout">
-    <strong>单位陷阱表（手册对不上号的头号原因）：</strong><br><br>
+    <strong>⚠️ 先讲清楚：$K_t$ 的「峰值」和「有效值」到底在说什么？</strong><br><br>
+
+    <strong>① 同一股电流，有两种「报数方式」。</strong>正弦电流的波形是同一个，但你既可以报「波峰多高」，也可以报「等效发热的直流值」：
     <table class="sv-table" style="margin-top:6px">
-      <thead><tr><th>口径</th><th>公式</th><th>4310 数值</th></tr></thead>
+      <thead><tr><th>报数方式</th><th>叫法</th><th>这股票形电流的值</th><th>用在哪</th></tr></thead>
       <tbody>
-        <tr><td>$K_t$，相电流<strong>峰值</strong>（dq 幅值不变，本站口径）</td><td>$\tfrac{3}{2}p\psi_f$</td><td>0.217 N·m/A</td></tr>
-        <tr><td>$K_t$，相电流<strong>有效值</strong></td><td>$\sqrt{2}\,K_t^{(pk)}$</td><td>0.306 N·m/A（= 规格书上写的 0.3）</td></tr>
-        <tr><td>同一台电机，两个口径差 41%！</td><td>—</td><td>先问口径，再谈对不对</td></tr>
+        <tr><td><strong>峰值</strong></td><td>$I_{pk}$</td><td>1.414 A（波峰的高度）</td><td>坐标变换、dq 模型、FOC 内部</td></tr>
+        <tr><td><strong>有效值</strong></td><td>$I_{rms}$</td><td>1.000 A（发热等效的直流值）</td><td>额定电流、发热、电流表读数</td></tr>
       </tbody>
     </table>
-    例：$i_q$ = 1 A → 0.217 N·m；堵转限幅 2 A → 0.434 N·m。校核：0.217 N·m 在 522 rpm 输出 $P = 0.217 \times 54.6 = 11.9$ W，与 9550 公式反算一致 ✓。
+    两者固定差 $\sqrt2$：<strong>$I_{pk} = \sqrt2 \cdot I_{rms} \approx 1.414 \times I_{rms}$</strong>。
+    <em>同一股电流，只是报数不同 —— 就像同一个人，报身高 1.75 m 还是 175 cm。</em><br><br>
+
+    <strong>② 扭矩是确定的，所以 $K_t$ 必须跟着变。</strong><br>
+    扭矩 = $K_t$ × 电流。既然「电流」有两种报数，$K_t$ 就得配两种，但<strong>算出来的扭矩必须是同一个数</strong>：
+    $$K_t^{pk} \times I_{pk} \;=\; K_t^{rms} \times I_{rms} \;=\; \text{同一个扭矩}$$
+    由此：<strong>$K_t^{pk} = \sqrt2 \cdot K_t^{rms}$</strong> —— 峰值口径的 $K_t$ <em>小</em>，因为峰值电流的<em>数字大</em>。<br><br>
+
+    <strong>③ 4310 的实例（一眼看懂）</strong>
+    <table class="sv-table" style="margin-top:6px">
+      <thead><tr><th>口径</th><th>$K_t$ 数值</th><th>「1 A」指的是</th><th>扭矩</th></tr></thead>
+      <tbody>
+        <tr><td>有效值（<strong>规格书用的</strong>）</td><td>0.30 N·m/A</td><td>1 A 有效值</td><td>$0.30 \times 1 = 0.30$ N·m</td></tr>
+        <tr><td>峰值（<strong>本站 / FOC 用的</strong>）</td><td>0.217 N·m/A</td><td>1.414 A 峰值</td><td>$0.217 \times 1.414 = 0.30$ N·m ✓ 同一个扭矩</td></tr>
+      </tbody>
+    </table>
+    <strong>所以「0.3 还是 0.217」不是矛盾，是同一台电机的两种报数。</strong><br><br>
+
+    <strong>④ 为什么各自要用不同口径？</strong><br>
+    · <strong>FOC 内部用峰值</strong>：Clarke 用的是「幅值不变」变换，变换之后 $i_\alpha$、$i_\beta$、$i_d$、$i_q$ 的数值<strong>天生就等于相电流的峰值</strong>。所以 $T_e = \tfrac32 p\psi_f i_q$ 里的 $i_q$ 就是峰值 → 配套的 $K_t$ 自然是峰值口径。<br>
+    · <strong>手册 / 铭牌用有效值</strong>：额定电流、发热、电流表读数都按有效值算（$P_{cu} = 3R I_{rms}^2$）。<br><br>
+
+    <strong>⑤ 遇到「手册对不上」先查三件事：</strong>
+    ① 电流是<strong>峰值</strong>还是<strong>有效值</strong>（差 41%）；② 电压是<strong>相</strong>还是<strong>线-线</strong>（差 73%）；③ $K_e$ 是「每 rad/s」还是「每 krpm」。
+    下面这个换算器可以拖着玩，亲眼看到「两种口径算出同一个扭矩」。
+  </div>
+
+  <div class="viz-block" id="viz-unit">
+    <div class="viz-canvas-row"><canvas id="cv-unit" width="900" height="300"></canvas></div>
+    <div class="viz-controls">
+      <label>相电流（有效值） <input type="range" id="un-i" min="0.2" max="2" step="0.05" value="1"></label>
+      <span id="un-readout" class="readout"></span>
+    </div>
+    <div class="viz-caption">🧮 <b>口径换算器</b>：左边是同一股电流的波形，两条虚线分别是<strong>峰值</strong>和<strong>有效值</strong>；右边是两种口径的「账本」——拖滑块你会发现，<strong>不管用哪种口径报数，扭矩和铜损都是同一个数</strong>（$K_t^{pk}I_{pk} = K_t^{rms}I_{rms}$、$1.5R I_{pk}^2 = 3R I_{rms}^2$ 是恒等式）。这就是「先问口径，再谈数值」的意思。</div>
   </div>
 
   <h2 id="s-ch9-4">9.4 理论推导：反电动势公式与 $K_t \leftrightarrow K_e$ 换算</h2>
@@ -2073,7 +2107,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
     </tbody>
   </table>
   <p>由此得到一个好用的速算法则（线-线有效值口径）：</p>
-  $$K_e\,[\text{V/krpm}] \approx 85.5 \times K_t\,[\text{N·m/A}_{pk}] \qquad\Longleftrightarrow\qquad K_t \approx \frac{K_e}{85.5}$$
+  $$K_e\,[\text{V/krpm}] \approx 85.5 \times K_t\,[\text{N}\cdot\text{m/A}_{pk}] \qquad\Longleftrightarrow\qquad K_t \approx \frac{K_e}{85.5}$$
   <p><strong>⚠️ 还有一个更容易踩的坑：$K_t$ ↔ $K_V$ 的常数不止一个。</strong>手册/论坛里常见的 $K_t = 9.549/K_V$（$K_V$ 按「空载转速 ÷ <strong>母线电压</strong>」定义）是<strong>直流/方波口径</strong>；而本文这条 $K_e = 85.5\,K_t$（$K_V \approx 11.7/K_t$）是<strong>线-线有效值口径</strong>（发电机口径）。拿 4310 验证：按前者得 $K_t = 9.549/41.7 = 0.229$，按后者得 $K_t^{rms} = 16.54/54 = 0.306$ —— <strong>规格书写的 0.3 只跟后者吻合</strong>。两套常数混用就是"手册对不上"最常见的成因——<strong>换算式必须连着口径一起说</strong>。</p>
 
 <p><strong>反电动势的三重身份</strong>：① <strong>限速</strong>——吃掉电压预算，决定最高转速（9.5）；② <strong>制动泵升</strong>——减速时电机变发电机，能量灌回母线，电容电压抬升，没有泄放路径就过压；③ <strong>无感观测的信号源</strong>——滑模/磁链观测器全靠它（见 6.3）。</p>
@@ -2095,7 +2129,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
     </thead>
     <tbody>
       <tr><td>空载</td><td>$\omega_e = 13.86/0.01032 = 1343$ rad/s(电) → ÷14 = 95.9 rad/s(机)</td><td><strong>≈ 916 rpm</strong>（六步方波 ≈1000）</td></tr>
-      <tr><td>$i_q = 0.5$ A</td><td>解二次方程 → $\omega_e = 1139$ rad/s(电)</td><td>≈ 720 rpm</td></tr>
+      <tr><td>$i_q = 0.5$ A</td><td>解二次方程 → $\omega_e = 1056$ rad/s(电)</td><td>≈ 720 rpm</td></tr>
       <tr><td>$i_q = 1$ A（额定）</td><td>解二次方程 → $\omega_e = 765$ rad/s(电)</td><td><strong>≈ 522 rpm</strong></td></tr>
     </tbody>
   </table>
@@ -2118,7 +2152,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
   <h2 id="s-ch9-6">9.6 底层分析：电阻与电感——热和快慢的两个守门员</h2>
   <p><strong>电阻的三笔账：</strong></p>
   <ul>
-    <li><strong>铜损</strong>：$P_{cu} = 3 R_s i_{rms}^2 = \tfrac{3}{2} R_s i_{pk}^2$。4310 在 1 A 时 8.0 W，2 A 时 <strong>32 W——平方律！</strong>这就是为什么堵转容易烧电机：扭矩只翻倍，发热翻四倍。</li>
+    <li><strong>铜损</strong>：$P_{cu} = 3 R_s i_{rms}^2 = \tfrac{3}{2} R_s i_{pk}^2$。4310 在 1 A（<strong>峰值</strong>）时 8.0 W，2 A（峰值）时 <strong>32 W——平方律！</strong>这就是为什么堵转容易烧电机：扭矩只翻倍，发热翻四倍。</li>
     <li><strong>热态掉性能</strong>：铜的温度系数 ≈ +0.4%/°C，从 25°C 热到 100°C，电阻 +30% → 同电压下压降更大、带载最高转速更低。</li>
     <li><strong>磁钢也在退</strong>：钕铁硼磁链温度系数 ≈ −0.11%/°C，热态 $\psi_f$ 下降 → $K_t$ 下降 → 同样扭矩要更大电流 → 铜损更大……闭环设计必须留热裕量。</li>
   </ul>
@@ -5040,9 +5074,9 @@ PWM 频率          20 kHz（T_pwm = 50 µs，本站第 8 章工程设置；手�
   <div id="lightbox-hint">点击任意处或按 Esc 关闭</div>
 </div>
 
-<script src="js/main.js?v=20260914d"></script>
-<script src="js/params.js?v=20260914d"></script>
-<script src="js/wugan.js?v=20260914d"></script>
-<script src="js/toc.js?v=20260914d"></script>
+<script src="js/main.js?v=20260914e"></script>
+<script src="js/params.js?v=20260914e"></script>
+<script src="js/wugan.js?v=20260914e"></script>
+<script src="js/toc.js?v=20260914e"></script>
 </body>
 </html>

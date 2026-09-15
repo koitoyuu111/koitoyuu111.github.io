@@ -398,4 +398,75 @@
     [rSl, lSl].forEach(function (el) { el && el.addEventListener('input', function () { tCur = 0; }); });
     loop(viz);
   })();
+
+  /* ============================================================
+     🧮 口径换算器：峰值 / 有效值是同一股电流的两种「报数」
+     ============================================================ */
+  (function unitViz() {
+    const viz = makeViz('cv-unit');
+    if (!viz) return;
+    const iSl = $id('un-i'), ro = $id('un-readout');
+    const W = viz.s.w, H = viz.s.h;
+    const RS = 5.35, S2 = Math.SQRT2;
+    const KT_PK = 0.217;                 // 峰值口径（本站/FOC）
+    const KT_RMS = KT_PK * S2;           // 有效值口径 ≈ 0.3069（规格书写 0.3）
+
+    viz.draw = function () {
+      const irms = +iSl.value, ipk = irms * S2;
+      const T = KT_PK * ipk;                        // = KT_RMS * irms
+      const Pcu = 1.5 * RS * ipk * ipk;             // = 3 * RS * irms^2（恒等）
+      const ctx = viz.s.ctx;
+      ctx.clearRect(0, 0, W, H);
+
+      /* ---- 左：波形与两条参考线 ---- */
+      const x0 = 44, x1 = 470, cy = H / 2, k = 92 / (2.0 * S2);   // 满量程 = 2 A 有效值
+      ctx.strokeStyle = P.grid; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x0, cy); ctx.lineTo(x1, cy); ctx.stroke();
+      const hline = (valA, col, lab, dy) => {
+        const y = cy - valA * k, y2 = cy + valA * k;
+        ctx.strokeStyle = col; ctx.lineDashOffset = 0; ctx.setLineDash([6, 4]); ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y);
+        ctx.moveTo(x0, y2); ctx.lineTo(x1, y2); ctx.stroke();
+        ctx.setLineDash([]);
+        txt(ctx, lab, x1 - 4, y + dy, col, 12, 'right', '600');
+      };
+      hline(ipk, P.accent, '峰值 I_pk = ' + ipk.toFixed(2) + ' A', -10);
+      hline(irms, P.good, '有效值 I_rms = ' + irms.toFixed(2) + ' A', 14);
+      ctx.strokeStyle = P.white; ctx.lineWidth = 2.4; ctx.beginPath();
+      for (let px = x0; px <= x1; px += 2) {
+        const th = (px - x0) / (x1 - x0) * Math.PI * 4;
+        const y = cy - ipk * k * Math.sin(th);
+        px === x0 ? ctx.moveTo(px, y) : ctx.lineTo(px, y);
+      }
+      ctx.stroke();
+      txt(ctx, '同一股电流的波形', x0, 18, P.dim, 12.5, 'left');
+
+      /* ---- 右：两种口径的账本 ---- */
+      const bx = 508;
+      txt(ctx, '两种口径的账本', bx, 26, P.accent, 13.5, 'left', '700');
+      txt(ctx, 'I_rms = ' + irms.toFixed(2) + ' A  ⇔  I_pk = ' + ipk.toFixed(2) + ' A',
+          bx, 52, P.white, 13, 'left', '600');
+      txt(ctx, '峰值口径  ' + KT_PK.toFixed(3) + ' N·m/A × ' + ipk.toFixed(2) + ' A',
+          bx, 88, P.accent, 13, 'left');
+      txt(ctx, '= ' + T.toFixed(3) + ' N·m', bx + 268, 88, P.accent, 13, 'left', '700');
+      txt(ctx, '有效值口径 ' + KT_RMS.toFixed(3) + ' N·m/A × ' + irms.toFixed(2) + ' A',
+          bx, 112, P.good, 13, 'left');
+      txt(ctx, '= ' + T.toFixed(3) + ' N·m', bx + 268, 112, P.good, 13, 'left', '700');
+      txt(ctx, '↑ 同一个扭矩 ✓（所以 K_t^pk = √2 · K_t^rms）', bx, 136, P.white, 12.5, 'left');
+      ctx.strokeStyle = P.faint; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(bx, 156); ctx.lineTo(W - 20, 156); ctx.stroke();
+      txt(ctx, '铜损也一样（峰值/有效值口径恒等）', bx, 176, P.dim, 12.5, 'left');
+      txt(ctx, '1.5·R·I_pk²  = 1.5×5.35×' + (ipk * ipk).toFixed(2) + ' = ' + Pcu.toFixed(1) + ' W',
+          bx, 202, P.accent, 13, 'left');
+      txt(ctx, '3·R·I_rms²   = 3×5.35×' + (irms * irms).toFixed(2) + ' = ' + Pcu.toFixed(1) + ' W',
+          bx, 226, P.good, 13, 'left');
+      txt(ctx, '↑ 发热只认有效值，但两种报数必然给出同一个数', bx, 250, P.dim, 12, 'left');
+
+      ro.textContent = 'I_rms=' + irms.toFixed(2) + 'A ⇔ I_pk=' + ipk.toFixed(2) + 'A  ｜  '
+        + '峰值口径 ' + KT_PK.toFixed(3) + '×' + ipk.toFixed(2) + '=' + T.toFixed(3) + 'N·m  ｜  '
+        + '有效值口径 ' + KT_RMS.toFixed(3) + '×' + irms.toFixed(2) + '=' + T.toFixed(3) + 'N·m  ｜  '
+        + '同一个扭矩 ✓  ｜  铜损 ' + Pcu.toFixed(1) + 'W（两种口径同值）';
+    };
+    loop(viz);
+  })();
 })();
