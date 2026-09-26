@@ -2486,11 +2486,79 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
 <div class="chap-intro">
   <div class="ci-title">📖 本章导读</div>
   <p class="ci-goal"><strong>定位</strong>：把规格书上的每个参数讲透：它是什么、决定哪个公式、怎么影响性能——<strong>全部用你的 4310 规格书参数做算例</strong>。</p>
-  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#s-ch9-1">9.1 参数全景：一台 PMSM 的「身份证」</a> <a href="#s-ch9-2">9.2 视觉理解：反电动势与电压预算</a> <a href="#s-ch9-3">9.3 理论推导：扭矩公式——从功率到 $K_t$</a> <a href="#s-ch9-4">9.4 理论推导：反电动势公式与 $K_t \leftrightarrow K_e$ 换算</a> <a href="#s-ch9-5">9.5 底层分析：电压极限与最高转速</a> <a href="#s-ch9-6">9.6 底层分析：电阻与电感——热和快慢的两个守门员</a> <a href="#s-ch9-7">9.7 底层分析：机械侧——J 与 B，你想转多快就转多快吗</a> <a href="#s-ch9-8">9.8 参数 → 性能速查表</a> <a href="#s-ch9-9">9.9 没有数据手册：手测 / 估算每一个参数</a> <a href="#s-ch9-10">9.10 代码举例：参数自检脚本（C）</a> <a href="#s-ch9-11">9.11 面试视角：参数高频问答</a> <a href="#s-ch9-12">9.12 本章小结</a></div>
-  <p class="ci-howto"><strong>读法</strong>：9.1 参数全景表 → 9.4 的 Kt↔Ke 换算（<strong>口径陷阱最密集</strong>，两种常数不要混用）→ 9.5 电压极限（算你的电机到底能跑多快）→ 9.8「参数 → 性能」速查表最实用。</p>
+  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#s-ch9-0">9.0 先修：电机建模（三套电压方程）</a> <a href="#s-ch9-1">9.1 参数全景：一台 PMSM 的「身份证」</a> <a href="#s-ch9-2">9.2 视觉理解：反电动势与电压预算</a> <a href="#s-ch9-3">9.3 理论推导：扭矩公式——从功率到 $K_t$</a> <a href="#s-ch9-4">9.4 理论推导：反电动势公式与 $K_t \leftrightarrow K_e$ 换算</a> <a href="#s-ch9-5">9.5 底层分析：电压极限与最高转速</a> <a href="#s-ch9-6">9.6 底层分析：电阻与电感——热和快慢的两个守门员</a> <a href="#s-ch9-7">9.7 底层分析：机械侧——J 与 B，你想转多快就转多快吗</a> <a href="#s-ch9-8">9.8 参数 → 性能速查表</a> <a href="#s-ch9-9">9.9 没有数据手册：手测 / 估算每一个参数</a> <a href="#s-ch9-10">9.10 代码举例：参数自检脚本（C）</a> <a href="#s-ch9-11">9.11 面试视角：参数高频问答</a> <a href="#s-ch9-12">9.12 本章小结</a></div>
+  <p class="ci-howto"><strong>读法</strong>：<strong>9.0 先看三套电压方程</strong>（参数就是那三个方程里的系数）→ 9.1 参数全景表 → 9.4 的 Kt↔Ke 换算（<strong>口径陷阱最密集</strong>，两种常数不要混用）→ 9.5 电压极限（算你的电机到底能跑多快）→ 9.8「参数 → 性能」速查表最实用。</p>
 </div>
 
   <p class="lead">数据手册上的 $K_t$、$K_e$、$R_s$、$L_d$、$J$……不是一堆孤立的数，而是一台电机的「体检报告」。本章把每个参数讲透三件事：<strong>物理上它是什么</strong>、<strong>公式上它决定什么</strong>、<strong>工程上它怎么坑你</strong>。全部算例用同一台 24V 关节电机（p=14、Rs=5.35Ω、Ld=Lq=5.32mH、Kt=0.217 N·m/A（峰值口径；规格书写 0.30 是<strong>有效值</strong>口径））——建议学完第 1 章就读本章，也可以最后回来查。</p>
+
+  <h2 id="s-ch9-0">9.0 先修：电机建模——三套电压方程（abc → αβ → dq）</h2>
+  <p class="lead">讲参数之前，先把<strong>电机自己的方程</strong>立起来。「参数」不是一张孤立的数字表，而是<strong>下面三个方程里的系数</strong>——知道它出现在哪一项，才知道它影响什么、怎么测、错一点会怎样。</p>
+  <div class="callout"><strong>本节出处</strong>：袁雷、胡冰新、魏克银 等《现代永磁同步电机控制原理及 MATLAB 仿真》第 1 章（p13~35，式 1-1 ~ 1-34）。
+  完整推导见该书该章；<strong>书配套的仿真模型</strong>在 <code>foc_fangzheng/fzmx/仿真模型说明/第1章仿真模型/</code>
+  （<code>Clark.slx</code> / <code>Park.slx</code> / <code>PMSM_dq frame</code> / <code>PMSM_Stationary frame</code>）。</div>
+
+  <h3>① abc（三相静止）：最贴合物理，最难拿来算</h3>
+  <p>先有三条理想化假设（书 p14）：<strong>忽略铁芯饱和</strong>、<strong>不计涡流与磁滞损耗</strong>、<strong>三相电流对称正弦</strong>。于是</p>
+  $$u_{3s} = R\,i_{3s} + \frac{\mathrm{d}}{\mathrm{d}t}\psi_{3s}\qquad(\text{式 }1\text{-}1)$$
+  $$\psi_{3s} = L_{3s}i_{3s} + \psi_f F_{3s}(\theta_e),\qquad F_{3s}=\Big[\sin\theta_e,\ \sin\big(\theta_e-\tfrac{2\pi}{3}\big),\ \sin\big(\theta_e+\tfrac{2\pi}{3}\big)\Big]^{T}\qquad(1\text{-}2)$$
+  <p>电感矩阵 $L_{3s}$ 由互感 $L_{m3}$ 与漏感 $L_{l3}$ 构成：对角元是自感+漏感，非对角元是互感 $L_{m3}\cos\frac{2\pi}{3}$。</p>
+  $$T_e = \frac{1}{2}p_n\frac{\partial}{\partial\theta_m}\big(i_{3s}^{T}\psi_{3s}\big)\quad(1\text{-}3)\qquad\qquad J\frac{\mathrm{d}\omega_m}{\mathrm{d}t} = T_e - T_L - B\omega_m\quad(1\text{-}4)$$
+  <div class="callout">⚠️ <strong>为什么不能直接拿它控制</strong>：① 磁链是 $\theta_e$ 的函数 —— <strong>系数随转子位置变</strong>（时变系统，PI 无从下手）；
+  ② 三相通过互感<strong>强耦合</strong>；③ 转矩表达式复杂到看不出「哪个电流管转矩」。
+  书上的原话是：必须用坐标变换做<strong>降阶与解耦</strong>。</div>
+
+  <h3>② αβ（两相静止）：$\theta_e$ 只藏在反电动势里 —— 观测器的黄金出发点</h3>
+  <p>对<strong>表贴式</strong>电机（$L_d = L_q = L_s$，4310 正是这一类），书上式 (1-34) 的通用模型塌成极简形式：</p>
+  $$\begin{cases} u_\alpha = R_s i_\alpha + L_s\dfrac{\mathrm{d}i_\alpha}{\mathrm{d}t} - \omega_e\psi_f\sin\theta_e \\[6pt] u_\beta = R_s i_\beta + L_s\dfrac{\mathrm{d}i_\beta}{\mathrm{d}t} + \omega_e\psi_f\cos\theta_e\end{cases}$$
+  <div class="callout">💡 <strong>这套为什么最重要</strong>：所有系数都是<strong>常数</strong>，$\theta_e$ 只出现在反电动势项 $[-\sin\theta_e,\ \cos\theta_e]^{T}$ 里。
+  于是可以把反电动势当「扩张状态」观测出来，再用 $\mathrm{atan2}$ 或 PLL 反推位置与转速——<strong>第 10~11 章的无感观测器全部建立在它上面</strong>。
+  这也直接解释了<strong>低速无感为什么会失效</strong>：反电动势幅值 $\omega_e\psi_f$ 随转速趋零。
+  （你的 Simulink <code>PMSM</code> 子系统实现的就是这两个式子。）</div>
+
+  <h3>③ dq（两相旋转）：交流变直流，PI 终于能用</h3>
+  $$\begin{cases} u_d = R_s i_d + L_d\dfrac{\mathrm{d}i_d}{\mathrm{d}t} - \omega_e L_q i_q \\[6pt] u_q = R_s i_q + L_q\dfrac{\mathrm{d}i_q}{\mathrm{d}t} + \omega_e\big(L_d i_d + \psi_f\big)\end{cases}\qquad(\text{式 }1\text{-}27)$$
+  <p>四项各是什么——以 <strong>4310 在 522 rpm</strong>（1 A 带载下的最高转速，9.5 算过）、$i_q=1$ A 峰值、$i_d=0$ 代入：</p>
+  <table class="sv-table">
+    <thead><tr><th>项</th><th>名字</th><th>物理意义</th><th>4310 数值</th></tr></thead>
+    <tbody>
+      <tr><td>$R_s i_d,\ R_s i_q$</td><td>电阻压降</td><td>铜耗的来源；低速时最大的电压消耗</td><td>5.35 V</td></tr>
+      <tr><td>$L\dfrac{\mathrm{d}i}{\mathrm{d}t}$</td><td>变压器（暂态）压降</td><td>只在电流变化时出现 → 决定电流环快慢</td><td>稳态 0；上限 2605 A/s</td></tr>
+      <tr><td>$-\omega_e L_q i_q$</td><td>d 轴旋转耦合</td><td>q 轴电流在 d 轴上顶出的电压 → 需前馈解耦</td><td>−4.07 V</td></tr>
+      <tr><td>$\omega_e L_d i_d$</td><td>q 轴旋转耦合</td><td>d 轴电流对 q 轴的耦合（$i_d=0$ 时为 0）</td><td>0</td></tr>
+      <tr><td>$\omega_e\psi_f$</td><td><strong>反电动势</strong></td><td>转子磁体旋转产生，与转速成正比</td><td><strong>7.89 V</strong></td></tr>
+    </tbody>
+  </table>
+  <p>把这几项合成：$|u| = \sqrt{(-4.07)^2 + (5.35+7.89)^2} = \sqrt{16.6+175.3} = \mathbf{13.86\ V}$ —— <strong>正好顶到 $U_{dc}/\sqrt3$ 的相电压上限</strong>。这不是巧合：522 rpm 就是"1 A 带载跑多快"，而这一行就是 9.5 那张表的算法过程。</p>
+  <p>转矩与角度关系（式 1-28、1-29）：</p>
+  $$T_e = \frac{3}{2}p_n i_q\big[i_d(L_d - L_q) + \psi_f\big]\quad(1\text{-}28)\qquad\qquad
+  \begin{cases}\omega_e = n_p\omega_m \\ N_r = \dfrac{30}{\pi}\omega_m \\ \theta_e = \int\omega_e\,\mathrm{d}t\end{cases}\quad(1\text{-}29)$$
+  <p>表贴式（$L_d = L_q$）时<strong>磁阻项恒为零</strong> → $T_e = \frac{3}{2}p_n\psi_f i_q = K_t i_q$，且 $i_d = 0$ 就是最优。</p>
+
+  <h3>④ 三套方程怎么选（一张表记住）</h3>
+  <table class="sv-table">
+    <thead><tr><th>坐标系</th><th>$\theta_e$ 出现在哪</th><th>方程系数</th><th>用来干什么</th></tr></thead>
+    <tbody>
+      <tr><td>abc（三相静止）</td><td>电感矩阵里（还多出 $2\theta_e$ 项）</td><td>时变</td><td>理解物理、写最原始的仿真</td></tr>
+      <tr><td>αβ（两相静止）</td><td><strong>只在反电动势项</strong></td><td>常数</td><td><strong>无感观测器</strong>（第 10~11 章）、PR 控制</td></tr>
+      <tr><td>dq（两相旋转）</td><td>在「旋转」本身里（作为已知输入）</td><td>常数</td><td><strong>矢量控制</strong>（第 5 章）、电流环整定、参数辨识</td></tr>
+    </tbody>
+  </table>
+
+  <h3>⑤ 桥：参数就是这三个方程里的系数</h3>
+  <p>现在回头看 9.1 那张「参数全景表」——每个参数都能在上面三套方程里指出<strong>它出现在哪一项</strong>：</p>
+  <table class="sv-table">
+    <thead><tr><th>参数</th><th>出现在</th><th>决定什么</th><th>本章位置</th></tr></thead>
+    <tbody>
+      <tr><td>$R_s$</td><td>(1-1)、(1-27) 的电阻压降项</td><td>铜损、电压预算、低速观测误差</td><td>9.6</td></tr>
+      <tr><td>$L_d,\ L_q$</td><td>(1-27) 的变压器压降与旋转耦合项</td><td>电流环带宽、动态响应</td><td>9.6</td></tr>
+      <tr><td>$\psi_f$</td><td>(1-2) 的永磁项、(1-27) 的反电动势项</td><td>最高转速、转矩能力</td><td>9.4</td></tr>
+      <tr><td>$p$（极对数）</td><td>(1-3)(1-28)、(1-29) 的角度关系</td><td>电频率、延迟敏感度</td><td>9.2</td></tr>
+      <tr><td>$J,\ B$</td><td>(1-4) 机械运动方程</td><td>加速度上限、位置环带宽</td><td>9.7</td></tr>
+      <tr><td>$K_t,\ K_e$</td><td>由 (1-28) 与 (1-27) 的反电动势项定义出来</td><td>转矩换算、最高转速</td><td>9.3 / 9.4</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">💡 <strong>读本章的正确姿势</strong>：每看到一个参数，先想它在上面的哪一项里；再想「这一项在我这台电机上有多大」（就是电压预算）；最后才看它怎么测。<strong>参数之间之所以能互相印证（85.5 法则、KV 互证），根源就是出自同一组方程。</strong></div>
 
   <h2 id="s-ch9-1">9.1 参数全景：一台 PMSM 的「身份证」</h2>
   <p>先把全部参数摆在一张桌上。注意最后一列——<strong>手册经常缺斤少两，缺的得自己测或自己算</strong>（方法见 9.9）。</p>
