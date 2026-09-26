@@ -64,6 +64,16 @@
     for (var i = 0; i < liList.length; i++) {
       if (liList[i].classList.contains('active')) { act = liList[i]; break; }
     }
+    /* 当前板块高亮：最后一个位于当前章之前的组标 */
+    var kids = [].slice.call(toc.children);
+    var ai = act ? kids.indexOf(act) : -1;
+    var groups = kids.filter(function (el) {
+      return el.classList && el.classList.contains('toc-group');
+    });
+    var curG = null;
+    groups.forEach(function (g) { if (kids.indexOf(g) < ai) curG = g; });
+    groups.forEach(function (g) { g.classList.toggle('cur-group', g === curG); });
+
     liList.forEach(function (li) {
       if (!li.__hs) return;
       if (li === act) {
