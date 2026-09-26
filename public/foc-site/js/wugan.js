@@ -1,7 +1,9 @@
 /* ============================================================
    第 10 章 · 无感控制 —— 三个交互动画
    依赖 main.js 的全局：COL（共享调色板）、setupCanvas()、makePlayer()；
-   主题切换听 document 上的 'canvas-theme-change'。
+   主题重绘：本文件**不**监听 'canvas-theme-change'（COL 是同一对象，被原地 mutate），
+   而是靠 makeViz() + loop() 里 `if (viz.visible) viz.draw()` 的常驻 tick 每帧重绘 ——
+   只要画布在视口内就自动跟上新配色，暂停态也一样。
    参数口径：除特别注明外，按本章手册的口径
    （ψf = 0.005 Wb, p = 14, R_s = 1.0 Ω, L_s = 0.5 mH，24 V 母线，10 kHz PWM）。
    ============================================================ */
@@ -50,7 +52,7 @@
     if (!viz) return;
     const nSl = $id('oc-n'), bwSl = $id('oc-bw'), errSl = $id('oc-err');
     const ro = $id('oc-readout'), btnReset = $id('oc-reset');
-    const player = (typeof makePlayer === 'function') ? makePlayer('btn-oc-play') : { playing: true };
+    const player = (typeof makePlayer === 'function') ? makePlayer('btn-oc-play') : { playing: false };
     const W = viz.s.w, H = viz.s.h;
 
     // 慢放系数：ωn=150 Hz 时收敛只要几毫秒，原速播放肉眼看不见
@@ -165,7 +167,7 @@
     const viz = makeViz('cv-pll-gain');
     if (!viz) return;
     const normChk = $id('pg-norm'), bwSl = $id('pg-bw'), ro = $id('pg-readout');
-    const player = (typeof makePlayer === 'function') ? makePlayer('btn-pg-play') : { playing: true };
+    const player = (typeof makePlayer === 'function') ? makePlayer('btn-pg-play') : { playing: false };
     const W = viz.s.w, H = viz.s.h;
 
     const PSI = 0.005, P_POLES = 14;

@@ -568,3 +568,10 @@ p code, li code {
   color: var(--text);
   background: linear-gradient(90deg, var(--accent-soft), transparent 72%);
 }
+
+/* ================= 鼠标粒子拖尾覆盖层 ================= */
+#cursor-fx {
+  position: fixed; inset: 0; z-index: 9999;
+  pointer-events: none;                 /* 不挡任何点击 */
+  contain: strict;                      /* 独立图层，避免影响页面重排 */
+}

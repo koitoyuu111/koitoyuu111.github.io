@@ -305,11 +305,14 @@ function capV(ctx, x, yT, yB, name, labelPos = 'bottom') {
 /* ---------- 播放/暂停 控制封装 ---------- */
 function makePlayer(btnId) {
   const btn = document.getElementById(btnId);
-  const state = { playing: true };
-  if (btn) btn.addEventListener('click', () => {
-    state.playing = !state.playing;
-    btn.textContent = state.playing ? '⏸ 暂停' : '▶ 播放';
-  });
+  const state = { playing: false };      // ← 默认暂停（进站不动，点了才跑）
+  if (btn) {
+    btn.textContent = '▶ 播放';
+    btn.addEventListener('click', () => {
+      state.playing = !state.playing;
+      btn.textContent = state.playing ? '⏸ 暂停' : '▶ 播放';
+    });
+  }
   return state;
 }
 
@@ -424,6 +427,9 @@ function makePlayer(btnId) {
     requestAnimationFrame(tick);
   }
   timeSlider.addEventListener('input', () => { tDeg = +timeSlider.value; draw(); });
+  // 默认暂停后 tick 不再每帧 draw()，主题切换必须自己重绘（否则暂停时换主题画布不刷新）
+  document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   draw(); tick();
 })();
 
@@ -903,6 +909,7 @@ function svCalc(m, deg) {
   }
   sDuty.addEventListener('input', draw);
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   tick();
 })();
 
@@ -1150,6 +1157,7 @@ function svCalc(m, deg) {
   function tick() { draw(); requestAnimationFrame(tick); }
   [s1, s2].forEach(el => el.addEventListener('input', draw));
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   tick();
 })();
 
@@ -1272,6 +1280,7 @@ function svCalc(m, deg) {
   sPos.addEventListener('input', () => { pos = +sPos.value / 1000; draw(); });
   [sTh, sMod].forEach(el => el.addEventListener('input', draw));
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   tick();
 })();
 
@@ -1441,6 +1450,7 @@ function svCalc(m, deg) {
     requestAnimationFrame(tick);
   }
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   draw();
   requestAnimationFrame(tick);
 })();
@@ -1567,6 +1577,7 @@ function svCalc(m, deg) {
     requestAnimationFrame(tick);
   }
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   draw();
   requestAnimationFrame(tick);
 })();
@@ -1700,6 +1711,7 @@ function svCalc(m, deg) {
   modSlider.addEventListener('input', draw);
   spwmBtn.addEventListener('click', draw);
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   tick();
 })();
 
@@ -1853,6 +1865,7 @@ function svCalc(m, deg) {
   spdSlider.addEventListener('input', draw);
   origBtn.addEventListener('click', draw);
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   tick();
 })();
 
@@ -1929,6 +1942,7 @@ function svCalc(m, deg) {
 
   draw();
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
 })();
 
 /* ============================================================
@@ -2052,6 +2066,7 @@ function svCalc(m, deg) {
 
   draw();
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
 })();
 
 /* ============================================================
@@ -2132,6 +2147,7 @@ function svCalc(m, deg) {
   kpSlider.addEventListener('input', () => { simulate(); draw(); });
   kiSlider.addEventListener('input', () => { simulate(); draw(); });
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   simulate(); draw();
 })();
 
@@ -2354,10 +2370,14 @@ function segSwitch(ids, cb) {
     label(ctx, txt, 430, 384, state === 2 ? COL.warn : COL.dim, 12);
     if (state === 0) label(ctx, pos ? 'ia > 0  正半周' : 'ia < 0  负半周', 260, yVBUS - 14, pos ? COL.good : COL.c, 12);
   }
-  let t0 = null;
+  /* 默认暂停：只有点「▶ 播放」才推进时间，静止态保留一帧静态画面（2026-09-26） */
+  const player = makePlayer('btn-hb-play');
+  let tAcc = 0, tPrevTick = 0;
   function tick(ts) {
-    if (t0 === null) t0 = ts;
-    draw((ts - t0) / 1000);
+    if (!tPrevTick) tPrevTick = ts;
+    if (player.playing) tAcc += (ts - tPrevTick) / 1000;
+    tPrevTick = ts;
+    draw(tAcc);
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
@@ -2481,10 +2501,14 @@ function segSwitch(ids, cb) {
       label(ctx, 'VB ≈ VBUS+12V    VS ≈ VBUS    VB−VS 恒为 12V', 430, 324, COL.warn, 11.5);
     }
   }
-  let t0 = null;
+  /* 默认暂停：只有点「▶ 播放」才推进时间，静止态保留一帧静态画面（2026-09-26） */
+  const player = makePlayer('btn-bs-play');
+  let tAcc = 0, tPrevTick = 0;
   function tick(ts) {
-    if (t0 === null) t0 = ts;
-    draw((ts - t0) / 1000);
+    if (!tPrevTick) tPrevTick = ts;
+    if (player.playing) tAcc += (ts - tPrevTick) / 1000;
+    tPrevTick = ts;
+    draw(tAcc);
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
@@ -2605,10 +2629,14 @@ function segSwitch(ids, cb) {
     label(ctx, 'V_ADC = G·i·Rs + Vref/2', 705, 140, COL.dim, 11.5);
     label(ctx, '零点被 Vref/2 抬到量程中间', 705, 160, COL.fb, 10);
   }
-  let t0 = null;
+  /* 默认暂停：只有点「▶ 播放」才推进时间，静止态保留一帧静态画面（2026-09-26） */
+  const player = makePlayer('btn-sh-play');
+  let tAcc = 0, tPrevTick = 0;
   function tick(ts) {
-    if (t0 === null) t0 = ts;
-    draw((ts - t0) / 1000);
+    if (!tPrevTick) tPrevTick = ts;
+    if (player.playing) tAcc += (ts - tPrevTick) / 1000;
+    tPrevTick = ts;
+    draw(tAcc);
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
@@ -2762,10 +2790,14 @@ function segSwitch(ids, cb) {
       label(ctx, '电感电流不能突变，D5 给它留了一条回路', 430, 324, COL.dim, 11);
     }
   }
-  let t0 = null;
+  /* 默认暂停：只有点「▶ 播放」才推进时间，静止态保留一帧静态画面（2026-09-26） */
+  const player = makePlayer('btn-buck-play');
+  let tAcc = 0, tPrevTick = 0;
   function tick(ts) {
-    if (t0 === null) t0 = ts;
-    draw((ts - t0) / 1000);
+    if (!tPrevTick) tPrevTick = ts;
+    if (player.playing) tAcc += (ts - tPrevTick) / 1000;
+    tPrevTick = ts;
+    draw(tAcc);
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
@@ -2948,8 +2980,9 @@ function segSwitch(ids, cb) {
   ];
   const NBEAT = 30;   // 显示的节拍数
 
-  let beat = 0, playing = true;
+  let beat = 0, playing = false;
   const playBtn = document.getElementById('btn-sc-play');
+  if (playBtn) { playBtn.textContent = '▶ 播放'; playBtn.classList.remove('active'); }
   const slider = document.getElementById('sc-time');
   const readout = document.getElementById('sc-readout');
   if (playBtn) playBtn.addEventListener('click', () => {
@@ -3055,7 +3088,7 @@ function segSwitch(ids, cb) {
   const cntOf  = phi => ARR * (1 - Math.abs(2 * phi - 1));   // 三角波 0→ARR→0
   const yTri   = cnt => R.tri.bot - (cnt / ARR) * (R.tri.bot - R.tri.top);
 
-  let phi = 0.5, playing = true, slow = false, dtC = 40, duty = 68;
+  let phi = 0.5, playing = false, slow = false, dtC = 40, duty = 68;
   const CCR1 = () => Math.round(duty / 100 * ARR);
 
   /* MOS 桥臂状态: 2=上管ON 1=死区(两管都关) 0=下管ON */
@@ -3068,6 +3101,7 @@ function segSwitch(ids, cb) {
   const ch1nOn = p => mosState(p) === 0;
 
   const playBtn = document.getElementById('btn-t1-play');
+  if (playBtn) { playBtn.textContent = '▶ 播放'; playBtn.classList.remove('active'); }
   const slowBtn = document.getElementById('btn-t1-slow');
   const tSlider = document.getElementById('t1-time');
   const dSlider = document.getElementById('t1-dt');
@@ -3400,8 +3434,9 @@ function segSwitch(ids, cb) {
     { name: 'V', d: 0.50, col: COL.b },
     { name: 'W', d: 0.28, col: COL.c }
   ];
-  let phi = 0.5, playing = true;
+  let phi = 0.5, playing = false;
   const playBtn = document.getElementById('btn-bm-play');
+  if (playBtn) { playBtn.textContent = '▶ 播放'; playBtn.classList.remove('active'); }
   const tSlider = document.getElementById('bm-time');
   const ro = document.getElementById('bm-readout');
   if (playBtn) playBtn.addEventListener('click', () => {

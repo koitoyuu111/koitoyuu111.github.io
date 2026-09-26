@@ -8,16 +8,16 @@
      （:root:root / [data-theme][data-theme]）保证不受后面 style.css 的加载顺序影响。
      放在这里而不是 CSS 之后，是因为下面那个 jsdelivr 的 KaTeX 样式表会阻塞解析，
      放后面会让「揭晓」被拖慢好几秒。 -->
-<script src="js/blog-theme.js?v=20260926c"></script>
+<script src="js/blog-theme.js?v=20260926d"></script>
 <title>FOC 学习站 v2.5 — 磁场定向控制：从直觉到实战</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
-<link rel="stylesheet" href="css/style.css?v=20260926c">
+<link rel="stylesheet" href="css/style.css?v=20260926d">
 <!-- 博客集成工具层：搜索定位 / 网页缩放 / 宽表格滚动（放在最后以便覆盖） -->
-<link rel="stylesheet" href="css/foc-tools.css?v=20260926c">
-<script defer src="js/foc-tools.js?v=20260926c"></script>
+<link rel="stylesheet" href="css/foc-tools.css?v=20260926d">
+<script defer src="js/foc-tools.js?v=20260926d"></script>
 </head>
 <body>
 
@@ -188,7 +188,7 @@
       <canvas id="cv-vector" width="360" height="300"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-rf-play">⏸ 暂停</button>
+      <button class="btn" id="btn-rf-play">▶ 播放</button>
       <label>转速 <input type="range" id="rf-speed" min="10" max="200" value="60"></label>
       <label>时间 <input type="range" id="rf-time" min="0" max="360" value="0"></label>
       <span id="rf-angle-readout" class="readout"></span>
@@ -221,7 +221,7 @@
       <canvas id="cv-torque" width="860" height="300"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-tq-play">⏸ 暂停</button>
+      <button class="btn" id="btn-tq-play">▶ 播放</button>
       <button class="btn btn-ghost" id="btn-tq-step">⏭ 单步</button>
       <label><input type="checkbox" id="tq-mode" checked> 对比模式（橙=六步换相 / 绿=FOC）</label>
       <span class="readout" id="tq-readout"></span>
@@ -346,7 +346,7 @@ int main(void) {
       <canvas id="cv-clarke-ab" width="360" height="320"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-cl-play">⏸ 暂停</button>
+      <button class="btn" id="btn-cl-play">▶ 播放</button>
       <label>时间 <input type="range" id="cl-time" min="0" max="360" value="0"></label>
       <span class="readout" id="cl-readout"></span>
     </div>
@@ -468,7 +468,7 @@ void clarke_inv(float alpha, float beta,
       <canvas id="cv-park-wave" width="460" height="320"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-pk-play">⏸ 暂停</button>
+      <button class="btn" id="btn-pk-play">▶ 播放</button>
       <label>dq 系转速 <input type="range" id="pk-speed" min="0" max="200" value="100"><span id="pk-speed-val">100%</span></label>
       <span class="readout" id="pk-readout"></span>
     </div>
@@ -586,7 +586,7 @@ int main(void) {
       <canvas id="cv-pwm-basic" width="560" height="230"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-pwm-play">⏸ 暂停</button>
+      <button class="btn" id="btn-pwm-play">▶ 播放</button>
       <label>占空比 <input type="range" id="pwm-duty" min="0" max="100" value="30"><span id="pwm-duty-val">30%</span></label>
       <span class="readout" id="pwm-readout"></span>
     </div>
@@ -845,7 +845,7 @@ int main(void) {
       <canvas id="cv-sector" width="940" height="330"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-sec-play">⏸ 暂停</button>
+      <button class="btn" id="btn-sec-play">▶ 播放</button>
       <label>目标角 θ <input type="range" id="sec-th" min="0" max="360" value="37"><span id="sec-th-val">37°</span></label>
       <label>调制度 m <input type="range" id="sec-mod" min="5" max="115" value="80"><span id="sec-mod-val">0.80</span></label>
       <div class="seg" id="seg-sector-mode">
@@ -871,7 +871,7 @@ int main(void) {
       <canvas id="cv-seg-detail" width="940" height="300"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-seg2-play">⏸ 暂停</button>
+      <button class="btn" id="btn-seg2-play">▶ 播放</button>
       <label>时刻 <input type="range" id="seg2-pos" min="0" max="1000" value="300"><span id="seg2-pos-val">0.30</span></label>
       <label>θ <input type="range" id="seg2-th" min="0" max="359" value="25"><span id="seg2-th-val">25°</span></label>
       <label>调制度 m <input type="range" id="seg2-mod" min="10" max="115" value="80"><span id="seg2-mod-val">0.80</span></label>
@@ -956,7 +956,7 @@ int main(void) {
       <canvas id="cv-sv-7seg" width="560" height="370"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-7seg-play">⏸ 暂停</button>
+      <button class="btn" id="btn-7seg-play">▶ 播放</button>
       <label>时刻 <input type="range" id="seg-pos" min="0" max="1000" value="300"><span id="seg-pos-val">0.30</span></label>
       <label>目标角 θ <input type="range" id="seg-th" min="0" max="359" value="25"><span id="seg-th-val">25°</span></label>
       <label>调制度 <input type="range" id="seg-mod" min="10" max="115" value="80"><span id="seg-mod-val">0.80</span></label>
@@ -1023,7 +1023,7 @@ int main(void) {
       <canvas id="cv-sv-duty" width="460" height="320"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-sv-play">⏸ 暂停</button>
+      <button class="btn" id="btn-sv-play">▶ 播放</button>
       <label>调制度 <input type="range" id="sv-mod" min="10" max="115" value="80"><span id="sv-mod-val">0.80</span></label>
       <button class="btn" id="btn-sv-spwm">对比：叠加 SPWM 正弦波</button>
       <span class="readout" id="sv-readout"></span>
@@ -1045,7 +1045,7 @@ int main(void) {
       <canvas id="cv-24v" width="920" height="660"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-24v-play">⏸ 暂停</button>
+      <button class="btn" id="btn-24v-play">▶ 播放</button>
       <label>调制度 <input type="range" id="mv-mod" min="10" max="100" value="80"><span id="mv-mod-val">0.80</span></label>
       <label>速度 <input type="range" id="mv-spd" min="1" max="15" value="4"><span id="mv-spd-val">4</span></label>
       <button class="btn" id="btn-24v-orig">✓ 原始目标电压（虚线）</button>
@@ -1504,6 +1504,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
 <div class="viz-block" id="viz-bridge">
     <canvas id="cv-hbridge" width="860" height="400"></canvas>
     <div class="viz-controls">
+      <button class="btn" id="btn-hb-play">▶ 播放</button>
       <button class="btn active" id="btn-hb-high">上管导通</button>
       <button class="btn" id="btn-hb-low">下管导通</button>
       <button class="btn" id="btn-hb-free">双管关断·续流</button>
@@ -1533,6 +1534,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
 <div class="viz-block" id="viz-bootstrap">
     <canvas id="cv-bootstrap" width="860" height="340"></canvas>
     <div class="viz-controls">
+      <button class="btn" id="btn-bs-play">▶ 播放</button>
       <button class="btn active" id="btn-bs-charge">下管导通 · 自举电容充电</button>
       <button class="btn" id="btn-bs-drive">上管导通 · 电容供电</button>
       <span class="readout" id="bs-readout">VS≈GND，12V 经自举二极管给 Cb 充到 ≈12V</span>
@@ -1560,6 +1562,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
 <div class="viz-block" id="viz-shunt">
     <canvas id="cv-shunt" width="860" height="360"></canvas>
     <div class="viz-controls">
+      <button class="btn" id="btn-sh-play">▶ 播放</button>
       <button class="btn active" id="btn-sh-3">三相电阻</button>
       <button class="btn" id="btn-sh-2">下桥臂两电阻</button>
       <button class="btn" id="btn-sh-1">母线单电阻</button>
@@ -1590,6 +1593,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
 <div class="viz-block" id="viz-buck">
     <canvas id="cv-buck" width="860" height="340"></canvas>
     <div class="viz-controls">
+      <button class="btn" id="btn-buck-play">▶ 播放</button>
       <span class="readout" id="buck-readout">开关导通：母线经 L 给输出供电并储能</span>
     </div>
     <div class="viz-caption">图 7-4：Buck 降压（照驱动板实际电路：U2 TPS54560，L1 6.8μH，D5 SS34 续流，R15/R17 反馈分压）。内部开关导通时电流走“VBUS→SW→L1→负载”，电感储能；关断时电感电流经 D5 续流。稳态下伏秒平衡给出 $V_{out} = D \cdot V_{in}$，24V→12V 即 D=50%。右侧为板上电源链。</div>
@@ -1653,7 +1657,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
   <div class="viz-block" id="viz-tim1">
     <canvas id="cv-tim1-timing" width="880" height="600"></canvas>
     <div class="viz-controls">
-      <button class="btn active" id="btn-t1-play">⏸ 暂停</button>
+      <button class="btn" id="btn-t1-play">▶ 播放</button>
       <button class="btn" id="btn-t1-slow">🐢 慢放 ×0.15</button>
       <label>时间轴 <input type="range" id="t1-time" min="0" max="1000" value="500"></label>
       <label>占空比 <input type="range" id="t1-duty" min="0" max="100" value="68"></label>
@@ -1798,7 +1802,7 @@ HAL_TIMEx_PWMN_Start(&amp;htim1, TIM_CHANNEL_1);  /* CH1N/2N/3N 互补输出 */<
   <div class="viz-block" id="viz-bridgem">
     <canvas id="cv-bridge-mos" width="880" height="450"></canvas>
     <div class="viz-controls">
-      <button class="btn active" id="btn-bm-play">⏸ 暂停</button>
+      <button class="btn" id="btn-bm-play">▶ 播放</button>
       <label>时间轴 <input type="range" id="bm-time" min="0" max="1000" value="500"></label>
       <span class="readout" id="bm-readout"></span>
     </div>
@@ -1869,7 +1873,7 @@ moto-&gt;Ic = (moto-&gt;Ic_zero - (float)ADC1-&gt;JDR2) * 3.3f / 4095.0f / 30.0f
   <div class="viz-block" id="viz-sched">
     <canvas id="cv-sched" width="880" height="330"></canvas>
     <div class="viz-controls">
-      <button class="btn active" id="btn-sc-play">⏸ 暂停</button>
+      <button class="btn" id="btn-sc-play">▶ 播放</button>
       <label>时间轴 <input type="range" id="sc-time" min="0" max="600" value="0"></label>
       <span class="readout" id="sc-readout"></span>
     </div>
@@ -2152,7 +2156,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
       <canvas id="cv-bemf" width="900" height="340"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-bemf-play">⏸ 暂停</button>
+      <button class="btn" id="btn-bemf-play">▶ 播放</button>
       <label>转速 <input type="range" id="bemf-n" min="0" max="1200" value="600"></label>
       <label>负载电流 <input type="range" id="bemf-iq" min="0" max="2" step="0.1" value="0.5"></label>
       <label>母线电压 <input type="range" id="bemf-udc" min="12" max="30" value="24"></label>
@@ -2272,7 +2276,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
       <canvas id="cv-tn" width="880" height="380"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-tn-play">⏸ 暂停</button>
+      <button class="btn" id="btn-tn-play">▶ 播放</button>
       <label>母线电压 <input type="range" id="tn-udc" min="12" max="30" value="24"></label>
       <label>限流 <input type="range" id="tn-imax" min="0.5" max="2" step="0.1" value="1"></label>
       <label><input type="checkbox" id="tn-fw" checked> 显示弱磁包络</label>
@@ -2297,7 +2301,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
       <canvas id="cv-tau" width="880" height="300"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-tau-play">⏸ 暂停</button>
+      <button class="btn" id="btn-tau-play">▶ 播放</button>
       <label>电阻 R <input type="range" id="tau-r" min="2" max="10" step="0.05" value="5.35"></label>
       <label>电感 L <input type="range" id="tau-l" min="1" max="10" step="0.1" value="5.3"></label>
       <span id="tau-readout" class="readout"></span>
@@ -2649,7 +2653,7 @@ e_β = u_β − R_s·i_β − L_s·di_β/dt
   <div class="viz-block" id="viz-obs-conv">
     <div class="viz-canvas-row"><canvas id="cv-obs-conv" width="900" height="340"></canvas></div>
     <div class="viz-controls">
-      <button class="btn" id="btn-oc-play">⏸ 暂停</button>
+      <button class="btn" id="btn-oc-play">▶ 播放</button>
       <label>转速 <input type="range" id="oc-n" min="0" max="1000" value="300"></label>
       <label>观测器带宽 ωn <input type="range" id="oc-bw" min="10" max="600" value="150"></label>
       <label>初始误差 <input type="range" id="oc-err" min="10" max="90" value="60"></label>
@@ -2875,7 +2879,7 @@ z_β = k·sign(ĩ_β)</code></pre>
   <div class="viz-block" id="viz-pll-gain">
     <div class="viz-canvas-row"><canvas id="cv-pll-gain" width="880" height="360"></canvas></div>
     <div class="viz-controls">
-      <button class="btn" id="btn-pg-play">⏸ 暂停</button>
+      <button class="btn" id="btn-pg-play">▶ 播放</button>
       <label><input type="checkbox" id="pg-norm" checked> 归一化 ε = sin(Δθ)</label>
       <label>基准 ωn <input type="range" id="pg-bw" min="20" max="500" value="150"></label>
       <span id="pg-readout" class="readout"></span>
@@ -5273,9 +5277,11 @@ PWM 频率          20 kHz（T_pwm = 50 µs，本站第 8 章工程设置；手�
   <div id="lightbox-hint">点击任意处或按 Esc 关闭</div>
 </div>
 
-<script src="js/main.js?v=20260926c"></script>
-<script src="js/params.js?v=20260926c"></script>
-<script src="js/wugan.js?v=20260926c"></script>
-<script src="js/toc.js?v=20260926c"></script>
+<script src="js/perf.js?v=20260926d"></script>
+<script src="js/main.js?v=20260926d"></script>
+<script src="js/params.js?v=20260926d"></script>
+<script src="js/wugan.js?v=20260926d"></script>
+<script src="js/toc.js?v=20260926d"></script>
+<script src="js/cursor.js?v=20260926d"></script>
 </body>
 </html>

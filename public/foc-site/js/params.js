@@ -84,7 +84,7 @@
     const nSl = $id('bemf-n'), iqSl = $id('bemf-iq'), udcSl = $id('bemf-udc');
     const ro = $id('bemf-readout');
     const player = (typeof makePlayer === 'function') ? makePlayer('btn-bemf-play')
-                                                       : { playing: true };
+                                                       : { playing: false };
     let phase = 0, tPrev = 0;
     const W = viz.s.w, H = viz.s.h;
 
@@ -187,7 +187,7 @@
     const udcSl = $id('tn-udc'), imaxSl = $id('tn-imax'), fwChk = $id('tn-fw');
     const ro = $id('tn-readout');
     const player = (typeof makePlayer === 'function') ? makePlayer('btn-tn-play')
-                                                       : { playing: true };
+                                                       : { playing: false };
     const W = viz.s.w, H = viz.s.h;
     const NMAX = 1500;                       // 横轴：rpm
     let cache = null, cursor = 0, tPrev = 0;
@@ -330,7 +330,7 @@
     if (!viz) return;
     const rSl = $id('tau-r'), lSl = $id('tau-l'), ro = $id('tau-readout');
     const player = (typeof makePlayer === 'function') ? makePlayer('btn-tau-play')
-                                                       : { playing: true };
+                                                       : { playing: false };
     const W = viz.s.w, H = viz.s.h;
     const I = 1.0;                      // 阶跃目标 1 A
     let tCur = 0, tPrev = 0;

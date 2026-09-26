@@ -580,6 +580,13 @@ p code, li code {
   background: linear-gradient(90deg, var(--accent-soft), transparent 72%);
 }
 
+/* ================= 鼠标粒子拖尾覆盖层 ================= */
+#cursor-fx {
+  position: fixed; inset: 0; z-index: 9999;
+  pointer-events: none;                 /* 不挡任何点击 */
+  contain: strict;                      /* 独立图层，避免影响页面重排 */
+}
+
 </style>
 </head>
 <body>
@@ -751,7 +758,7 @@ p code, li code {
       <canvas id="cv-vector" width="360" height="300"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-rf-play">⏸ 暂停</button>
+      <button class="btn" id="btn-rf-play">▶ 播放</button>
       <label>转速 <input type="range" id="rf-speed" min="10" max="200" value="60"></label>
       <label>时间 <input type="range" id="rf-time" min="0" max="360" value="0"></label>
       <span id="rf-angle-readout" class="readout"></span>
@@ -784,7 +791,7 @@ p code, li code {
       <canvas id="cv-torque" width="860" height="300"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-tq-play">⏸ 暂停</button>
+      <button class="btn" id="btn-tq-play">▶ 播放</button>
       <button class="btn btn-ghost" id="btn-tq-step">⏭ 单步</button>
       <label><input type="checkbox" id="tq-mode" checked> 对比模式（橙=六步换相 / 绿=FOC）</label>
       <span class="readout" id="tq-readout"></span>
@@ -909,7 +916,7 @@ int main(void) {
       <canvas id="cv-clarke-ab" width="360" height="320"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-cl-play">⏸ 暂停</button>
+      <button class="btn" id="btn-cl-play">▶ 播放</button>
       <label>时间 <input type="range" id="cl-time" min="0" max="360" value="0"></label>
       <span class="readout" id="cl-readout"></span>
     </div>
@@ -1031,7 +1038,7 @@ void clarke_inv(float alpha, float beta,
       <canvas id="cv-park-wave" width="460" height="320"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-pk-play">⏸ 暂停</button>
+      <button class="btn" id="btn-pk-play">▶ 播放</button>
       <label>dq 系转速 <input type="range" id="pk-speed" min="0" max="200" value="100"><span id="pk-speed-val">100%</span></label>
       <span class="readout" id="pk-readout"></span>
     </div>
@@ -1149,7 +1156,7 @@ int main(void) {
       <canvas id="cv-pwm-basic" width="560" height="230"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-pwm-play">⏸ 暂停</button>
+      <button class="btn" id="btn-pwm-play">▶ 播放</button>
       <label>占空比 <input type="range" id="pwm-duty" min="0" max="100" value="30"><span id="pwm-duty-val">30%</span></label>
       <span class="readout" id="pwm-readout"></span>
     </div>
@@ -1408,7 +1415,7 @@ int main(void) {
       <canvas id="cv-sector" width="940" height="330"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-sec-play">⏸ 暂停</button>
+      <button class="btn" id="btn-sec-play">▶ 播放</button>
       <label>目标角 θ <input type="range" id="sec-th" min="0" max="360" value="37"><span id="sec-th-val">37°</span></label>
       <label>调制度 m <input type="range" id="sec-mod" min="5" max="115" value="80"><span id="sec-mod-val">0.80</span></label>
       <div class="seg" id="seg-sector-mode">
@@ -1434,7 +1441,7 @@ int main(void) {
       <canvas id="cv-seg-detail" width="940" height="300"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-seg2-play">⏸ 暂停</button>
+      <button class="btn" id="btn-seg2-play">▶ 播放</button>
       <label>时刻 <input type="range" id="seg2-pos" min="0" max="1000" value="300"><span id="seg2-pos-val">0.30</span></label>
       <label>θ <input type="range" id="seg2-th" min="0" max="359" value="25"><span id="seg2-th-val">25°</span></label>
       <label>调制度 m <input type="range" id="seg2-mod" min="10" max="115" value="80"><span id="seg2-mod-val">0.80</span></label>
@@ -1519,7 +1526,7 @@ int main(void) {
       <canvas id="cv-sv-7seg" width="560" height="370"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-7seg-play">⏸ 暂停</button>
+      <button class="btn" id="btn-7seg-play">▶ 播放</button>
       <label>时刻 <input type="range" id="seg-pos" min="0" max="1000" value="300"><span id="seg-pos-val">0.30</span></label>
       <label>目标角 θ <input type="range" id="seg-th" min="0" max="359" value="25"><span id="seg-th-val">25°</span></label>
       <label>调制度 <input type="range" id="seg-mod" min="10" max="115" value="80"><span id="seg-mod-val">0.80</span></label>
@@ -1586,7 +1593,7 @@ int main(void) {
       <canvas id="cv-sv-duty" width="460" height="320"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-sv-play">⏸ 暂停</button>
+      <button class="btn" id="btn-sv-play">▶ 播放</button>
       <label>调制度 <input type="range" id="sv-mod" min="10" max="115" value="80"><span id="sv-mod-val">0.80</span></label>
       <button class="btn" id="btn-sv-spwm">对比：叠加 SPWM 正弦波</button>
       <span class="readout" id="sv-readout"></span>
@@ -1608,7 +1615,7 @@ int main(void) {
       <canvas id="cv-24v" width="920" height="660"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-24v-play">⏸ 暂停</button>
+      <button class="btn" id="btn-24v-play">▶ 播放</button>
       <label>调制度 <input type="range" id="mv-mod" min="10" max="100" value="80"><span id="mv-mod-val">0.80</span></label>
       <label>速度 <input type="range" id="mv-spd" min="1" max="15" value="4"><span id="mv-spd-val">4</span></label>
       <button class="btn" id="btn-24v-orig">✓ 原始目标电压（虚线）</button>
@@ -2067,6 +2074,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
 <div class="viz-block" id="viz-bridge">
     <canvas id="cv-hbridge" width="860" height="400"></canvas>
     <div class="viz-controls">
+      <button class="btn" id="btn-hb-play">▶ 播放</button>
       <button class="btn active" id="btn-hb-high">上管导通</button>
       <button class="btn" id="btn-hb-low">下管导通</button>
       <button class="btn" id="btn-hb-free">双管关断·续流</button>
@@ -2096,6 +2104,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
 <div class="viz-block" id="viz-bootstrap">
     <canvas id="cv-bootstrap" width="860" height="340"></canvas>
     <div class="viz-controls">
+      <button class="btn" id="btn-bs-play">▶ 播放</button>
       <button class="btn active" id="btn-bs-charge">下管导通 · 自举电容充电</button>
       <button class="btn" id="btn-bs-drive">上管导通 · 电容供电</button>
       <span class="readout" id="bs-readout">VS≈GND，12V 经自举二极管给 Cb 充到 ≈12V</span>
@@ -2123,6 +2132,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
 <div class="viz-block" id="viz-shunt">
     <canvas id="cv-shunt" width="860" height="360"></canvas>
     <div class="viz-controls">
+      <button class="btn" id="btn-sh-play">▶ 播放</button>
       <button class="btn active" id="btn-sh-3">三相电阻</button>
       <button class="btn" id="btn-sh-2">下桥臂两电阻</button>
       <button class="btn" id="btn-sh-1">母线单电阻</button>
@@ -2153,6 +2163,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
 <div class="viz-block" id="viz-buck">
     <canvas id="cv-buck" width="860" height="340"></canvas>
     <div class="viz-controls">
+      <button class="btn" id="btn-buck-play">▶ 播放</button>
       <span class="readout" id="buck-readout">开关导通：母线经 L 给输出供电并储能</span>
     </div>
     <div class="viz-caption">图 7-4：Buck 降压（照驱动板实际电路：U2 TPS54560，L1 6.8μH，D5 SS34 续流，R15/R17 反馈分压）。内部开关导通时电流走“VBUS→SW→L1→负载”，电感储能；关断时电感电流经 D5 续流。稳态下伏秒平衡给出 $V_{out} = D \cdot V_{in}$，24V→12V 即 D=50%。右侧为板上电源链。</div>
@@ -2216,7 +2227,7 @@ float theta_e = wrap_2pi(dir * wrap_360(theta_enc - offset) * POLE_PAIRS);</code
   <div class="viz-block" id="viz-tim1">
     <canvas id="cv-tim1-timing" width="880" height="600"></canvas>
     <div class="viz-controls">
-      <button class="btn active" id="btn-t1-play">⏸ 暂停</button>
+      <button class="btn" id="btn-t1-play">▶ 播放</button>
       <button class="btn" id="btn-t1-slow">🐢 慢放 ×0.15</button>
       <label>时间轴 <input type="range" id="t1-time" min="0" max="1000" value="500"></label>
       <label>占空比 <input type="range" id="t1-duty" min="0" max="100" value="68"></label>
@@ -2361,7 +2372,7 @@ HAL_TIMEx_PWMN_Start(&amp;htim1, TIM_CHANNEL_1);  /* CH1N/2N/3N 互补输出 */<
   <div class="viz-block" id="viz-bridgem">
     <canvas id="cv-bridge-mos" width="880" height="450"></canvas>
     <div class="viz-controls">
-      <button class="btn active" id="btn-bm-play">⏸ 暂停</button>
+      <button class="btn" id="btn-bm-play">▶ 播放</button>
       <label>时间轴 <input type="range" id="bm-time" min="0" max="1000" value="500"></label>
       <span class="readout" id="bm-readout"></span>
     </div>
@@ -2432,7 +2443,7 @@ moto-&gt;Ic = (moto-&gt;Ic_zero - (float)ADC1-&gt;JDR2) * 3.3f / 4095.0f / 30.0f
   <div class="viz-block" id="viz-sched">
     <canvas id="cv-sched" width="880" height="330"></canvas>
     <div class="viz-controls">
-      <button class="btn active" id="btn-sc-play">⏸ 暂停</button>
+      <button class="btn" id="btn-sc-play">▶ 播放</button>
       <label>时间轴 <input type="range" id="sc-time" min="0" max="600" value="0"></label>
       <span class="readout" id="sc-readout"></span>
     </div>
@@ -2715,7 +2726,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
       <canvas id="cv-bemf" width="900" height="340"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-bemf-play">⏸ 暂停</button>
+      <button class="btn" id="btn-bemf-play">▶ 播放</button>
       <label>转速 <input type="range" id="bemf-n" min="0" max="1200" value="600"></label>
       <label>负载电流 <input type="range" id="bemf-iq" min="0" max="2" step="0.1" value="0.5"></label>
       <label>母线电压 <input type="range" id="bemf-udc" min="12" max="30" value="24"></label>
@@ -2835,7 +2846,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
       <canvas id="cv-tn" width="880" height="380"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-tn-play">⏸ 暂停</button>
+      <button class="btn" id="btn-tn-play">▶ 播放</button>
       <label>母线电压 <input type="range" id="tn-udc" min="12" max="30" value="24"></label>
       <label>限流 <input type="range" id="tn-imax" min="0.5" max="2" step="0.1" value="1"></label>
       <label><input type="checkbox" id="tn-fw" checked> 显示弱磁包络</label>
@@ -2860,7 +2871,7 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
       <canvas id="cv-tau" width="880" height="300"></canvas>
     </div>
     <div class="viz-controls">
-      <button class="btn" id="btn-tau-play">⏸ 暂停</button>
+      <button class="btn" id="btn-tau-play">▶ 播放</button>
       <label>电阻 R <input type="range" id="tau-r" min="2" max="10" step="0.05" value="5.35"></label>
       <label>电感 L <input type="range" id="tau-l" min="1" max="10" step="0.1" value="5.3"></label>
       <span id="tau-readout" class="readout"></span>
@@ -3212,7 +3223,7 @@ e_β = u_β − R_s·i_β − L_s·di_β/dt
   <div class="viz-block" id="viz-obs-conv">
     <div class="viz-canvas-row"><canvas id="cv-obs-conv" width="900" height="340"></canvas></div>
     <div class="viz-controls">
-      <button class="btn" id="btn-oc-play">⏸ 暂停</button>
+      <button class="btn" id="btn-oc-play">▶ 播放</button>
       <label>转速 <input type="range" id="oc-n" min="0" max="1000" value="300"></label>
       <label>观测器带宽 ωn <input type="range" id="oc-bw" min="10" max="600" value="150"></label>
       <label>初始误差 <input type="range" id="oc-err" min="10" max="90" value="60"></label>
@@ -3438,7 +3449,7 @@ z_β = k·sign(ĩ_β)</code></pre>
   <div class="viz-block" id="viz-pll-gain">
     <div class="viz-canvas-row"><canvas id="cv-pll-gain" width="880" height="360"></canvas></div>
     <div class="viz-controls">
-      <button class="btn" id="btn-pg-play">⏸ 暂停</button>
+      <button class="btn" id="btn-pg-play">▶ 播放</button>
       <label><input type="checkbox" id="pg-norm" checked> 归一化 ε = sin(Δθ)</label>
       <label>基准 ωn <input type="range" id="pg-bw" min="20" max="500" value="150"></label>
       <span id="pg-readout" class="readout"></span>
@@ -5838,6 +5849,99 @@ PWM 频率          20 kHz（T_pwm = 50 µs，本站第 8 章工程设置；手�
 
 <script>
 /* ============================================================
+   性能优化（2026-09-26）
+   背景：本站有 35 个画布动画，但 main.js 里没有任何"离屏暂停"，
+        实测滚到正文中段时 35 个画布全在视口外，仍有 616 次/秒的动画回调、
+        约 164 ms/s 的 JS 开销（≈16% CPU）+ 长任务 → 明显卡顿。
+
+   两条措施：
+   ① 全局限帧 30 fps —— 所有动画共用一个节拍（原来各自 60 fps）
+   ② 离屏画布不绘制 —— 视口外的画布，把"会真正光栅化"的绘制调用换成空操作；
+      数学状态照常推进（save/restore/beginPath/arc 等状态类调用不拦截），
+      回到视口后第一帧自然重画，观感无差别。
+      前提已验证：main.js / params.js / wugan.js 都不读画布像素（getImageData/toDataURL 均为 0 次）。
+   ============================================================ */
+(function () {
+  'use strict';
+
+  /* ---------- ① 全局限帧 ---------- */
+  var FPS = 30;
+  var INTERVAL = 1000 / FPS;
+  var _raf = window.requestAnimationFrame.bind(window);
+  var queue = [];
+  var pending = false;
+  var last = 0;
+
+  window.requestAnimationFrame = function (cb) {
+    queue.push(cb);
+    if (!pending) { pending = true; _raf(flush); }
+    return queue.length;
+  };
+
+  function flush(t) {
+    pending = false;
+    if (!last || t - last >= INTERVAL) {
+      last = t;
+      var list = queue.splice(0, queue.length);
+      for (var i = 0; i < list.length; i++) {
+        try { list[i](t); } catch (e) { /* 单个动画出错不影响其它 */ }
+      }
+    }
+    if (queue.length) { pending = true; _raf(flush); }
+  }
+
+  /* ---------- ② 离屏画布不绘制 ---------- */
+  var DRAW = ['clearRect', 'fillRect', 'strokeRect', 'fill', 'stroke',
+              'fillText', 'strokeText', 'drawImage', 'putImageData'];
+
+  /* 画布"重回视口"时广播一次 canvas-redraw。
+     为什么需要：静音期间动画的绘制调用被吞掉了（例如主题切换时各动画监听
+     'canvas-theme-change' 调的 draw()）。对"默认暂停"的动画来说，之后 tick
+     不再每帧 draw()，滚回来就永远停留在旧配色 —— 广播一次让它补画一帧。 */
+  function requestRedraw() {
+    try { document.dispatchEvent(new CustomEvent('canvas-redraw')); } catch (e) { /* 忽略 */ }
+  }
+
+  function initCanvasMute() {
+    if (typeof IntersectionObserver === 'undefined') return;
+    var list = [].slice.call(document.querySelectorAll('canvas'));
+    list.forEach(function (cv) {
+      var ctx = null;
+      try { ctx = cv.getContext('2d'); } catch (e) { return; }
+      if (!ctx) return;
+      var orig = {};
+      DRAW.forEach(function (m) { if (typeof ctx[m] === 'function') orig[m] = ctx[m]; });
+      var muted = null;
+      function setMuted(on) {
+        if (muted === on) return;
+        muted = on;
+        DRAW.forEach(function (m) {
+          if (!orig[m]) return;
+          ctx[m] = on ? function () {} : orig[m];
+        });
+      }
+      new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          setMuted(!e.isIntersecting);
+          if (e.isIntersecting) requestRedraw();
+        });
+      }, { rootMargin: '240px 0px' }).observe(cv);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCanvasMute);
+  } else {
+    initCanvasMute();
+  }
+
+  /* 切到后台标签页时重置节拍，回来不追赶 */
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) last = 0; });
+})();
+
+</script>
+<script>
+/* ============================================================
    FOC 学习站 — 全部交互可视化
    ============================================================ */
 'use strict';
@@ -6144,11 +6248,14 @@ function capV(ctx, x, yT, yB, name, labelPos = 'bottom') {
 /* ---------- 播放/暂停 控制封装 ---------- */
 function makePlayer(btnId) {
   const btn = document.getElementById(btnId);
-  const state = { playing: true };
-  if (btn) btn.addEventListener('click', () => {
-    state.playing = !state.playing;
-    btn.textContent = state.playing ? '⏸ 暂停' : '▶ 播放';
-  });
+  const state = { playing: false };      // ← 默认暂停（进站不动，点了才跑）
+  if (btn) {
+    btn.textContent = '▶ 播放';
+    btn.addEventListener('click', () => {
+      state.playing = !state.playing;
+      btn.textContent = state.playing ? '⏸ 暂停' : '▶ 播放';
+    });
+  }
   return state;
 }
 
@@ -6263,6 +6370,9 @@ function makePlayer(btnId) {
     requestAnimationFrame(tick);
   }
   timeSlider.addEventListener('input', () => { tDeg = +timeSlider.value; draw(); });
+  // 默认暂停后 tick 不再每帧 draw()，主题切换必须自己重绘（否则暂停时换主题画布不刷新）
+  document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   draw(); tick();
 })();
 
@@ -6742,6 +6852,7 @@ function svCalc(m, deg) {
   }
   sDuty.addEventListener('input', draw);
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   tick();
 })();
 
@@ -6989,6 +7100,7 @@ function svCalc(m, deg) {
   function tick() { draw(); requestAnimationFrame(tick); }
   [s1, s2].forEach(el => el.addEventListener('input', draw));
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   tick();
 })();
 
@@ -7111,6 +7223,7 @@ function svCalc(m, deg) {
   sPos.addEventListener('input', () => { pos = +sPos.value / 1000; draw(); });
   [sTh, sMod].forEach(el => el.addEventListener('input', draw));
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   tick();
 })();
 
@@ -7280,6 +7393,7 @@ function svCalc(m, deg) {
     requestAnimationFrame(tick);
   }
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   draw();
   requestAnimationFrame(tick);
 })();
@@ -7406,6 +7520,7 @@ function svCalc(m, deg) {
     requestAnimationFrame(tick);
   }
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   draw();
   requestAnimationFrame(tick);
 })();
@@ -7539,6 +7654,7 @@ function svCalc(m, deg) {
   modSlider.addEventListener('input', draw);
   spwmBtn.addEventListener('click', draw);
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   tick();
 })();
 
@@ -7692,6 +7808,7 @@ function svCalc(m, deg) {
   spdSlider.addEventListener('input', draw);
   origBtn.addEventListener('click', draw);
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   tick();
 })();
 
@@ -7768,6 +7885,7 @@ function svCalc(m, deg) {
 
   draw();
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
 })();
 
 /* ============================================================
@@ -7891,6 +8009,7 @@ function svCalc(m, deg) {
 
   draw();
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
 })();
 
 /* ============================================================
@@ -7971,6 +8090,7 @@ function svCalc(m, deg) {
   kpSlider.addEventListener('input', () => { simulate(); draw(); });
   kiSlider.addEventListener('input', () => { simulate(); draw(); });
   document.addEventListener('canvas-theme-change', draw);
+  document.addEventListener('canvas-redraw', draw);   // 画布重回视口时 perf.js 广播，补画一帧
   simulate(); draw();
 })();
 
@@ -8193,10 +8313,14 @@ function segSwitch(ids, cb) {
     label(ctx, txt, 430, 384, state === 2 ? COL.warn : COL.dim, 12);
     if (state === 0) label(ctx, pos ? 'ia > 0  正半周' : 'ia < 0  负半周', 260, yVBUS - 14, pos ? COL.good : COL.c, 12);
   }
-  let t0 = null;
+  /* 默认暂停：只有点「▶ 播放」才推进时间，静止态保留一帧静态画面（2026-09-26） */
+  const player = makePlayer('btn-hb-play');
+  let tAcc = 0, tPrevTick = 0;
   function tick(ts) {
-    if (t0 === null) t0 = ts;
-    draw((ts - t0) / 1000);
+    if (!tPrevTick) tPrevTick = ts;
+    if (player.playing) tAcc += (ts - tPrevTick) / 1000;
+    tPrevTick = ts;
+    draw(tAcc);
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
@@ -8320,10 +8444,14 @@ function segSwitch(ids, cb) {
       label(ctx, 'VB ≈ VBUS+12V    VS ≈ VBUS    VB−VS 恒为 12V', 430, 324, COL.warn, 11.5);
     }
   }
-  let t0 = null;
+  /* 默认暂停：只有点「▶ 播放」才推进时间，静止态保留一帧静态画面（2026-09-26） */
+  const player = makePlayer('btn-bs-play');
+  let tAcc = 0, tPrevTick = 0;
   function tick(ts) {
-    if (t0 === null) t0 = ts;
-    draw((ts - t0) / 1000);
+    if (!tPrevTick) tPrevTick = ts;
+    if (player.playing) tAcc += (ts - tPrevTick) / 1000;
+    tPrevTick = ts;
+    draw(tAcc);
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
@@ -8444,10 +8572,14 @@ function segSwitch(ids, cb) {
     label(ctx, 'V_ADC = G·i·Rs + Vref/2', 705, 140, COL.dim, 11.5);
     label(ctx, '零点被 Vref/2 抬到量程中间', 705, 160, COL.fb, 10);
   }
-  let t0 = null;
+  /* 默认暂停：只有点「▶ 播放」才推进时间，静止态保留一帧静态画面（2026-09-26） */
+  const player = makePlayer('btn-sh-play');
+  let tAcc = 0, tPrevTick = 0;
   function tick(ts) {
-    if (t0 === null) t0 = ts;
-    draw((ts - t0) / 1000);
+    if (!tPrevTick) tPrevTick = ts;
+    if (player.playing) tAcc += (ts - tPrevTick) / 1000;
+    tPrevTick = ts;
+    draw(tAcc);
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
@@ -8601,10 +8733,14 @@ function segSwitch(ids, cb) {
       label(ctx, '电感电流不能突变，D5 给它留了一条回路', 430, 324, COL.dim, 11);
     }
   }
-  let t0 = null;
+  /* 默认暂停：只有点「▶ 播放」才推进时间，静止态保留一帧静态画面（2026-09-26） */
+  const player = makePlayer('btn-buck-play');
+  let tAcc = 0, tPrevTick = 0;
   function tick(ts) {
-    if (t0 === null) t0 = ts;
-    draw((ts - t0) / 1000);
+    if (!tPrevTick) tPrevTick = ts;
+    if (player.playing) tAcc += (ts - tPrevTick) / 1000;
+    tPrevTick = ts;
+    draw(tAcc);
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
@@ -8787,8 +8923,9 @@ function segSwitch(ids, cb) {
   ];
   const NBEAT = 30;   // 显示的节拍数
 
-  let beat = 0, playing = true;
+  let beat = 0, playing = false;
   const playBtn = document.getElementById('btn-sc-play');
+  if (playBtn) { playBtn.textContent = '▶ 播放'; playBtn.classList.remove('active'); }
   const slider = document.getElementById('sc-time');
   const readout = document.getElementById('sc-readout');
   if (playBtn) playBtn.addEventListener('click', () => {
@@ -8894,7 +9031,7 @@ function segSwitch(ids, cb) {
   const cntOf  = phi => ARR * (1 - Math.abs(2 * phi - 1));   // 三角波 0→ARR→0
   const yTri   = cnt => R.tri.bot - (cnt / ARR) * (R.tri.bot - R.tri.top);
 
-  let phi = 0.5, playing = true, slow = false, dtC = 40, duty = 68;
+  let phi = 0.5, playing = false, slow = false, dtC = 40, duty = 68;
   const CCR1 = () => Math.round(duty / 100 * ARR);
 
   /* MOS 桥臂状态: 2=上管ON 1=死区(两管都关) 0=下管ON */
@@ -8907,6 +9044,7 @@ function segSwitch(ids, cb) {
   const ch1nOn = p => mosState(p) === 0;
 
   const playBtn = document.getElementById('btn-t1-play');
+  if (playBtn) { playBtn.textContent = '▶ 播放'; playBtn.classList.remove('active'); }
   const slowBtn = document.getElementById('btn-t1-slow');
   const tSlider = document.getElementById('t1-time');
   const dSlider = document.getElementById('t1-dt');
@@ -9239,8 +9377,9 @@ function segSwitch(ids, cb) {
     { name: 'V', d: 0.50, col: COL.b },
     { name: 'W', d: 0.28, col: COL.c }
   ];
-  let phi = 0.5, playing = true;
+  let phi = 0.5, playing = false;
   const playBtn = document.getElementById('btn-bm-play');
+  if (playBtn) { playBtn.textContent = '▶ 播放'; playBtn.classList.remove('active'); }
   const tSlider = document.getElementById('bm-time');
   const ro = document.getElementById('bm-readout');
   if (playBtn) playBtn.addEventListener('click', () => {
@@ -9488,7 +9627,7 @@ function segSwitch(ids, cb) {
     const nSl = $id('bemf-n'), iqSl = $id('bemf-iq'), udcSl = $id('bemf-udc');
     const ro = $id('bemf-readout');
     const player = (typeof makePlayer === 'function') ? makePlayer('btn-bemf-play')
-                                                       : { playing: true };
+                                                       : { playing: false };
     let phase = 0, tPrev = 0;
     const W = viz.s.w, H = viz.s.h;
 
@@ -9591,7 +9730,7 @@ function segSwitch(ids, cb) {
     const udcSl = $id('tn-udc'), imaxSl = $id('tn-imax'), fwChk = $id('tn-fw');
     const ro = $id('tn-readout');
     const player = (typeof makePlayer === 'function') ? makePlayer('btn-tn-play')
-                                                       : { playing: true };
+                                                       : { playing: false };
     const W = viz.s.w, H = viz.s.h;
     const NMAX = 1500;                       // 横轴：rpm
     let cache = null, cursor = 0, tPrev = 0;
@@ -9734,7 +9873,7 @@ function segSwitch(ids, cb) {
     if (!viz) return;
     const rSl = $id('tau-r'), lSl = $id('tau-l'), ro = $id('tau-readout');
     const player = (typeof makePlayer === 'function') ? makePlayer('btn-tau-play')
-                                                       : { playing: true };
+                                                       : { playing: false };
     const W = viz.s.w, H = viz.s.h;
     const I = 1.0;                      // 阶跃目标 1 A
     let tCur = 0, tPrev = 0;
@@ -9880,7 +10019,9 @@ function segSwitch(ids, cb) {
 /* ============================================================
    第 10 章 · 无感控制 —— 三个交互动画
    依赖 main.js 的全局：COL（共享调色板）、setupCanvas()、makePlayer()；
-   主题切换听 document 上的 'canvas-theme-change'。
+   主题重绘：本文件**不**监听 'canvas-theme-change'（COL 是同一对象，被原地 mutate），
+   而是靠 makeViz() + loop() 里 `if (viz.visible) viz.draw()` 的常驻 tick 每帧重绘 ——
+   只要画布在视口内就自动跟上新配色，暂停态也一样。
    参数口径：除特别注明外，按本章手册的口径
    （ψf = 0.005 Wb, p = 14, R_s = 1.0 Ω, L_s = 0.5 mH，24 V 母线，10 kHz PWM）。
    ============================================================ */
@@ -9929,7 +10070,7 @@ function segSwitch(ids, cb) {
     if (!viz) return;
     const nSl = $id('oc-n'), bwSl = $id('oc-bw'), errSl = $id('oc-err');
     const ro = $id('oc-readout'), btnReset = $id('oc-reset');
-    const player = (typeof makePlayer === 'function') ? makePlayer('btn-oc-play') : { playing: true };
+    const player = (typeof makePlayer === 'function') ? makePlayer('btn-oc-play') : { playing: false };
     const W = viz.s.w, H = viz.s.h;
 
     // 慢放系数：ωn=150 Hz 时收敛只要几毫秒，原速播放肉眼看不见
@@ -10044,7 +10185,7 @@ function segSwitch(ids, cb) {
     const viz = makeViz('cv-pll-gain');
     if (!viz) return;
     const normChk = $id('pg-norm'), bwSl = $id('pg-bw'), ro = $id('pg-readout');
-    const player = (typeof makePlayer === 'function') ? makePlayer('btn-pg-play') : { playing: true };
+    const player = (typeof makePlayer === 'function') ? makePlayer('btn-pg-play') : { playing: false };
     const W = viz.s.w, H = viz.s.h;
 
     const PSI = 0.005, P_POLES = 14;
@@ -10353,6 +10494,100 @@ function segSwitch(ids, cb) {
     }, { rootMargin: '-6% 0px -74% 0px' });
     allH.forEach(function (h) { io.observe(h); });
   }
+})();
+
+</script>
+<script>
+/* ============================================================
+   鼠标粒子拖尾（轻量版）
+   设计取舍：
+   - 只在真的有鼠标（hover + fine pointer）时启用；触屏 / 触摸板优先设备不加载
+   - 尊重「减少动态效果」系统设置（prefers-reduced-motion）
+   - 粒子上限 56 个，鼠标停下就自然淡出，**空闲时不跑 rAF**（不占 CPU）
+   - 颜色跟随站点主题变量（--accent / --accent2），亮暗主题自动适配
+   - 覆盖层 pointer-events:none，不挡任何点击
+   ============================================================ */
+(function () {
+  'use strict';
+  if (typeof window.matchMedia !== 'function') return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+  var MAX = 56;
+  var cv = document.createElement('canvas');
+  cv.id = 'cursor-fx';
+  document.body.appendChild(cv);
+  var ctx = cv.getContext('2d');
+  var dpr = Math.min(2, window.devicePixelRatio || 1);
+  var W = 0, H = 0;
+
+  function resize() {
+    W = cv.width = Math.floor(window.innerWidth * dpr);
+    H = cv.height = Math.floor(window.innerHeight * dpr);
+    cv.style.width = window.innerWidth + 'px';
+    cv.style.height = window.innerHeight + 'px';
+  }
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+
+  function themeColors() {
+    var cs = getComputedStyle(document.documentElement);
+    var a = (cs.getPropertyValue('--accent') || '#4dd0a6').trim();
+    var b = (cs.getPropertyValue('--accent2') || a).trim();
+    return [a, b, a];
+  }
+  var colors = themeColors();
+  document.addEventListener('canvas-theme-change', function () { colors = themeColors(); });
+  document.addEventListener('theme-change', function () { colors = themeColors(); });
+
+  var parts = [];
+  var lastX = 0, lastY = 0, hasLast = false, rafId = 0;
+
+  function spawn(x, y) {
+    if (parts.length >= MAX) return;
+    var ang = Math.random() * Math.PI * 2, sp = 0.12 + Math.random() * 0.5;
+    parts.push({
+      x: x * dpr, y: y * dpr,
+      vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 0.25,
+      r: (1.4 + Math.random() * 2.4) * dpr,
+      life: 1, decay: 0.016 + Math.random() * 0.022,
+      c: colors[(Math.random() * colors.length) | 0]
+    });
+  }
+
+  function loop() {
+    rafId = 0;
+    ctx.clearRect(0, 0, W, H);
+    for (var i = parts.length - 1; i >= 0; i--) {
+      var p = parts[i];
+      p.x += p.vx * dpr; p.y += p.vy * dpr;
+      p.vy += 0.012 * dpr;                 // 轻微下沉，像星屑
+      p.life -= p.decay;
+      if (p.life <= 0) { parts.splice(i, 1); continue; }
+      ctx.globalAlpha = Math.max(0, p.life) * 0.85;
+      ctx.fillStyle = p.c;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * (0.4 + p.life * 0.6), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if (parts.length) rafId = requestAnimationFrame(loop);
+    else ctx.clearRect(0, 0, W, H);        // 空闲：停 rAF，不留残影
+  }
+
+  window.addEventListener('mousemove', function (e) {
+    if (hasLast) {
+      var dx = e.clientX - lastX, dy = e.clientY - lastY;
+      var n = Math.min(3, Math.max(1, Math.round(Math.sqrt(dx * dx + dy * dy) / 20)));
+      for (var i = 0; i < n; i++) {
+        spawn(e.clientX + (Math.random() - 0.5) * 7, e.clientY + (Math.random() - 0.5) * 7);
+      }
+    }
+    lastX = e.clientX; lastY = e.clientY; hasLast = true;
+    if (!rafId) rafId = requestAnimationFrame(loop);
+  }, { passive: true });
+
+  window.addEventListener('mouseleave', function () { hasLast = false; }, { passive: true });
 })();
 
 </script>
