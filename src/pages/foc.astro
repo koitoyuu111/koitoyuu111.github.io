@@ -19,9 +19,13 @@ import "../styles/scrollbar.css";
 const FOC_ASSET_VER = Date.now().toString(36);
 ---
 
+<!-- 本页是 13 章 / 36 个 canvas 动画的重页面：
+     关掉全屏背景粒子（AntigravityBg，three.js WebGL）以省帧，
+     主站其他页面保持默认开启。 -->
 <Layout
 	title="FOC 学习站 - 磁场定向控制：从直觉到实战"
 	description="9 章交互式 FOC 学习站：从电机与磁场的直觉，到 Clarke / Park 变换、SVPWM 扇区法、完整 FOC 环路，再到驱动板拓扑与 STM32G4 外设实战，含大量可交互动画与公式推导。"
+	disableBgEffect={true}
 >
 	<!-- Navbar：与 MainGridLayout 保持一致的包裹结构 -->
 	<div

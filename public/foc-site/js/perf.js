@@ -56,6 +56,8 @@
     if (typeof IntersectionObserver === 'undefined') return;
     var list = [].slice.call(document.querySelectorAll('canvas'));
     list.forEach(function (cv) {
+      // 标了 data-no-mute 的画布（如鼠标拖尾覆盖层）不参与静音 —— 它本身就不绘制重内容
+      if (cv.dataset && cv.dataset.noMute) return;
       var ctx = null;
       try { ctx = cv.getContext('2d'); } catch (e) { return; }
       if (!ctx) return;

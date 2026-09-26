@@ -32,9 +32,12 @@ interface Props {
 	description?: string;
 	lang?: string;
 	setOGTypeArticle?: boolean;
+	/** 关掉全屏背景粒子效果（AntigravityBg，three.js/WebGL）。
+	 *  用于本身就极重、几十个 canvas 动画常驻的页面（如 /foc/ 学习站）。 */
+	disableBgEffect?: boolean;
 }
 
-let { title, banner, description, lang, setOGTypeArticle } = Astro.props;
+let { title, banner, description, lang, setOGTypeArticle, disableBgEffect = false } = Astro.props;
 
 const ogImage = banner && banner.trim() !== "" ? new URL(banner, Astro.site).href
 		: siteConfig.ogImage ? new URL(siteConfig.ogImage, Astro.site).href
@@ -497,7 +500,9 @@ const bannerOffset =
 		  data-bg-attachment={siteConfig.background.attachment || "fixed"}
 	>
 		<a href="#main-content-wrapper" class="skip-to-content">跳到主内容</a>
-			<AntigravityBg client:only="react" />
+			{/* 全屏背景粒子效果：默认全站开启，disableBgEffect 的页面跳过
+			    （不渲染 ⇒ 这块 three.js chunk 也不会被加载） */}
+			{!disableBgEffect && <AntigravityBg client:only="react" />}
 		<ConfigCarrier></ConfigCarrier>
 		<FloatingControls client:only="svelte" />
 		<ReadingProgressMobile client:only="svelte" />
