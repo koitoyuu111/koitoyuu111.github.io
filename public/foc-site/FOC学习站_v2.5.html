@@ -2581,6 +2581,25 @@ HAL_RCCEx_CRSConfig(&amp;crs);</code></pre>
   </table>
   <div class="callout"><strong>先建立一个总纲：</strong>$\psi_f$（磁链）是一切的核心。它一边决定扭矩（$K_t = \tfrac{3}{2}p\psi_f$），一边决定反电动势（$K_e = p\psi_f$），一边决定电压极限和最高转速。<strong>扭矩密度和高速，天生就是一对矛盾</strong>——这一句话就是本章的主旋律。</div>
 
+  <h3>9.1.1 再补一层：由参数「算出来」的关键量（含反电动势峰值 $E_{pk}$）</h3>
+  <p>上面那张表是<strong>出厂参数</strong>——与转速、电流无关。工程上还有几个量天天被问，它们是<strong>由参数算出来的</strong>（会随工况变），单列一张：</p>
+  <table class="sv-table">
+    <thead>
+      <tr><th>派生量</th><th>定义 / 公式</th><th>4310 值</th><th>为什么关心它</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>反电动势峰值</strong> $E_{pk}$</td><td>$\omega_e\psi_f$（相电压峰值）</td><td>1000 rpm → <strong>15.1 V</strong>（线-线峰值 26.2 V）</td><td>和 $U_{dc}/\sqrt3$ 一比就知道这个转速还能不能跑（9.2 / 9.5）</td></tr>
+      <tr><td>反电动势（每 krpm）</td><td>$E_{pk}$ 在 1000 rpm 时的值</td><td>15.13 V/krpm（相峰值）</td><td>就是 $K_e$ 的相峰值口径，与 KV=54 互证（9.4）</td></tr>
+      <tr><td><strong>相电压上限</strong></td><td>$U_{dc}/\sqrt3$（SVPWM 线性区）</td><td>13.86 V</td><td>所有"电压预算"的分母（9.5）</td></tr>
+      <tr><td>电气时间常数</td><td>$\tau_e = L_s/R_s$</td><td>0.99 ms</td><td>电流环最快能调多快（9.6）</td></tr>
+      <tr><td>电流变化率上限</td><td>$U_{s,\max}/L_s$</td><td>2605 A/s</td><td>1 A 最快也要 0.38 ms → 电流环带宽的硬顶（9.6）</td></tr>
+      <tr><td>堵转转矩</td><td>$K_t \cdot I_{\max}$（峰值口径）</td><td>0.43 N·m</td><td>加速能力的上限（9.7）</td></tr>
+      <tr><td>空载最高转速</td><td>$U_{s,\max}/\psi_f$（SVPWM 正弦）</td><td>916 rpm（六步方波 ≈1010）</td><td>这台电机的"转速天花板"（9.5）</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">⚠️ <strong>为什么 $E_{pk}$ 不能列进上面那张"参数表"</strong>：参数是<strong>出厂就定、与工况无关</strong>的（$p$、$R_s$、$L$、$\psi_f$、$J$）；而 $E_{pk}$ 这类量<strong>随转速线性变化</strong>——同一台电机在 100 rpm 与 1000 rpm 的 $E_{pk}$ 差 10 倍，写成"一个数"就没意义了。
+  $K_e$ 之所以能进参数表，正是因为它把转速<strong>约掉</strong>了（"每 krpm 多少伏"）。<strong>一句话：$K_e$ 是 $E_{pk}$ 除以转速。</strong></div>
+
   <h2 id="s-ch9-2">9.2 视觉理解：反电动势与电压预算</h2>
   <p>电机转起来就是一个发电机：转子磁钢扫过绕组，感应出反电动势，<strong>转得越快，电压越高，方向还跟你对着干</strong>。你的母线电压是硬天花板（相电压峰值最多用到 $U_{dc}/\sqrt{3}$，见第 4 章 SVPWM），而转速越高，反电动势 + 电阻电抗压降就越逼近天花板——<strong>顶到了，就再也快不上去了</strong>。拖动下面的滑块，亲眼看看 4310 的电压预算是怎么被吃掉的：</p>
   <div class="viz-block" id="viz-bemf">
