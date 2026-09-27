@@ -8,16 +8,16 @@
      （:root:root / [data-theme][data-theme]）保证不受后面 style.css 的加载顺序影响。
      放在这里而不是 CSS 之后，是因为下面那个 jsdelivr 的 KaTeX 样式表会阻塞解析，
      放后面会让「揭晓」被拖慢好几秒。 -->
-<script src="js/blog-theme.js?v=20260926e"></script>
+<script src="js/blog-theme.js?v=20260927a"></script>
 <title>FOC 学习站 v2.5 — 磁场定向控制：从直觉到实战</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
-<link rel="stylesheet" href="css/style.css?v=20260926e">
+<link rel="stylesheet" href="css/style.css?v=20260927a">
 <!-- 博客集成工具层：搜索定位 / 网页缩放 / 宽表格滚动（放在最后以便覆盖） -->
-<link rel="stylesheet" href="css/foc-tools.css?v=20260926e">
-<script defer src="js/foc-tools.js?v=20260926e"></script>
+<link rel="stylesheet" href="css/foc-tools.css?v=20260927a">
+<script defer src="js/foc-tools.js?v=20260927a"></script>
 </head>
 <body>
 
@@ -72,6 +72,7 @@
     <li data-ch="10"><a href="#ch10">第 10 章 · 从有感到无感（手册）</a></li>
     <li data-ch="11"><a href="#ch11">第 11 章 · 无感公式推导手册</a></li>
     <li data-ch="12"><a href="#ch12">第 12 章 · 无感符号总表</a></li>
+    <li data-ch="13"><a href="#ch13">第 13 章 · SMO + PLL 全流程推导</a></li>
   </ul>
 </nav>
 <button id="btn-toc-toggle" title="收起目录">«</button>
@@ -85,7 +86,7 @@
 <div class="mod-portal">
   <div class="mp-head">
     <div class="mp-title">从哪个板块开始？</div>
-    <div class="mp-sub">全站 13 章按内容分成 4 个板块，点一张卡片直接进入；不确定就从①顺着读。</div>
+    <div class="mp-sub">全站 14 章按内容分成 4 个板块，点一张卡片直接进入；不确定就从①顺着读。</div>
   </div>
   <div class="mp-grid">
     <a class="mp-card" href="#ch1">
@@ -113,7 +114,7 @@
       <span class="mp-num">④</span>
       <span class="mp-name">从有感到无感</span>
       <span class="mp-desc">编码器的信息量到哪里为止？观测器为什么收敛、为什么在低速失效，以及公式推导与符号速查。</span>
-      <span class="mp-chs">第 10~12 章 · 手册 / 公式推导 / 符号总表</span>
+      <span class="mp-chs">第 10~13 章 · 手册 / 公式推导 / 符号总表 / SMO+PLL 专章</span>
       <span class="mp-go">进入板块 ④ →</span>
     </a>
   </div>
@@ -155,6 +156,7 @@
       <div class="road-item"><span class="road-num">10</span><div><b>从有感到无感（手册）</b><br>信息缺口、BEMF 观测器统一理论、atan2/PLL/CORDIC、低速与零速、六个杀手、C 实现框架、4310 专章</div></div>
     <div class="road-item"><span class="road-num">11</span><div><b>无感公式推导手册</b><br>坐标变换、PMSM 模型、龙伯格/滑模/PLL/MRAS/磁链观测器、I-F 与 HFI、误差补偿、参数辨识</div></div>
     <div class="road-item"><span class="road-num">12</span><div><b>无感符号总表</b><br>下标上标、电气量、机械量、控制量、观测器专用、HFI 专用、易混淆对照、单位换算速查</div></div>
+    <div class="road-item"><span class="road-num">13</span><div><b>SMO + PLL 全流程推导</b><br>滑模观测器（滑模面/到达条件/等效控制）＋二阶锁相环（鉴相/环路/整定/归一化），含 Ts=50 µs 差分方程、C 代码与 4310 增益速查</div></div>
   </div>
 
   <h2 id="s-ch0-3">如何使用本站</h2>
@@ -5264,9 +5266,571 @@ PWM 频率          20 kHz（T_pwm = 50 µs，本站第 8 章工程设置；手�
 <p>*本表与《FOC 无感控制公式推导手册》配套。遇到符号不确定时，先查第七节"易混淆符号对照"。*</p>
 </section>
 
+<section class="chapter" id="ch13">
+  <h1>第 13 章 · SMO + PLL：滑模观测器配锁相环的全流程推导</h1>
+<div class="chap-intro">
+  <div class="ci-title">📖 本章导读<span class="ci-mod">板块 ④ 无感</span></div>
+  <p class="ci-goal"><strong>定位</strong>：把「滑模观测器（SMO）估反电动势 + 锁相环（PLL）提角度/转速」这一条工业界最主流的无感链路，<strong>从两个电流方程一路推到能直接烧进单片机的差分方程</strong>，中间不留黑盒。第 10/11 章给的是全景与符号手册，本章是<strong>单点打穿的专章</strong>。</p>
+  <div class="ci-map"><span class="ci-label">本节地图</span> <a href="#ch13-0">0 全流程总览</a> <a href="#ch13-1">1 起点：αβ 方程与反电动势</a> <a href="#ch13-2">2 电流滑模观测器</a> <a href="#ch13-3">3 到达条件与滑模增益 k</a> <a href="#ch13-4">4 等效控制：取出反电动势</a> <a href="#ch13-5">5 路线 A：LPF + atan2</a> <a href="#ch13-6">6 路线 B：SMO + PLL（重点）</a> <a href="#ch13-7">7 离散化与实装</a> <a href="#ch13-8">8 完整 C 代码</a> <a href="#ch13-9">9 参数失配与鲁棒性</a> <a href="#ch13-10">10 调试清单</a> <a href="#ch13-11">11 4310 速查</a> <a href="#ch13-12">附录：符号自洽表</a></div>
+  <p class="ci-howto"><strong>读法</strong>：2→3→4 是 SMO 的骨架（滑模面、到达条件、等效控制），6 是 PLL 的骨架（鉴相、环路、整定），7 把两者一起离散化。<strong>只想抄代码就跳到 8</strong>；只想知道「该填什么数」看 11。<br>本章全部算例使用你的 <strong>4310 规格书定版参数</strong>，与第 10/11 章正文的「简化教学参数集」不同，见下方口径说明。</p>
+</div>
+
+<div class="callout"><strong>⚠️ 参数口径说明（本章与 ch10/ch11 的区别）</strong><br>
+本章<strong>一律用 4310 定版参数</strong>：$R_s = 5.35\ \Omega$（规格书线电阻 10.7 Ω ÷ 2；<strong>你 2026-09 实测线-线 15 Ω ⇒ 相电阻 7.5 Ω</strong>，差异影响见第 9 节）、$L_s = L_d = L_q = 5.32\ \mathrm{mH}$、$\psi_f = 10.3\ \mathrm{mWb}$、$p = 14$、$V_{dc} = 24\ \mathrm{V}$、PWM 20 kHz ⇒ $T_s = 50\ \mu\mathrm{s}$、空载最高 916 rpm（SVPWM 口径）。<br>
+ch10/ch11 正文的数值算例用的是<strong>简化教学参数集</strong>（$\psi_f = 5.0\ \mathrm{mWb}$、$R_s = 1.0\ \Omega$、$L_s = 0.5\ \mathrm{mH}$、$p = 4$），<strong>两者不能混用</strong>。本章给的所有增益都能直接换成你的参数：只要把 $\psi_f$、$R_s$、$L_s$ 代进公式即可。</div>
+
+<hr>
+<h2 id="ch13-0">0. 全流程总览：从两个电流方程到 θ̂</h2>
+
+<p>整条链路只有一个目标：<strong>在不知道 $\theta_e$ 的前提下，把 $\theta_e$ 算出来</strong>。麻烦在于二相静止系（αβ）的电压方程里，反电动势 $e$ 是<strong>待估的未知量</strong>，而 $e$ 里恰好藏着 $\theta_e$：</p>
+
+$$e_\alpha = -\omega_e\psi_f\sin\theta_e,\qquad e_\beta = +\omega_e\psi_f\cos\theta_e \quad\Longrightarrow\quad \theta_e = \operatorname{atan2}(-e_\alpha,\ e_\beta)$$
+
+<p>所以路线分成两段，各自是一块独立的数学问题：</p>
+
+<pre><code>┌──────────────────────────────────────────────────────────────────────────────┐
+│  第 1 段：把 e 从「电流/电压」里抠出来          →  SMO（滑模观测器）          │
+│                                                                            │
+│     u_αβ, i_αβ  ──▶  [ 电流观测器 + 切换项 z ]  ──▶  z 的低频等效 = e        │
+│                        Ls·dî/dt = u − Rs·î − z           ↑                  │
+│                                                     抖振必须处理             │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  第 2 段：把 θₑ 从「e」里解出来                  →  atan2 / PLL / CORDIC      │
+│                                                                            │
+│     ê_α, ê_β  ──▶  [ atan2 ]  ──▶ θ̂            （无记忆，噪声全进来）        │
+│                ──▶  [ PLL ]   ──▶ θ̂, ω̂          （有记忆，能滤波，主流）    │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                    θ̂（角度）、ω̂（速度）  ──▶  回到 FOC 的 Park / 电流环
+</code></pre>
+
+<p><strong>两段的分工必须记牢</strong>：第 1 段决定「能不能」——估不出 $e$ 就什么都谈不上；第 2 段决定「稳不稳、准不准」——同样的 $e$，用 atan2 和用 PLL 出来的角度质量差很多。工程上最常见的情况是<strong>第 1 段做好了、第 2 段调崩了</strong>（PLL 增益乱填），反过来也有。</p>
+
+<table class="sv-table"><thead><tr><th>环节</th><th>输入 → 输出</th><th>本节的数学对象</th><th>决定什么</th></tr></thead><tbody>
+<tr><td>电流滑模观测器</td><td>u, i → z</td><td>一阶切换系统（第 2~4 节）</td><td>能否把 e 估出来、抖振多大</td></tr>
+<tr><td>低通滤波（可选）</td><td>z → ê</td><td>一阶 LPF + 相位补偿（第 5 节）</td><td>抖振 vs 相位滞后</td></tr>
+<tr><td>角度/转速提取</td><td>ê → θ̂, ω̂</td><td>atan2 或二阶锁相环（第 6 节）</td><td>动态性能、抗噪、稳态精度</td></tr>
+<tr><td>离散化与整定</td><td>公式 → 差分方程</td><td>第 7~8 节</td><td>能不能跑在 20 kHz 中断里</td></tr>
+</tbody></table>
+
+<hr>
+<h2 id="ch13-1">1. 起点：αβ 系电压方程与反电动势</h2>
+
+<p>推导的起点只有一个式子（α 轴；β 轴完全同构）：</p>
+
+$$u_\alpha = R_s i_\alpha + L_s\frac{di_\alpha}{dt} + e_\alpha$$
+
+<p>把 $e_\alpha$ 写成「扩张状态」，就得到观测器要用的形式：</p>
+
+$$\frac{di_\alpha}{dt} = \frac{u_\alpha - R_s i_\alpha - e_\alpha}{L_s}$$
+
+<p><strong>为什么一定在 αβ 系上做</strong>：dq 系的方程更简洁，但它的 $i_d, i_q, u_d, u_q$ 都要用 $\theta_e$ 才能做 Park 变换 —— 而 $\theta_e$ 正是我们要估的量，<strong>循环依赖</strong>。αβ 系只需要 Clarke 变换（只用到三相电流采样值，不含角度），所以无感观测器一律建在 αβ（或 abc）系上。这一点在第 9 章 9.0 的建模里也是同一套推导。</p>
+
+<p><strong>反电动势的角度信息</strong>（约定：$e$ 的正方向与电流正方向一致，即「发电机」惯例）：</p>
+
+$$e_\alpha = -\omega_e\psi_f\sin\theta_e,\qquad e_\beta = +\omega_e\psi_f\cos\theta_e,\qquad |e| = \sqrt{e_\alpha^2+e_\beta^2} = \omega_e\psi_f = E_{pk}$$
+
+<p>于是有两条重要结论，后面反复用到：</p>
+<ul>
+<li>$\operatorname{atan2}(-e_\alpha,\ e_\beta) = \theta_e$ —— <strong>反正弦/余弦同时给出，不需要幅值信息</strong>（这是 atan2 与 PLL 的共同基础）。</li>
+<li>$|e| = \omega_e\psi_f$ —— <strong>反电动势幅值直接就是转速</strong>。这条既可以在低速时当「转速可信度」判据，也是后面 PLL 增益归一化的分母。</li>
+</ul>
+
+<table class="sv-table"><thead><tr><th>机械转速</th><th>电角速度 ω_e</th><th>电频率 f_e</th><th>E_pk = ω_e·ψ_f</th></tr></thead><tbody>
+<tr><td>100 rpm</td><td>146.6 rad/s</td><td>23.3 Hz</td><td><strong>1.51 V</strong></td></tr>
+<tr><td>300 rpm</td><td>439.8 rad/s</td><td>70.0 Hz</td><td>4.53 V</td></tr>
+<tr><td>500 rpm</td><td>733.0 rad/s</td><td>116.7 Hz</td><td>7.55 V</td></tr>
+<tr><td>916 rpm（空载最高）</td><td>1342.9 rad/s</td><td>213.7 Hz</td><td><strong>13.83 V</strong></td></tr>
+</tbody></table>
+
+<p>这张表是本章所有数值的锚点：<strong>反电动势在 100 rpm 时只有 1.51 V，而电流采样的分辨率是 5.37 mA（1 LSB）</strong>。信号小、噪声比对大，这就是「无感在低速难」的量化来源。</p>
+
+<hr>
+<h2 id="ch13-2">2. 电流滑模观测器：滑模面与切换函数</h2>
+
+<p>观测器就是「把真实模型里的 $e$ 换成一个我们自己能算的量 $z$」，再用电流误差反过来驱动 $z$：</p>
+
+<pre><code>真实：  Ls·di/dt  = u − Rs·i − e          ← e 未知
+观测：  Ls·dî/dt  = u − Rs·î − z          ← z = k·f(s) 是我们构造的
+相减：  Ls·ds/dt  = −Rs·s − z + e          s = î − i   （滑模面）
+</code></pre>
+
+<p>三个关键设计点：</p>
+
+<p><strong>① 量纲约定（最容易抄错的地方）</strong>。上面把 $z$ 与 $u$ 放在同一个位置，所以 <strong>$z$ 的量纲是伏特</strong>。于是 $k$ 也以伏特为单位，可以直接和 $E_{pk}$ 对比 —— 这是最不容易出错的写法，本章采用它。第 10/11 章用的是另一种写法（$z$ 放在 $dî/dt$ 上，量纲 A/s），两者的换算关系见第 3 节。</p>
+
+<p><strong>② 滑模面与切换函数</strong>。经典滑模取 $s = 0$ 为滑模面，切换函数取符号函数：</p>
+
+$$z = k\,\operatorname{sign}(s)$$
+
+<p>但理想符号函数在每个周期都满幅翻转，$z$ 的抖振会全部灌进后级。工程上换成连续化近似（<strong>只改切换函数的连续性，不改滑模面</strong>）：</p>
+
+<table class="sv-table"><thead><tr><th>切换函数</th><th>表达式（$x = s/\Phi$）</th><th>抖振</th><th>等效控制精度</th><th>代价</th></tr></thead><tbody>
+<tr><td>符号 sign</td><td>$\operatorname{sign}(x)$</td><td>最大，幅度约 $k T_s/L_s$</td><td>理论上精确（理想滑模）</td><td>必须靠 LPF 或 PLL 后处理</td></tr>
+<tr><td>饱和 sat</td><td>$\operatorname{clamp}(x,-1,1)$</td><td>$\approx\max(\Phi,\ kT_s/L_s)$</td><td>边界层内退化为高增益线性观测器</td><td>有稳态偏差（∝Φ）</td></tr>
+<tr><td>双曲/双 S 形 sigmoid</td><td>$\tanh(ax)$ 或 $2/(1+e^{-ax})-1$</td><td>同上（更平滑、处处可导）</td><td>介于两者之间</td><td>多一次 exp，需调 $a$</td></tr>
+</tbody></table>
+
+<div class="callout"><strong>⚠️ 离散实现的硬限制 —— 抖振并不由 Φ 决定（图 13-1 能直接看出来）</strong><br>
+切换项 $z$ 每个控制周期只算一次（采样保持），所以滑模面上电流误差的抖振幅值有一个<strong>下界</strong>：
+$$\Delta\tilde i \approx \max\left(\Phi,\ \frac{k\,T_s}{L_s}\right)$$
+代入 4310 的 20 kHz（$T_s = 50\ \mu s$）与 $k = 21$ V：$\dfrac{kT_s}{L_s} = \dfrac{21\times50\,\mu s}{5.32\ \mathrm{mH}} = \mathbf{0.197\ A}$
+—— <strong>比常用的 $\Phi = 40$ mA 大 5 倍</strong>。也就是说「换成 sat 就能把抖振压到 Φ 量级」在 20 kHz 采样下<strong>并不成立</strong>；图 13-1 的读数里 $|\tilde i|$ 稳态 ≈256 mA 就是这个下界（再叠加电流噪声）。<br>
+两条出路：① 提高等效切换频率（更高采样率 / 把观测器放进更高频的中断），② <strong>不追求压掉抖振，而是让后级把它平均掉 —— 这正是第 6 节用 PLL 的直接动机</strong>（PLL 自带低通记忆，相当于用一个二阶环把 $z$ 的平均值取出来）。</div>
+
+<p><strong>③ 边界层 $\Phi$ 取多大</strong>。$\Phi$ 是「电流误差多大以内就不再满幅切换」的门槛。它必须<strong>比电流采样噪声大</strong>，否则噪声会反复把 $s$ 推出/推回边界层，$z$ 变成纯噪声调制。按第 8 章 8.2 的采样链，1 LSB ≈ 5.37 mA，实际噪声约 3 LSB ≈ 16 mA，所以：</p>
+
+$$\Phi \approx (2\sim3)\times\sigma_i \approx 32\sim48\ \mathrm{mA}$$
+
+<p>下面这个动画把三条曲线画在一起，可以直接看出「抖振 ↔ 边界层」的取舍：</p>
+
+  <div class="viz-block" id="viz-smo-err">
+    <div class="viz-canvas-row"><canvas id="cv-smo-err" width="920" height="380"></canvas></div>
+    <div class="viz-controls">
+      <button class="btn" id="btn-smo-play">▶ 播放</button>
+      <button class="btn" id="btn-smo-f-sign">sign</button>
+      <button class="btn" id="btn-smo-f-sat">sat</button>
+      <button class="btn" id="btn-smo-f-sig">sigmoid</button>
+      <label>滑模增益 k <input type="range" id="smo-k" min="5" max="40" value="21"><span id="smo-k-val">21 V</span></label>
+      <label>边界层 Φ <input type="range" id="smo-phi" min="20" max="200" value="40"><span id="smo-phi-val">40 mA</span></label>
+      <label>LPF 截止 <input type="range" id="smo-fc" min="100" max="2000" value="500"><span id="smo-fc-val">500 Hz</span></label>
+      <button class="btn btn-ghost" id="btn-smo-reset">↺ 重来</button>
+      <span id="smo-readout" class="readout"></span>
+    </div>
+    <div class="viz-caption">图 13-1：<b>滑模观测器的两条时间线</b>。上行 = 到达阶段：$|\tilde i|$ 被单调压进边界层 $\Phi$（黄虚线），绿虚线标出「到达时间」——之后就不再离开，这就是<b>滑模</b>的含义。中行 = 滑模阶段放大：$\tilde i_\alpha$ 被压在 $\pm\Phi$ 内高频抖动。下行 = 切换项 $z_\alpha$（橙，抖振）、真值 $e_\alpha$（灰）、以及 ${\rm LPF}(z_\alpha)$（绿）——<b>绿线贴着灰线，说明「抖振里的低频分量就是反电动势」</b>（第 4 节的结论）。<br>把切换函数切到 <b>sign</b>：抖振是满幅方波；切到 <b>sat / sigmoid</b> 曲线会变平滑，但<b>抖振幅值并不会降到 Φ 量级</b> —— 离散实现的下界是 $kT_s/L_s$（见 2 节末的说明框），读数里的「$|\tilde i|$ 稳态」就是它。<b>工况固定在 916 rpm</b>（最坏点，$E_{pk}=13.83$ V），$k$ 的默认 21 V 正好是 1.5× 裕度（第 3 节）。慢放约 80×（15 ms 真实时间播 2.5 s）。</div>
+  </div>
+
+<hr>
+<h2 id="ch13-3">3. 到达条件与滑模增益 k（Lyapunov 完整推导）</h2>
+
+<p><strong>Step 1 取 Lyapunov 函数</strong>（注意带上 $L_s$，这样量纲是能量，且求导后 $L_s$ 恰好被约掉）：</p>
+
+$$V = \tfrac{1}{2}L_s s^2 > 0 \quad (s \neq 0)$$
+
+<p><strong>Step 2 求导</strong>，代入 $L_s\dot s = -R_s s - z + e$：</p>
+
+$$\dot V = L_s s\,\dot s = s\bigl(-R_s s - z + e\bigr) = -R_s s^2 - k|s| + s\,e$$
+
+<p>利用 $s e \le |s||e| \le |s|\,E_{pk}$：</p>
+
+$$\dot V \le -R_s s^2 - \bigl(k - E_{pk}\bigr)|s|$$
+
+<p><strong>Step 3 得到判据</strong>：第一项恒负（$R_s>0$），所以只要第二项也负，就有 $\dot V<0$，即 $s$ 必然收敛到 0：</p>
+
+$$\boxed{\ k > \max|e| = E_{pk}\ }\qquad\text{（本写法：}k\text{ 单位 V）}$$
+
+<p>这个式子非常干净，也点出了 SMO 的两个本质特点：</p>
+<ul>
+<li><strong>判据只和「反电动势幅值」有关，和 $L_s$ 无关</strong>（$L_s$ 在 Lyapunov 函数里被约掉了）。所以 $L_s$ 估错不影响可达性 —— 这是 SMO 相对磁链观测器（要积分、怕漂移）的一个实实在在的优点。</li>
+<li><strong>$E_{pk}$ 随转速线性增长</strong>，所以用<strong>常数 $k$</strong> 就必须按最高转速定，于是低速时 $k$ 相对过大 → 抖振严重。这正是「很多实现低速抖振大」的根因。</li>
+</ul>
+
+<p><strong>Step 4 两种量纲写法的换算</strong>（防止抄别处的代码时符号/系数出错）：</p>
+
+<table class="sv-table"><thead><tr><th>写法</th><th>观测器方程</th><th>z 量纲</th><th>判据</th><th>916 rpm 设计值</th></tr></thead><tbody>
+<tr><td><strong>A（本章、推荐）</strong></td><td>$L_s\dot{\hat i} = u - R_s\hat i - z$</td><td>V</td><td>$k_A > E_{pk}$</td><td>>13.83 V，取 1.5× → <strong>20.7 V</strong></td></tr>
+<tr><td>B（ch10/ch11 手册写法）</td><td>$\dot{\hat i} = (u - R_s i)/L_s + z$</td><td>A/s</td><td>$k_B > E_{pk}/L_s$</td><td>=2600 A/s，取 1.5× → 3900 A/s</td></tr>
+</tbody></table>
+
+<p>换算关系一句话：$k_B = k_A/L_s$。用这个式子回头核对第 11 章里那个判据 —— 它是在 3000 rpm（留裕量）下算的：$\omega_e = 4398.2\ \mathrm{rad/s}$，$k_B = \omega_e\psi_f/L_s = 4398.2\times0.0103/0.00532 = \mathbf{8515\ A/s}$，与正文一致 ✓。两个数字不矛盾，只是<strong>量纲与评估转速不同</strong>。</p>
+
+<p><strong>Step 5 自适应增益（消除「高速够、低速过大」）</strong>。让 $k$ 随转速线性增长：</p>
+
+$$k = k_0 + k_1|\hat\omega_e|,\qquad k_1 \approx (1.5\sim2)\,\psi_f,\quad k_0\ \text{为噪声地板}$$
+
+<p>取 $k_0 = 0.5\ \mathrm{V}$、$k_1 = 2\psi_f = 0.0206\ \mathrm{V\cdot s/rad}$：</p>
+
+<table class="sv-table"><thead><tr><th>转速</th><th>E_pk</th><th>k = 0.5 + 0.0206·ω̂_e</th><th>裕度</th></tr></thead><tbody>
+<tr><td>100 rpm</td><td>1.51 V</td><td>3.52 V</td><td>2.33×</td></tr>
+<tr><td>300 rpm</td><td>4.53 V</td><td>9.56 V</td><td>2.11×</td></tr>
+<tr><td>500 rpm</td><td>7.55 V</td><td>15.60 V</td><td>2.07×</td></tr>
+<tr><td>916 rpm</td><td>13.83 V</td><td>28.16 V</td><td>2.04×</td></tr>
+</tbody></table>
+
+<p>对比一下<strong>固定 $k$</strong>：按最高转速取 $k = 20.7\ \mathrm{V}$，那么 100 rpm 时裕度是 <strong>13.7×</strong> —— 增益相对信号大了 13 倍，抖振自然明显。这就是「低速抖振」的量化解释，也是为什么几乎所有的工业实现都用自适应 $k$。</p>
+
+<hr>
+<h2 id="ch13-4">4. 等效控制：抖振里怎么取出反电动势</h2>
+
+<p>滑模一旦到达（$s = 0$ 且 $\dot s = 0$），把 $s=0$ 代入误差方程：</p>
+
+$$0 = -R_s\cdot 0 - z_{eq} + e \quad\Longrightarrow\quad \boxed{\ z_{eq} = e\ }$$
+
+<p><strong>这就是整章最核心的一句话</strong>：滑模面上的切换项，其<strong>等效值恰好等于反电动势</strong>（本写法下，连符号都不用改）。所以 $z$ 虽然看起来是高频方波，但它的<strong>低频（平均值）分量就是 $e$</strong>：</p>
+
+$$\bar z = \frac{1}{T}\int_T z\,dt \xrightarrow{\ T\to\infty\ } e$$
+
+<p>于是有两条后处理路线，正是第 5、6 节：</p>
+<ul>
+<li><strong>路线 A</strong>：显式加一阶 LPF 取平均值 → 得到 $\hat e$，再用 atan2 算角度。简单，但 LPF 的相位滞后必须补偿。</li>
+<li><strong>路线 B</strong>：直接把 $z$ 丢进 PLL。PLL 本身就是一个带记忆的低通（其输入-输出对高频抖振是二阶滚降），<strong>省掉了 LPF 和它的相位补偿</strong>。这是目前工业界主流（ST 的 STO 也走这条路）。</li>
+</ul>
+
+<p><strong>顺带一个伏笔</strong>：如果观测器用的 $R_s$ 不是真实值，等效控制就变成 $z_{eq} = e + (R_s^{real} - R_s^{hat})i$ —— 多出一个<strong>与电流成正比</strong>的假项。你的电机正好撞上这件事（规格 5.35 Ω vs 实测 7.5 Ω），量化影响见第 9 节。</p>
+
+<hr>
+<h2 id="ch13-5">5. 路线 A：LPF + atan2（含相位补偿）</h2>
+
+<p>一阶 LPF 对 $z$ 取平均，得到 $\hat e$，然后直接：</p>
+
+$$\hat e_\alpha = \mathrm{LPF}(z_\alpha),\quad \hat e_\beta = \mathrm{LPF}(z_\beta),\qquad \hat\theta_e = \operatorname{atan2}(-\hat e_\alpha,\ \hat e_\beta)$$
+
+<p><strong>这一路的唯一难点是相位滞后</strong>。一阶 LPF 的传递函数 $\omega_c/(s+\omega_c)$ 在电频率 $\omega_e$ 处的相位为：</p>
+
+$$\varphi = -\arctan\!\left(\frac{\omega_e}{\omega_c}\right)$$
+
+<p>角度估计会整体滞后 $\varphi$，且<strong>随转速增大而增大</strong>（因为 $\omega_e\propto$ 转速）：</p>
+
+<table class="sv-table"><thead><tr><th>LPF 截止频率 ω_c</th><th>916 rpm（ω_e=1342.9）</th><th>500 rpm（733.0）</th><th>100 rpm（146.6）</th></tr></thead><tbody>
+<tr><td>300 Hz = 1885 rad/s</td><td><strong>−35.5°</strong></td><td>−21.3°</td><td>−4.4°</td></tr>
+<tr><td>500 Hz = 3142 rad/s</td><td>−23.1°</td><td>−13.1°</td><td>−2.7°</td></tr>
+<tr><td>1000 Hz = 6283 rad/s</td><td>−12.1°</td><td>−6.7°</td><td>−1.3°</td></tr>
+</tbody></table>
+
+<p>35° 的角度误差对 FOC 是灾难性的（扭矩按 $\cos\Delta\theta$ 掉、$i_d/i_q$ 全串）。两种补救：</p>
+
+$$\text{(a) 变补偿：}\ \hat\theta_{comp} = \hat\theta_e + \arctan\!\left(\frac{\hat\omega_e}{\omega_c}\right)
+\qquad
+\text{(b) 自适应截止：}\ \omega_c = K\omega_e \Rightarrow \varphi = -\arctan(1/K)\ \text{为常数}$$
+
+<p>常用 $K = 3$，则滞后恒为 $\arctan(1/3) = 18.43°$，<strong>直接加一个常数补偿就行</strong>，不需要每周期算反正切。代价是低速时 $\omega_c$ 太窄、滤不掉抖振 —— 这就是路线 A 的天花板，也是路线 B 存在的理由。</p>
+
+<hr>
+<h2 id="ch13-6">6. 路线 B：SMO + PLL（本章重点）</h2>
+
+<h3 id="ch13-61">6.1 鉴相器：从 $z$ 到「角度误差」</h3>
+
+<p>把 $\hat e$（或直接 $z$ 的低频分量）与<strong>估计角</strong>做内积，得到一个标量 $\varepsilon$：</p>
+
+$$\varepsilon = -\hat e_\alpha\cos\hat\theta_e - \hat e_\beta\sin\hat\theta_e$$
+
+<p>代入第 1 节的 $e_\alpha = -E_{pk}\sin\theta_e$、$e_\beta = E_{pk}\cos\theta_e$：</p>
+
+$$\varepsilon = E_{pk}\sin\theta_e\cos\hat\theta_e - E_{pk}\cos\theta_e\sin\hat\theta_e = \boxed{\ E_{pk}\sin(\theta_e - \hat\theta_e)\ }$$
+
+<p>所以这个内积<strong>就是一个鉴相器</strong>：输出正比于角度误差的正弦。注意两件事：</p>
+<ul>
+<li><strong>角度信息藏在正弦里</strong>，在 $\Delta\theta = 0$ 附近才有 $\sin\Delta\theta\approx\Delta\theta$ —— 这是后面能「线性化成一个二阶系统」的前提，也意味着<strong>大误差时会失锁</strong>（正弦是非单值的，±180° 处不稳定平衡点）。</li>
+<li><strong>幅值 $E_{pk}$ 出现在环路增益里</strong>。而 $E_{pk} = \omega_e\psi_f$ 随转速变 —— 这一条会在 6.4 节变成大麻烦。</li>
+</ul>
+
+<h3 id="ch13-62">6.2 环路方程与二阶环路</h3>
+
+<p>PLL 的标准结构是「鉴相器 → 环路滤波器（PI）→ 压控振荡器（积分）」：</p>
+
+<pre><code>  ê_αβ ──▶ [ 鉴相器 ε = E_pk·sin(Δθ) ] ──▶ [ PI: Kp + Ki/s ] ──▶ ω̂ ──▶ [ ∫ ] ──▶ θ̂
+                        ▲                                                        │
+                        └────────────────── 反馈 θ̂ ─────────────────────────────┘
+</code></pre>
+
+<p>写成方程（连续域）：</p>
+
+$$\hat\omega_e = K_p\varepsilon + K_i\!\!\int\!\varepsilon\,dt,\qquad \hat\theta_e = \int\hat\omega_e\,dt$$
+
+<p>小误差下 $\varepsilon\approx E_{pk}(\theta_e-\hat\theta_e)$，于是开环传递函数：</p>
+
+$$G_{ol}(s) = \frac{E_{pk}(K_p s + K_i)}{s^2}\qquad\text{（II 型环路：两个积分 ⇒ 对常速输入零稳态误差）}$$
+
+<p>闭环：</p>
+
+$$G_{cl}(s) = \frac{E_{pk}(K_p s + K_i)}{s^2 + E_{pk}K_p\,s + E_{pk}K_i}$$
+
+<p>对照标准二阶系统 $s^2 + 2\zeta\omega_n s + \omega_n^2$，得到<strong>本章最该背下来的两个式子</strong>：</p>
+
+$$\boxed{\ \omega_n = \sqrt{E_{pk}K_i}\ }\qquad \boxed{\ K_p = \frac{2\zeta\omega_n}{E_{pk}},\quad K_i = \frac{\omega_n^2}{E_{pk}}\ }$$
+
+<p>也就是：<strong>带宽由 $K_i$ 定，阻尼比由 $K_p$ 定，但两者都被 $E_{pk}$ 缩放</strong>。</p>
+
+<h3 id="ch13-63">6.3 整定算例（4310 实参数）</h3>
+
+<p>取 $\omega_n = 2\pi\cdot80 = 502.7\ \mathrm{rad/s}$、$\zeta = 0.707$（工程默认，无超调且响应最快）。为什么 80 Hz 合适：20 kHz 的 PWM 里，$\omega_n T_s = 502.7\times50\,\mu s = 0.0251 \ll 0.1$，离散化余量充足；而 $E_{pk}$ 的基波最高才 213.7 Hz，环路带宽必须远高于它才能跟得住。</p>
+
+<table class="sv-table"><thead><tr><th>转速（E_pk）</th><th>K_p = 2ζω_n/E_pk</th><th>K_i = ω_n²/E_pk</th><th>单位</th></tr></thead><tbody>
+<tr><td>916 rpm（13.83 V）</td><td><strong>51.38</strong></td><td><strong>18266</strong></td><td>K_p: rad/s per V<br>K_i: rad/s² per V</td></tr>
+<tr><td>500 rpm（7.55 V）</td><td>94.14</td><td>33464</td><td>同上</td></tr>
+<tr><td>100 rpm（1.51 V）</td><td>470.68</td><td>167319</td><td>同上</td></tr>
+</tbody></table>
+
+<p>注意增益差了 9 倍多 —— 说明<strong>「按哪个转速整定」是个必须回答的问题</strong>（下一节）。</p>
+
+<p>环路噪声带宽（判断「有多少噪声会进来」的标准量）：</p>
+
+$$B_L = \frac{\omega_n}{2}\left(\zeta + \frac{1}{4\zeta}\right) = \frac{502.7}{2}(0.707+0.354) = 266.6\ \mathrm{rad/s} = 42.4\ \mathrm{Hz}$$
+
+<h3 id="ch13-64">6.4 增益随转速漂移 —— 以及 $E_{pk}$ 归一化</h3>
+
+<p>把上面按 <strong>916 rpm 整定的增益固定不动</strong>，看低转速时环路实际变成什么：</p>
+
+<table class="sv-table"><thead><tr><th>转速</th><th>E_pk</th><th>实际 ω_n</th><th>实际 ζ</th><th>表现</th></tr></thead><tbody>
+<tr><td>916 rpm</td><td>13.83 V</td><td>502.7 rad/s（80 Hz）</td><td>0.707</td><td>设计点 ✓</td></tr>
+<tr><td>500 rpm</td><td>7.55 V</td><td>371.4 rad/s（59 Hz）</td><td>0.522</td><td>变慢、略欠阻尼</td></tr>
+<tr><td>300 rpm</td><td>4.53 V</td><td>287.7 rad/s（46 Hz）</td><td>0.405</td><td>明显振荡</td></tr>
+<tr><td>100 rpm</td><td>1.51 V</td><td>166.1 rad/s（26 Hz）</td><td><strong>0.234</strong></td><td>严重欠阻尼，几乎不可用</td></tr>
+</tbody></table>
+
+<p>带宽掉到 1/3、阻尼掉到 1/3 —— 一路从「设计点」漂到「快振荡」。这就是<strong>无感环路的转速依赖</strong>，也是很多实现「高速调好了低速就抖」的原因。</p>
+
+<p><strong>解决：把 $E_{pk}$ 除掉（归一化）</strong>。既然 $E_{pk}$ 可以估计（$\hat E_{pk} = |\hat\omega_e|\psi_f$，或直接取 $|z|$ 的低频值），就用它归一化鉴相器输出：</p>
+
+$$\varepsilon' = \frac{\varepsilon}{\hat E_{pk}}\quad\Longrightarrow\quad \omega_n = \sqrt{K_i'},\quad \zeta = \frac{K_p'}{2\sqrt{K_i'}}\quad\text{（与转速无关）}$$
+
+$$K_p' = 2\zeta\omega_n = 710.8,\qquad K_i' = \omega_n^2 = 252662$$
+
+<p>归一化后 $\omega_n\equiv 502.7$ rad/s、$\zeta\equiv0.707$，<strong>全速段恒定</strong> —— 这就是工程上几乎所有实现在做的事。代价与注意：</p>
+<ul>
+<li>$\hat E_{pk}$ 要<strong>加下限</strong>（本动画取 0.55 V ≈ 55 rpm 对应的 $E_{pk}$），否则低速时除以接近 0 的数会炸。</li>
+<li>这也解释了为什么<strong>无感 PLL 冷启动必须靠别的办法</strong>：转速为 0 时 $E_{pk}=0$，环路增益为 0，鉴相器没有任何信息 —— 这就是第 10 章第 5 章「必须换信息源」的数学本质（开环 I/F 拖到最低速，或高频注入）。</li>
+</ul>
+
+  <div class="viz-block" id="viz-smo-pll">
+    <div class="viz-canvas-row"><canvas id="cv-smo-pll" width="920" height="380"></canvas></div>
+    <div class="viz-controls">
+      <button class="btn" id="btn-pll-play">▶ 播放</button>
+      <label>带宽 ω_n <input type="range" id="pll-wn" min="20" max="200" value="80"><span id="pll-wn-val">80 Hz</span></label>
+      <label>阻尼比 ζ <input type="range" id="pll-zeta" min="30" max="120" value="71"><span id="pll-zeta-val">0.71</span></label>
+      <label>目标转速 <input type="range" id="pll-n" min="100" max="916" value="916"><span id="pll-n-val">916 rpm</span></label>
+      <button class="btn" id="btn-pll-norm">√ E_pk 归一化：开</button>
+      <button class="btn btn-ghost" id="btn-pll-reset">↺ 重来</button>
+      <span id="pll-readout" class="readout"></span>
+    </div>
+    <div class="viz-caption">图 13-2：<b>SMO → PLL 全流程</b>。上行 = $\sin\theta_e$（灰）与 $\sin\hat\theta_e$（青）叠加，看「追上并贴合」；中行 = 角度误差 $\Delta\theta$（加速期有滞后，稳态回到 0 —— 这正是 II 型环路的特征）；下行 = $\hat\omega$（青，PLL 输出）跟随转速斜坡（灰）。<br><b>玩法</b>：① 先保持「归一化：开」，拖 ω_n 看收敛快慢、拖 ζ 看中行的振荡与下行的超调（ζ&lt;0.5 明显振铃）；② 点掉「归一化：开」，此时增益被<b>固定在目标转速</b>上，再把目标转速拖到 200~300 rpm —— 会看到 $\Delta\theta$ 变大、收敛变慢、读数里的「实际 ω_n / 实际 ζ」明显掉下来，这就是 6.4 节的漂移；③ 注意起步瞬间（$E_{pk}\to0$）环路增益趋零，$\Delta\theta$ 会先涨后落 —— 这就是冷启动必须靠 I/F 或频率捕获的原因。<br>读数里的「加速期理论 α/ω_n²」是解析值，可以和实测峰值对照（第 6.5 节推导）。</div>
+  </div>
+
+<h3 id="ch13-65">6.5 加速度误差与噪声带宽的取舍</h3>
+
+<p>II 型环路对<strong>常速输入</strong>的稳态相位误差为 0，但对<strong>加速度输入</strong>（$\theta_e = \tfrac12\alpha t^2$，即恒定角加速度）有非零稳态误差。用误差传递函数 $E(s)/\Theta(s) = s^2/(s^2+2\zeta\omega_n s+\omega_n^2)$：</p>
+
+$$\Delta\theta_{ss} = \lim_{s\to0} s\cdot\frac{\alpha/s^3}{G_{ol}^{-1}+1}\Big/\!\dots = \boxed{\ \frac{\alpha}{\omega_n^2}\ }$$
+
+<p>代入 4310（0→916 rpm，$\omega_e$ 从 0 到 1342.9 rad/s）：</p>
+
+<table class="sv-table"><thead><tr><th>加速时间（0→916 rpm）</th><th>角加速度 α</th><th>Δθ_ss = α/ω_n²（ω_n=502.7）</th></tr></thead><tbody>
+<tr><td>0.1 s</td><td>13429 rad/s²</td><td><strong>3.05°</strong></td></tr>
+<tr><td>0.2 s</td><td>6715 rad/s²</td><td>1.52°</td></tr>
+<tr><td>0.5 s</td><td>2686 rad/s²</td><td>0.61°</td></tr>
+</tbody></table>
+
+<p>结论很直观：<strong>加速越猛，滞后越大；想减小就提 $\omega_n$（误差 ∝ 1/ω_n²）</strong>。但 $\omega_n$ 一提，噪声带宽 $B_L$ 同步线性增大（$B_L$ 见 6.3），进到角度里的抖振也变大：</p>
+
+$$\underbrace{\Delta\theta_{ss} = \alpha/\omega_n^2}_{\text{要 }\omega_n\text{ 大}}\quad\text{vs}\quad\underbrace{\theta_{noise}\propto \omega_n}_{\text{要 }\omega_n\text{ 小}}$$
+
+<p>工程折中的经验值：$\omega_n$ 取 $2\pi\times(50\sim150)$ Hz，或按「$\omega_n \le 2\pi f_{PWM}/10$」定上限（20 kHz ⇒ 上限 2 kHz，本算例 80 Hz 非常保守）。你是关节电机、负载惯量小、加速猛，倾向取偏大一点（100~120 Hz）。</p>
+
+<hr>
+<h2 id="ch13-7">7. 离散化与实装（Ts = 50 µs）</h2>
+
+<p><strong>SMO 侧</strong>：显式欧拉（前向差分）够不够用，看 $T_s$ 与电气时间常数之比：</p>
+
+$$\tau_e = \frac{L_s}{R_s} = \frac{5.32\ \mathrm{mH}}{5.35\ \Omega} = 0.994\ \mathrm{ms}\quad\Longrightarrow\quad \frac{T_s}{\tau_e} = \frac{50\,\mu s}{994\,\mu s} = 0.050 \ll 0.1$$
+
+<p>若按你实测的 $R_s = 7.5\ \Omega$，$\tau_e = 0.709\ \mathrm{ms}$，$T_s/\tau_e = 0.0705$ —— 仍然够用。所以 <strong>SMO 直接一阶欧拉离散即可</strong>，不需要 RK4。</p>
+
+$$\hat i_\alpha[k+1] = \hat i_\alpha[k] + \frac{T_s}{L_s}\Bigl(u_\alpha - R_s\hat i_\alpha[k] - z_\alpha[k]\Bigr)$$
+
+<p><strong>PLL 侧</strong>：把 PI 写成速度型（避免积分饱和），角度用一阶积分：</p>
+
+$$\hat\omega[k] = K_p\,\varepsilon[k] + I[k],\qquad I[k+1] = I[k] + K_i T_s\,\varepsilon[k],\qquad \hat\theta[k+1] = \hat\theta[k] + T_s\,\hat\omega[k]$$
+
+<p>用 6.4 的归一化增益算出的实际系数（$T_s = 50\,\mu s$）：</p>
+
+<table class="sv-table"><thead><tr><th>量</th><th>表达式</th><th>数值</th></tr></thead><tbody>
+<tr><td>$K_p'$</td><td>$2\zeta\omega_n$</td><td>710.8</td></tr>
+<tr><td>$K_i'T_s$</td><td>$\omega_n^2 T_s$</td><td>252662 × 50 µs = <strong>12.63</strong></td></tr>
+<tr><td>$\omega_n T_s$</td><td>离散化余量</td><td>0.0251（≪0.1 ✓）</td></tr>
+<tr><td>$\hat\theta$ 归一化</td><td>$(0,2\pi)$ 环绕</td><td>建议用 <code>if (th &gt; 2π) th -= 2π;</code> 而不是 fmod</td></tr>
+</tbody></table>
+
+<p><strong>计算量</strong>：观测器（2 个电流方程）+ 切换函数 + 鉴相 + PI + 积分 ≈ 50 次浮点运算/周期；@20 kHz ≈ 1.0 MFLOP/s，对 170 MHz 带 FPU 的 G4 是零头（对比：Park/Clarke/SVPWM 本身就要 100+ 次）。</p>
+
+<hr>
+<h2 id="ch13-8">8. 完整 C 代码（HAL 风格，与 ch10 第 8 章同一套符号）</h2>
+
+<pre><code>/* ============================================================================
+   SMO + PLL 无感观测器（4310 定版口径）
+   - 调用位置：ADC 注入中断（20 kHz），电流环之前
+   - 符号约定（必须与第 3 节写法 A 一致）：
+       Ls·dî/dt = u − Rs·î − z        z = k·sat((î−i)/Φ)     z 量纲 = V
+       滑模面上 z_eq = e              ε = −ê_α·cosθ̂ − ê_β·sinθ̂ = E_pk·sin(Δθ)
+   ============================================================================ */
+#define MOT_RS      5.35f          /* Ω（规格；实测 7.5 Ω 见第 9 节）      */
+#define MOT_LS      0.00532f       /* H                                    */
+#define MOT_PSI     0.0103f        /* Wb（ψf，峰值口径）                   */
+#define TS          50e-6f         /* s = 1/20kHz                          */
+
+/* --- 自适应滑模增益 k = k0 + k1·|ω̂e|（第 3 节 Step 5） --- */
+#define SMO_K0      0.5f           /* V，噪声地板                          */
+#define SMO_K1      (2.0f*MOT_PSI) /* V·s/rad = 2ψf ⇒ 裕度 ≈2× 全速段      */
+#define SMO_PHI     0.040f         /* A，边界层 ≈2.5× 电流噪声(16 mA)      */
+
+/* --- PLL 增益：E_pk 归一化后与转速无关（第 6.4 节，ωn=2π·80, ζ=0.707） --- */
+#define PLL_WN      502.65f        /* rad/s                                */
+#define PLL_ZETA    0.707f
+#define PLL_KP      (2.0f*PLL_ZETA*PLL_WN)   /* 710.8                      */
+#define PLL_KI_TS   ((PLL_WN*PLL_WN)*TS)     /* 12.63  ← 已含 Ts            */
+#define EPK_FLOOR   (0.55f)        /* V，Ê 下限 ≈55 rpm，防低速除零       */
+
+typedef struct {
+    float i_hat_a, i_hat_b;        /* 观测电流                             */
+    float pll_th, pll_w, pll_i;    /* 估计电角度 / 电角速度 / 积分器        */
+    float e_a, e_b;                /* 估计反电动势（供诊断/最低速判据）     */
+} SMO_t;
+static SMO_t smo;
+
+static inline float sat1(float x) { return x > 1.0f ? 1.0f : (x < -1.0f ? -1.0f : x); }
+
+/* 每 50 µs 调用一次；u_ab/i_ab 为 αβ 系电压指令与电流采样（A、V） */
+void SMO_PLL_Update(float u_a, float u_b, float i_a, float i_b)
+{
+    /* ---------- 1) 滑模增益：自适应 ---------- */
+    float k = SMO_K0 + SMO_K1 * fabsf(smo.pll_w);
+
+    /* ---------- 2) 切换项 z（饱和函数，边界层 SMO_PHI） ---------- */
+    float z_a = k * sat1((smo.i_hat_a - i_a) / SMO_PHI);
+    float z_b = k * sat1((smo.i_hat_b - i_b) / SMO_PHI);
+
+    /* ---------- 3) 电流观测器（一阶欧拉；Ts/τe ≈ 0.05，够用） ---------- */
+    float c = TS / MOT_LS;
+    smo.i_hat_a += c * (u_a - MOT_RS * smo.i_hat_a - z_a);
+    smo.i_hat_b += c * (u_b - MOT_RS * smo.i_hat_b - z_b);
+
+    /* ---------- 4) 反电动势估计：滑模面上 z_eq = e ---------- */
+    /*   想省掉 LPF 的相位补偿 → 直接把 z 送 PLL（PLL 自身是低通）
+         想更平滑 → 这里加一阶 LPF： e += α(z − e)，α = 1−exp(−2π·fc·Ts) */
+    smo.e_a = z_a;
+    smo.e_b = z_b;
+
+    /* ---------- 5) 鉴相：ε = −ê_α·cosθ̂ − ê_β·sinθ̂ ---------- */
+    float cs, sn;
+    /* G4 有 CORDIC → 建议用 ARM 的 sinf/cosf 或 CORDIC 加速；精度 12 位足够 */
+    cs = cosf(smo.pll_th);
+    sn = sinf(smo.pll_th);
+    float eps = -smo.e_a * cs - smo.e_b * sn;          /* = E_pk·sin(Δθ)  */
+
+    /* ---------- 6) E_pk 归一化：除以 Ê = |ω̂e|·ψf（带下限） ---------- */
+    float epk_hat = fabsf(smo.pll_w) * MOT_PSI;
+    if (epk_hat &lt; EPK_FLOOR) epk_hat = EPK_FLOOR;
+    float eps_n = eps / epk_hat;                        /* 量纲 = rad     */
+
+    /* ---------- 7) PI（速度型）+ 角度积分 ---------- */
+    smo.pll_w = PLL_KP * eps_n + smo.pll_i;
+    smo.pll_i += PLL_KI_TS * eps_n;
+    smo.pll_th += TS * smo.pll_w;
+    if (smo.pll_th &gt;  6.2831853f) smo.pll_th -= 6.2831853f;
+    if (smo.pll_th &lt;  0.0f)       smo.pll_th += 6.2831853f;
+}
+
+/* 机械转速输出：n = ω̂e·60/(2π·p) */
+static inline float SMO_GetRpm(void) { return smo.pll_w * 60.0f / (6.2831853f * 14.0f); }
+</code></pre>
+
+<p><strong>四个必须自己核对的点</strong>（抄别人的代码时最容易错）：</p>
+<ol>
+<li><strong>$z$ 的量纲与 $k$ 的判据要配套</strong>（写法 A/B 别混用，见第 3 节表）。</li>
+<li><strong>鉴相器里的 $\cos/\sin$ 与 $\hat e$ 的下标/正负</strong>：符号错了表现为「电机一起步就反转或剧烈抖动」。调试法：不接控制，手转电机，看 $\operatorname{atan2}(-\hat e_\alpha,\hat e_\beta)$ 是否随转子单调变化。</li>
+<li><strong>$\hat\omega$ 是电角速度</strong>，输出机械转速要除以 $p$（本例 $p=14$）。</li>
+<li><strong>归一化的下限</strong> <code>EPK_FLOOR</code> 一定要有，否则低速时 $\varepsilon'$ 爆掉、$\hat\omega$ 抽风。</li>
+</ol>
+
+<hr>
+<h2 id="ch13-9">9. 参数失配与鲁棒性（重点：$R_s$ 用 5.35 Ω 还是 7.5 Ω）</h2>
+
+<p>由第 4 节的等效控制，若观测器用的 $R_s^{hat} \neq R_s^{real}$：</p>
+
+$$z_{eq} = e + \bigl(R_s^{real} - R_s^{hat}\bigr)i$$
+
+<p>也就是说，<strong>$R_s$ 的误差会表现为一个「与电流成正比」的假反电动势</strong>。这非常危险，因为它是<strong>载相关的</strong>：空载时看不见，一加载角度就偏。</p>
+
+<p>你的电机正好有这个分歧：规格书线电阻 10.7 Ω ⇒ 相电阻 5.35 Ω，而你 2026-09 实测线-线 15 Ω ⇒ 相电阻 7.5 Ω，差 $\Delta R_s = 2.15\ \Omega$。按 $i = 1\ \mathrm{A}$（峰值）估，假项就是 <strong>2.15 V</strong>：</p>
+
+<table class="sv-table"><thead><tr><th>转速</th><th>E_pk</th><th>假项 ΔRs·i（i=1 A）</th><th>最大角度误差</th><th>i=2 A（堵转附近）</th></tr></thead><tbody>
+<tr><td>916 rpm</td><td>13.83 V</td><td>2.15 V</td><td><strong>8.84°</strong></td><td>17.27°</td></tr>
+<tr><td>500 rpm</td><td>7.55 V</td><td>2.15 V</td><td>15.89°</td><td>29.66°</td></tr>
+<tr><td>300 rpm</td><td>4.53 V</td><td>2.15 V</td><td>25.39°</td><td>43.51°</td></tr>
+<tr><td>200 rpm</td><td>3.02 V</td><td>2.15 V</td><td>35.45°</td><td>54.92°</td></tr>
+<tr><td>100 rpm</td><td>1.51 V</td><td>2.15 V</td><td><strong>54.92°</strong></td><td>70.65°</td></tr>
+</tbody></table>
+
+<p><strong>结论（对你的项目很实际）</strong>：</p>
+<ul>
+<li>高速空载：$R_s$ 用 5.35 还是 7.5 影响不大（8.84° vs 0° 的差别，勉强能用）。</li>
+<li><strong>加载 + 低速：必须用对的 $R_s$。</strong> 500 rpm、1 A 时用错 $R_s$ 就偏 15.9°，300 rpm 偏 25.4° —— 这个量级 FOC 已经明显掉扭矩、$i_d$ 串扰严重。</li>
+<li>所以调试顺序建议：<strong>先用「限流 0.5 A 灌电流测压降」把 $R_s$ 测准</strong>（0.5 A 下 7.5 Ω → 3.75 V，很容易测），再把这个值填进代码。<strong>或者干脆加在线 $R_s$ 辨识</strong>（第 9 章 9.9 的 RLS 方法，用 $\alpha\beta$ 系的 $u,i$ 做递推最小二乘）。</li>
+<li>另一个兜底：因为假项 $\propto i$，可以<strong>只在低电流段信任观测器</strong>，高电流段加大 $\Phi$ 或降低观测器权重 —— 但这属于补丁，不如把 $R_s$ 测准。</li>
+</ul>
+
+<table class="sv-table"><thead><tr><th>失配项</th><th>影响机制</th><th>是否致命</th><th>对策</th></tr></thead><tbody>
+<tr><td>$R_s$ 偏小/偏大</td><td>假反电动势 $\propto i$ ⇒ 载相关角度误差</td><td><strong>是</strong>（低速+加载最严重）</td><td>测准 / 在线辨识 RLS / 温漂补偿</td></tr>
+<tr><td>$L_s$ 偏差</td><td>只改变观测器动态（极点 $-R_s/L_s$），<strong>不影响滑模面上的 $z_{eq}$</strong></td><td>否（影响收敛速度）</td><td>$\pm30\%$ 内可接受</td></tr>
+<tr><td>$\psi_f$ 偏差</td><td>影响 $\hat\omega = \hat E_{pk}/\psi_f$ 的换算与归一化分母 ⇒ 转速整体比例误差</td><td>中等</td><td>用拖动法反推 KV/Ke 校准（第 9 章）</td></tr>
+<tr><td>母线电压/死区</td><td>实际 $u$ 与指令差 $\Delta u$ ⇒ 直接叠到 $\hat e$ 上</td><td>中等</td><td>死区补偿；或用「电流环 PI 输出 + 实际电压重构」作 $u$</td></tr>
+<tr><td>电流采样噪声</td><td>经切换函数放大 ⇒ 抖振</td><td>中等</td><td>$\Phi$ 取 2~3× 噪声；采样与 PWM 同步（第 8 章 8.2）</td></tr>
+</tbody></table>
+
+<hr>
+<h2 id="ch13-10">10. 调试清单：每一步该看什么波形</h2>
+
+<p>无感调试的最大问题是「一上来就看着转速掉头」。正确做法是<strong>按链路分段验</strong>，每段都有明确的通过判据：</p>
+
+<table class="sv-table"><thead><tr><th>步骤</th><th>看什么</th><th>通过判据</th><th>不通过说明</th></tr></thead><tbody>
+<tr><td>① 只在 αβ 系跑观测器（<strong>不接控制</strong>），用开环电压拖动电机</td><td>$u_\alpha,u_\beta$、$i_\alpha,i_\beta$、$\hat i$ 与 $i$ 的差</td><td>$|\hat i - i|$ 被压在 $\Phi$ 量级（几十 mA）</td><td>压不下去 → $R_s$、$L_s$ 量纲/数值错；或 $u$ 不是实际电压</td></tr>
+<tr><td>② 看 $z_\alpha, z_\beta$</td><td>是否是以 $e$ 为中心的高频方波；幅度是否 ≈ $k T_s/L_s$</td><td>低频分量与 $\omega_e\psi_f$ 同量级</td><td>幅度远大于 $E_{pk}$ → $k$ 太大或 $\Phi$ 太小</td></tr>
+<tr><td>③ 手转电机，看 $\operatorname{atan2}(-\hat e_\alpha,\hat e_\beta)$</td><td>角度是否随转子<strong>单调</strong>变化、周期是否 = 机械一圈 / $p$</td><td>单调、无跳变、方向正确</td><td>方向反了 → $\hat e_\alpha/\hat e_\beta$ 符号或下标错；乱跳 → 噪声/抖振太大</td></tr>
+<tr><td>④ 锁转速（用编码器或 I/F），只跑 PLL</td><td>$\Delta\theta$ 稳态是否≈0；给阶跃看超调</td><td>稳态 $\Delta\theta < 2°$；ζ≈0.7 时超调 &lt;5%</td><td>$\Delta\theta$ 有常值 → 鉴相器有直流偏置（$R_s$ 失配）；振荡 → ζ 太小</td></tr>
+<tr><td>⑤ 接闭环，从最低可用转速往上爬</td><td>$\hat\omega$ 与实际转速的偏差；切换瞬间的角度跳变</td><td>±3% 内，无跳变</td><td>低速失锁 → $E_{pk}$ 太小，降低最低转速或改进低速方案（ch10 第 5 章）</td></tr>
+<tr><td>⑥ 加载</td><td>加载后 $\Delta\theta$ 是否变差</td><td>基本不变</td><td>变差 → <strong>$R_s$ 失配</strong>（见第 9 节），这是最典型的「空载好好的、一加载就偏」</td></tr>
+</tbody></table>
+
+<p><strong>四个典型失效现象 → 原因 → 处理</strong>：</p>
+<table class="sv-table"><thead><tr><th>现象</th><th>最常见原因</th><th>处理</th></tr></thead><tbody>
+<tr><td>电机起步就反转 / 剧烈抖动</td><td>鉴相器符号或 $\hat e$ 下标错（$\alpha/\beta$ 或 $\sin/\cos$ 配错）</td><td>按第 8 节第 2 条用手转法核对</td></tr>
+<tr><td>高速正常、低速抖成一片</td><td>固定 $k$ 导致低速裕度太大；$\Phi$ 小于噪声</td><td>自适应 $k$；$\Phi$ 取 2~3× 噪声</td></tr>
+<tr><td>空载好、加载后角度偏、扭矩掉</td><td><strong>$R_s$ 失配</strong>（$\Delta R_s\cdot i$ 假项）</td><td>测准 $R_s$（你这里就是 5.35 vs 7.5 的问题）</td></tr>
+<tr><td>转速读数高频抽动 / 速度环尖叫</td><td>PLL 带宽过高，抖振直接进速度</td><td>降 $\omega_n$；或对 $\hat\omega$ 加一阶滤波（但别把相位裕度吃光）</td></tr>
+</tbody></table>
+
+<hr>
+<h2 id="ch13-11">11. 4310 + STSPIN32G4 一页速查</h2>
+
+<table class="sv-table"><thead><tr><th>量</th><th>取值 / 公式</th><th>本章数值</th></tr></thead><tbody>
+<tr><td>参数</td><td>$R_s$ / $L_s$ / $\psi_f$ / $p$</td><td>5.35 Ω（实测 7.5 Ω）/ 5.32 mH / 10.3 mWb / 14</td></tr>
+<tr><td>反电动势峰值</td><td>$E_{pk} = \omega_e\psi_f$，$\omega_e = p\cdot 2\pi n/60$</td><td>13.83 V @916 rpm</td></tr>
+<tr><td>电气时间常数</td><td>$\tau_e = L_s/R_s$</td><td>0.994 ms（实测 Rs 时 0.709 ms）</td></tr>
+<tr><td>滑模增益</td><td>$k = k_0+k_1|\hat\omega_e|$，$k_1\approx2\psi_f$</td><td>0.5 + 0.0206·$\hat\omega_e$ ⇒ 28.2 V @916 rpm</td></tr>
+<tr><td>边界层</td><td>$\Phi \approx (2\sim3)\sigma_i$</td><td>40 mA</td></tr>
+<tr><td>PLL 带宽/阻尼</td><td>$\omega_n = 2\pi\cdot(50\sim150)$、$\zeta = 0.707$</td><td>ω_n = 2π·80 rad/s</td></tr>
+<tr><td>PLL 增益（归一化）</td><td>$K_p' = 2\zeta\omega_n$、$K_i' = \omega_n^2$</td><td>710.8 / 252662（$K_i'T_s$ = 12.63）</td></tr>
+<tr><td>环路噪声带宽</td><td>$B_L = \frac{\omega_n}{2}(\zeta+\frac{1}{4\zeta})$</td><td>42.4 Hz</td></tr>
+<tr><td>加速期滞后</td><td>$\Delta\theta_{ss} = \alpha/\omega_n^2$</td><td>3.05°（0→916 rpm / 0.1 s）</td></tr>
+<tr><td>离散化余量</td><td>$\omega_n T_s \ll 0.1$、$T_s/\tau_e \ll 0.1$</td><td>0.0251 / 0.050 ✓</td></tr>
+<tr><td>计算量</td><td>≈50 次浮点/周期</td><td>≈1.0 MFLOP/s @20 kHz</td></tr>
+<tr><td>最低可用转速</td><td>由 $E_{pk}$ 与噪声比决定，经验 $\ge$ 100~150 rpm 才稳</td><td>100 rpm 时 $E_{pk}$ 仅 1.51 V ⇒ 已是极限</td></tr>
+</tbody></table>
+
+<p><strong>与站内其它章节的接口</strong>：$\alpha\beta$ 电压方程与建模 ← 第 9 章 9.0；$R_s$ 实测/辨识 ← 第 9 章 9.1/9.9；电流采样链与 1 LSB ← 第 8 章 8.2；PWM 与中断调度 ← 第 8 章 8.3/8.4；观测器全景（龙伯格/MRAS/磁链/HFI）与低速方案 ← 第 10 章第 3、5 章；符号与口径总表 ← 第 12 章。</p>
+
+<hr>
+<h2 id="ch13-12">附录：符号约定自洽表（防抄错）</h2>
+
+<p>无感推导出错的绝大多数情况不是「算错」，而是<strong>几个约定混着用</strong>。下表把本章用的一套约定钉死，抄代码前逐行核一遍：</p>
+
+<table class="sv-table"><thead><tr><th>项</th><th>本章约定</th><th>常见「另一种写法」</th><th>混用后果</th></tr></thead><tbody>
+<tr><td>反电动势正方向</td><td>$e$ 与电流正方向一致（发电机惯例）：$e_\alpha=-\omega_e\psi_f\sin\theta_e$</td><td>取 $+$ 号（电动机惯例）</td><td>atan2 出来整体差 180°，电机反转/抖动</td></tr>
+<tr><td>滑模面</td><td>$s = \hat i - i$（估计减实测）</td><td>$s = i - \hat i$</td><td>切换项符号整体反 ⇒ 发散；<strong>必须同时改 $z$ 的符号或 $-s$ 判据</strong></td></tr>
+<tr><td>切换项量纲</td><td>与 $u$ 同（V）：$L_s\dot{\hat i} = u-R_s\hat i-z$</td><td>与 $\dot i$ 同（A/s）：$\dot{\hat i}=(u-R_s i)/L_s+z$</td><td>$k$ 的数值差 $L_s$ 倍（本例 5.32 mH），判据跟着错</td></tr>
+<tr><td>增益判据</td><td>$k > E_{pk}$（V）</td><td>$k > E_{pk}/L_s$（A/s）</td><td>写成同一个单位就会「怎么调都抖」</td></tr>
+<tr><td>等效控制</td><td>$z_{eq} = e$（本约定下不改号）</td><td>$z_{eq} = -e$（$s$ 取反时）</td><td>$\hat e$ 整体反相 ⇒ 同上</td></tr>
+<tr><td>鉴相器</td><td>$\varepsilon = -\hat e_\alpha\cos\hat\theta_e-\hat e_\beta\sin\hat\theta_e = E_{pk}\sin\Delta\theta$</td><td>写成 $+\hat e_\alpha\sin\hat\theta_e - \hat e_\beta\cos\hat\theta_e$ 等</td><td>变成 $-\sin\Delta\theta$ ⇒ 正反馈、直接失锁</td></tr>
+<tr><td>角度/速度量</td><td>$\theta_e,\omega_e$ 为<strong>电</strong>角度/角速度；机械转速 $n = \omega_e\cdot60/(2\pi p)$</td><td>把 $\omega_e$ 当机械角速度</td><td>转速读数差 $p$=14 倍</td></tr>
+<tr><td>归一化分母</td><td>$\hat E_{pk} = |\hat\omega_e|\psi_f$，带下限</td><td>不归一化（增益随转速漂）</td><td>低速欠阻尼振荡（第 6.4 节表）</td></tr>
+</tbody></table>
+
+<p><strong>一句话总结整章</strong>：$R_s$ 决定「准不准」（失配 ⇒ 载相关角度误差），$\Phi$ 与 $k$ 决定「抖不抖」，$\omega_n/\zeta$ 决定「跟得快不快、稳不稳」，而 $E_{pk}$ 是把这三件事全都串起来的那个量 —— 所以<strong>先把你电机的 $\psi_f,R_s,L_s$ 测准，比调什么增益都重要</strong>。</p>
+
+</section>
+
 <footer class="site-footer">
   <p><b>v2.5</b> · FOC 学习站 · 用视觉、推导与代码理解磁场定向控制 · 建议使用 Chrome/Edge 浏览</p>
-  <p class="ver-note">本版更新：<b>新增第 10~12 章「无感控制」系列</b>（从有感到无感手册 / 公式推导手册 / 符号总表，各含交互动画）；<b>新增第 9 章「电机参数详解」</b>（Kt/Ke/扭矩/反电动势公式、电压预算、3 个交互动画、参数自检 C 脚本）；<b>全站 4310 算例已按规格书统一口径</b>（线电阻 10.7 Ω→相 5.35 Ω、KV=54 → Kt 峰值 0.217 N·m/A、ψ_f=10.3 mWb、p=14）；4.3.1 扇区法与 4.9 节浮点边界修正同前</p>
+  <p class="ver-note">本版更新：<b>新增第 13 章「SMO + PLL 全流程推导」</b>（滑模观测器 + 锁相环端到端推导、Ts=50 µs 差分方程、HAL 风格 C 代码、4310 增益速查表、2 个交互动画）；<b>第 10~12 章「无感控制」系列</b>（从有感到无感手册 / 公式推导手册 / 符号总表，各含交互动画）；<b>新增第 9 章「电机参数详解」</b>（Kt/Ke/扭矩/反电动势公式、电压预算、3 个交互动画、参数自检 C 脚本）；<b>全站 4310 算例已按规格书统一口径</b>（线电阻 10.7 Ω→相 5.35 Ω、KV=54 → Kt 峰值 0.217 N·m/A、ψ_f=10.3 mWb、p=14）；4.3.1 扇区法与 4.9 节浮点边界修正同前</p>
 </footer>
 
 </main>
@@ -5277,11 +5841,12 @@ PWM 频率          20 kHz（T_pwm = 50 µs，本站第 8 章工程设置；手�
   <div id="lightbox-hint">点击任意处或按 Esc 关闭</div>
 </div>
 
-<script src="js/perf.js?v=20260926e"></script>
-<script src="js/main.js?v=20260926e"></script>
-<script src="js/params.js?v=20260926e"></script>
-<script src="js/wugan.js?v=20260926e"></script>
-<script src="js/toc.js?v=20260926e"></script>
-<script src="js/cursor.js?v=20260926e"></script>
+<script src="js/perf.js?v=20260927a"></script>
+<script src="js/main.js?v=20260927a"></script>
+<script src="js/params.js?v=20260927a"></script>
+<script src="js/wugan.js?v=20260927a"></script>
+<script src="js/smo.js"></script>
+<script src="js/toc.js?v=20260927a"></script>
+<script src="js/cursor.js?v=20260927a"></script>
 </body>
 </html>
